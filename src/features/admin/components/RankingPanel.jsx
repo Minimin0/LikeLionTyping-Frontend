@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react'
 import { getAdminRankings, getCategories } from '../api/adminApi'
 import { formatPhone, formatTypingSpeed } from '../../../shared/utils/format'
 
+// Admin-only ranking view. Deliberately calls getAdminRankings() (not the
+// public getRankings()) because staff need the phone number on screen to
+// verify identity before handing out a prize — the public/participant
+// ranking screen must never show it.
 function RankingPanel() {
   const [categories, setCategories] = useState([])
   const [activeCategoryId, setActiveCategoryId] = useState(null)
   const [rankings, setRankings] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
+  // Load the channel list once, then default to the first channel.
   useEffect(() => {
     getCategories().then((data) => {
       setCategories(data)
@@ -15,6 +20,7 @@ function RankingPanel() {
     })
   }, [])
 
+  // Re-fetch whenever the selected channel tab changes.
   useEffect(() => {
     if (activeCategoryId == null) return
     setIsLoading(true)

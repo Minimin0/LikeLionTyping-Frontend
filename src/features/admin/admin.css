@@ -1,3 +1,7 @@
+/* Admin console theme: dark background + LikeLion orange accent, per the
+   Notion design direction ("라디오 기기·방송 화면을 연상시키는 구성 / 어두운
+   배경과 멋사 오렌지색 포인트"). Scoped under src/features/admin only —
+   not imported by the (not-yet-built) participant-facing pages. */
 :root {
   --admin-bg: #0b0d12;
   --admin-surface: #161923;

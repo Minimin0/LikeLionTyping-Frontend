@@ -10,6 +10,11 @@ import {
 import { formatDateTime, formatPhone, formatTypingSpeed } from '../../../shared/utils/format'
 import StatusBadge from './StatusBadge'
 
+// One row per game session. Every destructive action in this file (here
+// and in PassRow/PhoneEditForm below) uses the same two-step pattern —
+// a first click only reveals a confirm row, a second click actually
+// calls the API — so a stray tap during a busy festival shift can't
+// invalidate a match or refund a pass by accident.
 function GameSessionRow({ session, onInvalidated }) {
   const [confirming, setConfirming] = useState(false)
   const [restorePass, setRestorePass] = useState(true)
@@ -76,6 +81,10 @@ function GameSessionRow({ session, onInvalidated }) {
   )
 }
 
+// One row per pass. Which action is offered depends entirely on
+// pass.status: AVAILABLE -> can be cancelled/refunded (paid-but-unused),
+// CONSUMED -> can be restored (fixes a double-charge), CANCELLED -> no
+// action. A pass can never go directly from CANCELLED back to AVAILABLE.
 function PassRow({ pass, onChanged }) {
   const [confirming, setConfirming] = useState(null) // 'cancel' | 'restore' | null
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -169,6 +178,10 @@ function PassRow({ pass, onChanged }) {
   )
 }
 
+// Corrects a mistyped participant phone number. The identity checkbox is
+// a deliberate manual gate — per the Notion spec, staff must verify the
+// participant's identity before editing the number that their whole
+// history (free-play eligibility, records, prize contact) is keyed on.
 function PhoneEditForm({ participant, onUpdated, onCancel }) {
   const [newPhone, setNewPhone] = useState(participant.phone)
   const [confirmedIdentity, setConfirmedIdentity] = useState(false)
@@ -229,6 +242,12 @@ function PhoneEditForm({ participant, onUpdated, onCancel }) {
   )
 }
 
+// Everything staff can see/do for one looked-up participant: pass
+// issuance, the pass table, and the game-session table. After any
+// mutation (issue/cancel/restore/invalidate/phone edit) we re-fetch the
+// participant via refresh() rather than patching local state by hand —
+// simpler to keep correct, and it's how this will behave once refresh()
+// is a real GET call anyway.
 function ParticipantResultCard({ result, onUpdate }) {
   const { participant, passes, sessions } = result
   const [issuing, setIssuing] = useState(false)
@@ -363,6 +382,8 @@ function ParticipantResultCard({ result, onUpdate }) {
   )
 }
 
+// Entry point for the "참가자 조회" tab: a phone-number search box that
+// renders a ParticipantResultCard once a match is found.
 function ParticipantLookupPanel() {
   const [phone, setPhone] = useState('')
   const [result, setResult] = useState(null)
@@ -384,6 +405,8 @@ function ParticipantLookupPanel() {
     }
   }
 
+  // Keeps the search box in sync after a phone-number edit, so a
+  // follow-up search (or a re-render) uses the corrected number.
   function handleUpdate(data) {
     setResult(data)
     setPhone(data.participant.phone)

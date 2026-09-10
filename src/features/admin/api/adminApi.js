@@ -1,9 +1,22 @@
 // Mock Admin API layer.
-// DTO shapes mirror the locked contract in AGENTS.md so swapping these
-// functions for real axios calls to Spring Boot requires no UI changes.
+//
+// Backend (Spring Boot + MySQL) doesn't exist yet, so every export here
+// simulates one Admin endpoint against an in-memory "database" (the
+// mock* arrays below). DTO shapes mirror the locked contract in
+// AGENTS.md so swapping a function body for a real axios call later
+// requires no changes in the components that import it.
+//
+// Endpoints marked with a route comment above them are already in
+// AGENTS.md. cancelPass / restorePassById / updateParticipantPhone are
+// NOT in that contract yet — they cover operational cases from the
+// Notion "오류·취소 처리안" table and need a matching real endpoint
+// before backend integration.
 
+// Fake network latency so loading states are visible during dev/demo.
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+// Strips hyphens/spaces so "010-1234-5678" and "01012345678" match the
+// same participant (per AGENTS.md: normalize before comparing).
 const normalizePhone = (phone) => phone.replace(/[-\s]/g, '')
 
 const mockCategories = [
@@ -22,6 +35,11 @@ function calculateTypingSpeed(categoryId, elapsedMs) {
   const minutes = elapsedMs / 60000
   return Math.round(totalChars / minutes)
 }
+
+// --- In-memory mock "database" ---------------------------------------
+// Reset whenever the page fully reloads (module re-evaluates). Mutated
+// in place by the functions below so the Admin UI reflects each action
+// immediately without a page refresh.
 
 let mockParticipants = [
   { id: 1, nickname: '타자왕', phone: '01012345678', createdAt: '2026-09-11T09:12:00' },
@@ -214,6 +232,10 @@ export async function updateParticipantPhone(participantId, newPhone) {
 }
 
 // POST /api/admin/game-sessions/{gameSessionId}/invalidate
+// AGENTS.md requires invalidate + pass-restore to be a single DB
+// transaction on the real backend so a crash can't leave the session
+// invalidated but the pass still stuck as CONSUMED. This mock does both
+// mutations before the single `return`, matching that all-or-nothing intent.
 export async function invalidateGameSession(gameSessionId, restorePass) {
   await delay(450)
   const session = mockSessions.find((s) => s.id === gameSessionId)
@@ -263,6 +285,10 @@ export async function getAdminRankings(categoryId) {
   return buildRankingList(categoryId)
 }
 
+// Shared by both ranking exports. Per the spec: only a participant's
+// single fastest COMPLETED run in this category counts, and rank order
+// is always by elapsedMs (typingSpeed is just a display conversion of
+// the same value, so sorting by time keeps both in sync).
 function buildRankingList(categoryId) {
   const bestByParticipant = new Map()
 

@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { adminLogin } from '../api/adminApi'
 
+// Staff-only login gate shown before AdminDashboard. Password value never
+// touches this component's state after submit — it's handed straight to
+// adminLogin(), which is the single place that knows how the real backend
+// wants to verify it (Bearer token vs. session cookie, per AGENTS.md).
 function AdminLoginForm({ onLoginSuccess }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')

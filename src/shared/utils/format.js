@@ -1,8 +1,13 @@
+// Raw contract value (elapsedMs, per AGENTS.md). Kept for any screen that
+// needs to show the official completion time as-is.
 export function formatElapsedMs(ms) {
   if (ms == null) return '-'
   return `${(ms / 1000).toFixed(3)}초`
 }
 
+// Typing speed in "타" (characters per minute), the unit staff actually
+// asked for instead of raw seconds. The number itself is computed
+// server-side (mocked in adminApi.calculateTypingSpeed for now).
 export function formatTypingSpeed(typingSpeed) {
   if (typingSpeed == null) return '-'
   return `${typingSpeed}타`
@@ -19,6 +24,9 @@ export function formatDateTime(isoString) {
   })
 }
 
+// Only formats a normalized 11-digit KR mobile number (01012345678 ->
+// 010-1234-5678). Anything else (null, wrong length) is returned as-is
+// or as '-' so callers don't need their own null guard.
 export function formatPhone(phone) {
   if (!phone) return '-'
   if (phone.length !== 11) return phone

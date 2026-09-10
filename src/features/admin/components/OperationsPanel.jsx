@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { getRegistrationStatus, setRegistrationStatus } from '../api/adminApi'
 
+// 마감 관리: lets staff stop taking new payments/retries near the end of
+// the event (long queue, running out of time) without touching in-flight
+// games — those still finish and count toward the final ranking.
 function OperationsPanel() {
   const [open, setOpen] = useState(true)
   const [isLoading, setIsLoading] = useState(true)

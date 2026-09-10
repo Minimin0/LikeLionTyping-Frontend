@@ -3,12 +3,15 @@ import ParticipantLookupPanel from './ParticipantLookupPanel'
 import RankingPanel from './RankingPanel'
 import OperationsPanel from './OperationsPanel'
 
+// Three tabs = the three operator jobs from the Notion 운영진 화면 spec:
+// 참가자 조회(+결제 확인/이용권 발급/무효 처리), 랭킹 확인, 마감 관리.
 const TABS = [
   { id: 'participants', label: '참가자 조회' },
   { id: 'ranking', label: '랭킹 확인' },
   { id: 'operations', label: '운영 관리' },
 ]
 
+// Shell shown after login: header + tab nav + the active tab's panel.
 function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('participants')
 
