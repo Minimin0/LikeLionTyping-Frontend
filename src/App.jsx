@@ -1,11 +1,14 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
+import AdminPage from './features/admin/pages/AdminPage'
 import './styles/global.css'
 
 function App() {
   return (
-    <main className="app-shell">
-      <h1>멋쟁이 타자처럼</h1>
-      <p>React + Vite frontend skeleton</p>
-    </main>
+    <Routes>
+      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/" element={<Navigate to="/admin" replace />} />
+      <Route path="*" element={<Navigate to="/admin" replace />} />
+    </Routes>
   )
 }
 
