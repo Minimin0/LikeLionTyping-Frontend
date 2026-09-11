@@ -3,7 +3,7 @@
  * State Machine(useGameReducer) · 스톱워치(useStopwatch) · 완료 API를 연결하는 조립부다.
  * 판정 로직은 여기 두지 않고 전부 utils / reducer가 담당한다.
  */
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -12,7 +12,6 @@ import { countMatchedKeystrokes } from '@/shared/utils/typingCount'
 
 import { CountdownOverlay } from '../components/CountdownOverlay'
 import { GameMeters } from '../components/GameMeters'
-import { KoreaMap } from '../components/KoreaMap'
 import { GameResult } from '../components/GameResult'
 import { ProgressBar } from '../components/ProgressBar'
 import { SentenceDisplay } from '../components/SentenceDisplay'
@@ -25,7 +24,7 @@ import {
 } from '../hooks/useGameReducer'
 import { useStopwatch } from '../hooks/useStopwatch'
 import { useTypingInput } from '../hooks/useTypingInput'
-import { hasTypo as checkTypo, matchedPrefixLength } from '../utils/charStatus'
+import { hasTypo as checkTypo } from '../utils/charStatus'
 import { calculateCpm } from '../utils/typingSpeed'
 import type { GameLocationState } from './CategorySelectPage'
 
@@ -47,18 +46,6 @@ export function GamePage() {
   // 오타 이후 구간은 세지 않으므로 오타를 고치는 동안에는 타수가 내려간다.
   const keystrokes =
     state.completedKeystrokes + countMatchedKeystrokes(currentSentence, state.input)
-
-  // 지도는 CH.02(전국 대학)에서만 보여준다.
-  const showMap = session?.category.code === 'CH02'
-  // sentences는 세션이 정해질 때 한 번만 세팅되므로 참조가 안정적이다.
-  const universityNames = useMemo(
-    () => state.sentences.map((item) => item.content),
-    [state.sentences],
-  )
-  const routeProgress =
-    currentSentence.length > 0
-      ? matchedPrefixLength(currentSentence, state.input) / currentSentence.length
-      : 0
 
   // 세션 없이 /game/play로 직접 들어온 경우(새로고침 포함)에는 채널 선택으로 되돌린다.
   useEffect(() => {
@@ -206,58 +193,11 @@ export function GamePage() {
     focusInput()
   }
 
-  /*
-   * CH.02는 지도가 주 무대다. 지도를 화면 전체에 깔고 그 위에 정보를 겹친다.
-   * 스크롤이 생기지 않도록 뷰포트 높이에 고정한다.
-   */
-  if (showMap) {
-    return (
-      <main onMouseDown={handleSurfaceMouseDown} className="relative h-dvh w-full overflow-hidden">
-        {state.status === 'COUNTDOWN' && <CountdownOverlay onComplete={handleCountdownComplete} />}
-
-        <KoreaMap
-          names={universityNames}
-          currentIndex={state.currentIndex}
-          progress={routeProgress}
-          className="absolute inset-0"
-        />
-
-        {/*
-         * 상단 오버레이. 그라데이션으로 뒤를 어둡게 깔아 지도 위에서도 글자가 읽힌다.
-         * backdrop-filter는 저사양 기기에서 프레임을 떨어뜨리므로 쓰지 않는다.
-         * pointer-events-none이라 입력 포커스를 가로채지 않는다.
-         */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-4 bg-gradient-to-b from-surface via-surface/80 to-transparent px-4 pb-12 pt-5 sm:px-8">
-          {meters}
-          {progressBar}
-        </div>
-
-        {/*
-         * 타이핑 텍스트 — 화면 중앙보다 살짝 위(47%)에 둔다.
-         * 핀은 28% 지점이라 라벨 아래로 충분한 간격이 남는다.
-         * 그라데이션은 화면 하단 전체가 아니라 텍스트 블록 주변만 위아래로 흐리게 감싼다.
-         */}
-        <div className="pointer-events-none absolute inset-x-0 top-[47%] -translate-y-1/2">
-          <div className="flex flex-col items-center gap-4 bg-gradient-to-b from-transparent via-surface/85 to-transparent px-4 py-16">
-            <SentenceDisplay
-              sentence={currentSentence}
-              input={state.input}
-              isComposing={state.isComposing}
-              className="typing-sentence-hero"
-            />
-            {statusMessage}
-          </div>
-        </div>
-
-        {typingInput}
-      </main>
-    )
-  }
-
+  // 세 카테고리가 모두 같은 화면을 쓴다. 뷰포트 높이에 고정해 스크롤이 생기지 않게 한다.
   return (
     <main
       onMouseDown={handleSurfaceMouseDown}
-      className="relative mx-auto flex min-h-full w-full max-w-4xl flex-col justify-center gap-10 px-4 py-10"
+      className="relative mx-auto flex h-dvh w-full max-w-5xl flex-col overflow-hidden px-4 py-6 sm:px-8"
     >
       {state.status === 'COUNTDOWN' && <CountdownOverlay onComplete={handleCountdownComplete} />}
 
@@ -266,17 +206,17 @@ export function GamePage() {
         {progressBar}
       </header>
 
-      {/* 문장이 화면에서 가장 큰 요소다. 주변 UI는 상대적으로 작게 둔다. */}
-      <section className="flex min-h-[9rem] w-full items-center justify-center sm:min-h-[12rem]">
+      {/* 문장이 화면 중앙에서 가장 큰 요소다. 주변 UI는 상대적으로 작게 둔다. */}
+      <section className="flex flex-1 flex-col items-center justify-center gap-5">
         <SentenceDisplay
           sentence={currentSentence}
           input={state.input}
           isComposing={state.isComposing}
         />
+        {statusMessage}
       </section>
 
       {typingInput}
-      {statusMessage}
     </main>
   )
 }

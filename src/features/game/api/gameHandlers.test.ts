@@ -25,28 +25,24 @@ describe('POST /api/game-sessions', () => {
     expect(session.sentences.map((item) => item.sequence)).toEqual([1, 2, 3, 4, 5])
   })
 
-  it('CH.02는 대학 20개를 내려주고 첫 번째는 항상 성결대다', async () => {
+  it('CH.02는 해커톤 소개 문장 5개를 순서대로 내려준다', async () => {
     const session = await startGame({ participantId: 1, categoryId: 2 })
 
-    expect(session.sentences).toHaveLength(20)
-    expect(session.sentences[0].content).toBe('성결대')
-    expect(new Set(session.sentences.map((item) => item.content)).size).toBe(20)
+    expect(session.sentences).toHaveLength(5)
+    expect(session.sentences[0].content).toBe('멋사에는 약 80개의 대학이 참여합니다')
   })
 
-  it('CH.02를 다시 시작하면 2번째 이후 대학이 달라진다', async () => {
+  it('다시 시작해도 문장 순서가 바뀌지 않는다 — 백엔드가 준 순서 그대로다', async () => {
     const first = await startGame({ participantId: 1, categoryId: 2 })
     const second = await startGame({ participantId: 1, categoryId: 2 })
 
-    const toKey = (s: typeof first) => s.sentences.map((item) => item.content).join('|')
-    expect(toKey(first)).not.toBe(toKey(second))
-    // 첫 번째만은 항상 고정이다
-    expect(first.sentences[0].content).toBe(second.sentences[0].content)
+    expect(first.sentences).toEqual(second.sentences)
   })
 
-  it('CH.03은 기존 문장 5개가 유지된다', async () => {
+  it('CH.03은 축제 문장 5개를 순서대로 내려준다', async () => {
     const session = await startGame({ participantId: 1, categoryId: 3 })
 
     expect(session.sentences).toHaveLength(5)
-    expect(session.sentences[0].content).toBe('지금부터 축제 라디오 방송을 시작하겠습니다')
+    expect(session.sentences[0].content).toBe('축제의 밤은 언제나 짧고 반짝인다.')
   })
 })

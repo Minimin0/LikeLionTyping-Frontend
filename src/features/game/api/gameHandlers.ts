@@ -15,12 +15,10 @@ import type {
   CompleteGameResponse,
   GameSessionResponse,
   GameSessionStatus,
-  SentenceDto,
   StartGameRequest,
 } from '../types/game.types'
-import { CH02_ITEM_COUNT, MOCK_INITIAL_PASS_COUNT } from '../constants/game.constants'
+import { MOCK_INITIAL_PASS_COUNT } from '../constants/game.constants'
 import { MOCK_CATEGORIES, MOCK_SENTENCES } from '../constants/mockSentences'
-import { pickUniversities } from '../constants/universities'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -47,25 +45,6 @@ export function resetMockGameState() {
   nextSessionId = 21
   personalBestMs = null
   sessions.clear()
-}
-
-/**
- * 카테고리별 출제 항목을 만든다.
- *
- * CH.02는 대학 이름 20개를 매 세션마다 새로 추첨한다. 추첨이 "서버" 쪽인
- * 이 핸들러 안에서 딱 한 번 일어나기 때문에, 화면이 몇 번 리렌더되든
- * 목록이 다시 섞이지 않는다.
- *
- * TODO: 백엔드 연동 시 제거 — 실제 서버가 sentences를 직접 내려준다.
- */
-function buildSentences(categoryCode: string): SentenceDto[] {
-  if (categoryCode === 'CH02') {
-    return pickUniversities(CH02_ITEM_COUNT).map((name, index) => ({
-      sequence: index + 1,
-      content: name,
-    }))
-  }
-  return MOCK_SENTENCES[categoryCode] ?? []
 }
 
 /* ---- 핸들러 ---- */
@@ -106,7 +85,8 @@ export const gameHandlers = [
     const body: GameSessionResponse = {
       gameSessionId,
       category,
-      sentences: buildSentences(category.code),
+      // 백엔드가 준 순서 그대로 내려준다. 섞거나 재정렬하지 않는다.
+      sentences: MOCK_SENTENCES[category.code] ?? [],
     }
     return HttpResponse.json(body)
   }),

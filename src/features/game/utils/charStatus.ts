@@ -56,21 +56,6 @@ export function hasTypo(sentence: string, input: string, isComposing: boolean): 
 }
 
 /**
- * 앞에서부터 목표와 정확히 일치하는 글자 수.
- * 지도 연출에서 "현재 구간을 얼마나 지나왔는지" 진행률을 낼 때 쓴다.
- * 첫 오타에서 멈추므로 오타를 내면 진행률이 줄어 선이 되돌아온다.
- */
-export function matchedPrefixLength(sentence: string, input: string): number {
-  const length = Math.min(sentence.length, input.length)
-
-  for (let i = 0; i < length; i += 1) {
-    if (sentence[i] !== input[i]) return i
-  }
-
-  return length
-}
-
-/**
  * 다음 항목으로 넘어갈 수 있는지 판정한다.
  * 조합이 끝났고(isComposing === false) 입력이 목표와 완전히 같을 때만 true.
  */
