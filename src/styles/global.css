@@ -1,28 +1,29 @@
-* {
-  box-sizing: border-box;
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-surface font-sans text-ink antialiased;
+    margin: 0;
+  }
+
+  /* 스톱워치처럼 숫자가 빠르게 바뀌는 영역은 자릿수 폭을 고정해 흔들림을 막는다. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
 }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1f2937;
-  background: #f8fafc;
-}
-
-.app-shell {
-  min-height: 100vh;
-  display: grid;
-  place-content: center;
-  gap: 8px;
-  text-align: center;
-}
-
-.app-shell h1 {
-  margin: 0;
-  font-size: 40px;
-}
-
-.app-shell p {
-  margin: 0;
-  color: #64748b;
+@layer components {
+  /* 타이핑 문장 영역: 글자 수가 바뀌어도 줄 높이가 흔들리지 않도록 고정한다. */
+  .typing-sentence {
+    @apply whitespace-pre-wrap break-keep text-2xl leading-[1.9] tracking-[0.02em] sm:text-3xl sm:leading-[1.9];
+  }
 }
