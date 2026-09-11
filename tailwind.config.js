@@ -38,7 +38,6 @@ export default {
           pending: '#6b7896', // 아직 입력하지 않은 글자
           correct: '#4f8dff', // 정타
           typo: '#ff5c6b', // 오타
-          composing: '#8fb6ff', // 한글 조합 중(판정 보류)
         },
         accent: {
           DEFAULT: '#4f8dff',
@@ -47,17 +46,12 @@ export default {
         onair: '#ff3b5c', // 라디오 ON AIR 시그널
       },
       keyframes: {
-        caret: {
-          '0%, 45%': { opacity: '1' },
-          '55%, 100%': { opacity: '0' },
-        },
         pulseAir: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.45' },
         },
       },
       animation: {
-        caret: 'caret 1s step-end infinite',
         'pulse-air': 'pulseAir 1.4s ease-in-out infinite',
       },
     },

@@ -1,76 +1,41 @@
-﻿/**
- * 타이핑 입력창.
- * IME/Enter 처리는 전부 useTypingInput 훅이 담당하고, 여기서는 렌더링만 한다.
+/**
+ * 화면에 보이지 않는 실제 입력창.
+ *
+ * 한글 IME는 DOM의 실제 입력 요소에서만 compositionstart/compositionend를 발생시킨다.
+ * 입력창을 아예 없애고 keydown만 듣는 방식으로는 한글 조합을 받을 수 없어서,
+ * 요소는 유지하되 시각적으로만 감춘다.
+ *
+ * display:none / visibility:hidden 을 쓰면 안 되는 이유:
+ * 두 속성은 요소를 포커스 불가 상태로 만들기 때문에 포커스도, IME 조합도 동작하지 않는다.
+ * 그래서 opacity:0 + 1px 크기로 감춘다.
  */
-import { useTypingInput } from '../hooks/useTypingInput'
+import type { RefObject } from 'react'
+
+import type { useTypingInput } from '../hooks/useTypingInput'
 
 interface TypingInputProps {
   value: string
-  /** 현재 입력해야 할 문장 */
-  target: string
-  /** 오타가 남아있는지 여부 (테두리/안내 문구용) */
-  hasTypo: boolean
   disabled: boolean
-  onChange: (value: string) => void
-  onComposingChange: (isComposing: boolean) => void
-  onSubmitSentence: () => void
+  inputRef: RefObject<HTMLInputElement | null>
+  inputProps: ReturnType<typeof useTypingInput>['inputProps']
 }
 
-export function TypingInput({
-  value,
-  target,
-  hasTypo,
-  disabled,
-  onChange,
-  onComposingChange,
-  onSubmitSentence,
-}: TypingInputProps) {
-  const {
-    inputRef,
-    handleChange,
-    handleCompositionStart,
-    handleCompositionEnd,
-    handleKeyDown,
-    handleBlur,
-  } = useTypingInput({ target, disabled, onChange, onComposingChange, onSubmitSentence })
-
-  const isReadyToSubmit = !hasTypo && value === target && value.length > 0
-
+export function TypingInput({ value, disabled, inputRef, inputProps }: TypingInputProps) {
   return (
-    <div className="w-full">
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        disabled={disabled}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="off"
-        spellCheck={false}
-        placeholder="위 문장을 그대로 입력하세요"
-        aria-label="타이핑 입력창"
-        aria-invalid={hasTypo}
-        onChange={handleChange}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
-        onKeyDown={handleKeyDown}
-        onBlur={handleBlur}
-        className={[
-          'w-full rounded-xl border-2 bg-surface-soft px-4 py-3.5 text-lg text-ink outline-none transition-colors sm:text-xl',
-          'placeholder:text-ink-dim disabled:cursor-not-allowed disabled:opacity-50',
-          hasTypo ? 'border-typing-typo' : isReadyToSubmit ? 'border-accent' : 'border-line',
-        ].join(' ')}
-      />
-
-      <p className="mt-2 min-h-[1.25rem] text-sm" role="status">
-        {hasTypo ? (
-          <span className="text-typing-typo">오타를 수정해야 다음 문장으로 넘어갈 수 있어요</span>
-        ) : isReadyToSubmit ? (
-          <span className="text-accent">Enter를 눌러 다음으로 넘어가세요</span>
-        ) : (
-          <span className="text-ink-dim">문장을 정확히 입력한 뒤 Enter를 누르세요</span>
-        )}
-      </p>
-    </div>
+    <input
+      ref={inputRef}
+      type="text"
+      value={value}
+      disabled={disabled}
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
+      spellCheck={false}
+      aria-label="타이핑 입력창"
+      {...inputProps}
+      // caret-transparent / outline-none: 감춰둔 요소라도 브라우저가 커서나 포커스 링을
+      // 그려서 파란 선이 새어 나오는 것을 막는다.
+      className="absolute left-0 top-0 h-px w-px border-0 bg-transparent p-0 text-transparent caret-transparent opacity-0 outline-none"
+    />
   )
 }

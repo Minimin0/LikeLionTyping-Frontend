@@ -12,6 +12,8 @@
   body {
     @apply bg-surface font-sans text-ink antialiased;
     margin: 0;
+    /* 진행 상태는 오직 글자 색상으로만 표현한다. 텍스트 커서는 어디에도 보이지 않게 한다. */
+    caret-color: transparent;
   }
 
   /* 스톱워치처럼 숫자가 빠르게 바뀌는 영역은 자릿수 폭을 고정해 흔들림을 막는다. */
@@ -22,8 +24,11 @@
 }
 
 @layer components {
-  /* 타이핑 문장 영역: 글자 수가 바뀌어도 줄 높이가 흔들리지 않도록 고정한다. */
+  /*
+   * 타이핑 문장 영역: 화면에서 가장 큰 요소다.
+   * leading을 고정값으로 두어 글자 수가 바뀌어도 줄 높이가 흔들리지 않게 한다.
+   */
   .typing-sentence {
-    @apply whitespace-pre-wrap break-keep text-2xl leading-[1.9] tracking-[0.02em] sm:text-3xl sm:leading-[1.9];
+    @apply whitespace-pre-wrap break-keep text-center text-3xl font-semibold leading-[1.6] tracking-[0.01em] sm:text-4xl sm:leading-[1.6] lg:text-5xl lg:leading-[1.5];
   }
 }

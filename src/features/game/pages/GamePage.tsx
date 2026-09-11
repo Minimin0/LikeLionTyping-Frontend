@@ -21,6 +21,7 @@ import {
   useGameReducer,
 } from '../hooks/useGameReducer'
 import { useStopwatch } from '../hooks/useStopwatch'
+import { useTypingInput } from '../hooks/useTypingInput'
 import { hasTypo as checkTypo } from '../utils/charStatus'
 import type { GameLocationState } from './CategorySelectPage'
 
@@ -36,6 +37,7 @@ export function GamePage() {
   const currentSentence = selectCurrentSentence(state)
   const isLastSentence = selectIsLastSentence(state)
   const hasTypo = checkTypo(currentSentence, state.input, state.isComposing)
+  const isPlaying = state.status === 'PLAYING'
 
   // 세션 없이 /game/play로 직접 들어온 경우(새로고침 포함)에는 채널 선택으로 되돌린다.
   useEffect(() => {
@@ -68,6 +70,17 @@ export function GamePage() {
     const elapsedMs = stopwatch.stop()
     dispatch({ type: 'FINISH', elapsedMs })
   }, [isLastSentence, stopwatch, dispatch])
+
+  const { inputRef, isFocused, focusInput, inputProps } = useTypingInput({
+    target: currentSentence,
+    disabled: !isPlaying,
+    onChange: useCallback((value: string) => dispatch({ type: 'TYPE_INPUT', value }), [dispatch]),
+    onComposingChange: useCallback(
+      (composing: boolean) => dispatch({ type: 'SET_COMPOSING', isComposing: composing }),
+      [dispatch],
+    ),
+    onSubmitSentence: handleSubmitSentence,
+  })
 
   // SUBMITTING에 진입하면 완료 API를 딱 한 번 보낸다.
   // StrictMode의 이펙트 2회 실행이나 재렌더로 중복 전송되지 않도록 ref로 잠근다.
@@ -115,29 +128,37 @@ export function GamePage() {
           onClick={() => dispatch({ type: 'START_COUNTDOWN' })}
           className="w-full rounded-xl bg-accent px-6 py-4 text-lg font-semibold text-surface transition-opacity hover:opacity-90"
         >
-          방송 시작
+          게임 시작
         </button>
       </main>
     )
   }
 
-  const isPlaying = state.status === 'PLAYING'
-
   return (
-    <main className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center gap-8 px-4 py-10">
+    <main
+      // 화면 아무 곳이나 누르면 숨겨진 입력창으로 포커스를 되돌린다.
+      // mousedown에서 preventDefault를 해야 브라우저가 포커스를 다른 곳으로 옮기지 않는다.
+      onMouseDown={(event) => {
+        event.preventDefault()
+        focusInput()
+      }}
+      className="relative mx-auto flex min-h-full w-full max-w-4xl flex-col justify-center gap-10 px-4 py-10"
+    >
       {state.status === 'COUNTDOWN' && <CountdownOverlay onComplete={handleCountdownComplete} />}
 
-      <header className="flex flex-col gap-5">
+      <header className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
-          <span className="text-sm font-semibold tracking-widest text-onair">
+          <span className="text-xs font-semibold tracking-widest text-onair sm:text-sm">
             {session.category.name}
           </span>
           <Stopwatch elapsedMs={stopwatch.displayMs} isRunning={isPlaying} />
         </div>
+        {/* 전체 개수는 카테고리마다 다르므로(CH02는 20개) 배열 길이를 그대로 쓴다. */}
         <ProgressBar current={state.currentIndex + 1} total={state.sentences.length} />
       </header>
 
-      <section className="rounded-2xl border border-line bg-surface-card px-5 py-7 sm:px-8 sm:py-9">
+      {/* 문장이 화면에서 가장 큰 요소다. 주변 UI는 상대적으로 작게 둔다. */}
+      <section className="flex min-h-[9rem] items-center justify-center sm:min-h-[12rem]">
         <SentenceDisplay
           sentence={currentSentence}
           input={state.input}
@@ -147,18 +168,23 @@ export function GamePage() {
 
       <TypingInput
         value={state.input}
-        target={currentSentence}
-        hasTypo={hasTypo}
         // SUBMITTING 중에는 입력과 Enter를 전부 막아 완료 요청이 중복되지 않게 한다.
         disabled={!isPlaying}
-        onChange={(value) => dispatch({ type: 'TYPE_INPUT', value })}
-        onComposingChange={(isComposing) => dispatch({ type: 'SET_COMPOSING', isComposing })}
-        onSubmitSentence={handleSubmitSentence}
+        inputRef={inputRef}
+        inputProps={inputProps}
       />
 
-      {state.status === 'SUBMITTING' && (
-        <p className="text-center text-sm text-ink-muted">기록을 전송하는 중입니다...</p>
-      )}
+      <p className="min-h-[1.5rem] text-center text-sm" role="status">
+        {state.status === 'SUBMITTING' ? (
+          <span className="text-ink-muted">기록을 전송하는 중입니다...</span>
+        ) : hasTypo ? (
+          <span className="text-typing-typo">오타를 수정해야 다음으로 넘어갈 수 있어요</span>
+        ) : !isFocused && isPlaying ? (
+          <span className="text-ink-muted">클릭해서 계속 입력하세요</span>
+        ) : (
+          <span className="text-ink-dim">정확히 입력한 뒤 Enter를 누르세요</span>
+        )}
+      </p>
     </main>
   )
 }
