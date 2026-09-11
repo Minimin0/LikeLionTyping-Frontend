@@ -4,8 +4,8 @@
  * 본지도는 현재 대학 주변으로 확대되기 때문에 전국에서 지금 어디쯤인지 감이 사라진다.
  * 미니맵은 확대하지 않고 전국 고정이라 그 맥락을 계속 보여준다.
  *
- * 경로는 세션이 정해질 때 한 번만 계산되므로 memo로 재렌더를 막는다.
- * (현재 위치 점 하나만 순번이 바뀔 때 움직인다)
+ * 지나온 경로와 현재 위치만 보여준다. 순번이 바뀔 때만 다시 계산하면 되므로
+ * memo로 타이핑 중 재렌더를 막는다.
  */
 import { memo, useMemo } from 'react'
 
@@ -21,7 +21,11 @@ interface MiniMapProps {
 }
 
 export const MiniMap = memo(function MiniMap({ points, currentIndex, className }: MiniMapProps) {
-  const routePoints = useMemo(() => toPolylinePoints(points), [points])
+  // 본지도와 마찬가지로 앞으로 갈 곳은 미리 보여주지 않는다. 지나온 경로만 그린다.
+  const visitedPoints = useMemo(
+    () => toPolylinePoints(points.filter((point) => point.index <= currentIndex)),
+    [points, currentIndex],
+  )
   const current = findPointAt(points, currentIndex)
 
   return (
@@ -43,7 +47,7 @@ export const MiniMap = memo(function MiniMap({ points, currentIndex, className }
       />
 
       <polyline
-        points={routePoints}
+        points={visitedPoints}
         fill="none"
         stroke="var(--color-route-done)"
         strokeWidth={5}

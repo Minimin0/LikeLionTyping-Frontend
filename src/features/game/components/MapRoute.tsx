@@ -1,8 +1,11 @@
 /**
- * 경로 레이어 — 전체 미리보기 점선 / 지나온 실선 / 현재 구간.
+ * 경로 레이어 — 지나온 실선 / 현재 구간.
+ *
+ * 앞으로 갈 곳을 미리 보여주지 않는다. 지나갈 때마다 한 구간씩 그려져야
+ * 지도가 깔끔하고 다음 목적지에 대한 긴장감도 생긴다.
  *
  * 타이핑할 때마다 바뀌는 것은 현재 구간 선의 끝점 좌표 하나뿐이다.
- * 나머지 두 경로는 문장이 넘어갈 때만 다시 계산한다.
+ * 지나온 경로는 문장이 넘어갈 때만 다시 계산한다.
  *
  * 모든 선에 vector-effect="non-scaling-stroke"를 준다.
  * 카메라가 확대되면 선 굵기까지 같이 커져서 경로가 띠처럼 두꺼워지기 때문이다.
@@ -23,9 +26,6 @@ interface MapRouteProps {
 }
 
 export function MapRoute({ points, currentIndex, progress, zoom }: MapRouteProps) {
-  // 20개 대학 전체를 잇는 옅은 점선. 게임 내내 바뀌지 않는다.
-  const previewPoints = useMemo(() => toPolylinePoints(points), [points])
-
   // 이미 통과한 구간. 문장이 넘어갈 때만 다시 만든다.
   const visitedPoints = useMemo(
     () => toPolylinePoints(points.filter((point) => point.index <= currentIndex)),
@@ -39,17 +39,7 @@ export function MapRoute({ points, currentIndex, progress, zoom }: MapRouteProps
 
   return (
     <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-      {/* 1. 아직 안 지난 경로 — 처음부터 20개가 전부 이어져 보이게 한다 */}
-      <polyline
-        points={previewPoints}
-        stroke="var(--color-route-todo)"
-        strokeWidth={1.5}
-        strokeOpacity={0.22}
-        strokeDasharray="2 6"
-        vectorEffect="non-scaling-stroke"
-      />
-
-      {/* 2. 지나온 경로 — 점선 위에 실선으로 덧그려 채워진 느낌을 준다 */}
+      {/* 지나온 경로 — 타이핑해서 지나갈 때마다 한 구간씩 그려진다 */}
       <polyline
         points={visitedPoints}
         stroke="var(--color-route-done)"
@@ -57,7 +47,7 @@ export function MapRoute({ points, currentIndex, progress, zoom }: MapRouteProps
         vectorEffect="non-scaling-stroke"
       />
 
-      {/* 3. 현재 구간 — 진행률만큼만 뻗는다. 오타가 나면 진행률이 줄어 선이 되돌아온다. */}
+      {/* 현재 구간 — 진행률만큼만 뻗는다. 오타가 나면 진행률이 줄어 선이 되돌아온다. */}
       {from && head && (
         <>
           <line
