@@ -5,6 +5,8 @@
  * 판정은 하지 않고 utils/charStatus.ts가 계산한 결과를 그리기만 한다.
  * 진행 상태는 오직 글자 색상으로만 표현한다. (밑줄·커서·배경 강조 없음)
  */
+import { memo } from 'react'
+
 import { getCharCells } from '../utils/charStatus'
 import type { CharCell } from '../types/game.types'
 
@@ -27,7 +29,15 @@ const STATUS_CLASS: Record<CharCell['status'], string> = {
   COMPOSING: 'text-typing-correct',
 }
 
-export function SentenceDisplay({ sentence, input, isComposing }: SentenceDisplayProps) {
+/**
+ * memo로 감싸는 이유: 스톱워치·타수가 갱신될 때마다 이 무거운 글자 단위 렌더링까지
+ * 다시 돌면 입력이 밀린다. 입력값이 실제로 바뀔 때만 다시 그리게 한다.
+ */
+export const SentenceDisplay = memo(function SentenceDisplay({
+  sentence,
+  input,
+  isComposing,
+}: SentenceDisplayProps) {
   const cells = getCharCells(sentence, input, isComposing)
 
   return (
@@ -40,4 +50,4 @@ export function SentenceDisplay({ sentence, input, isComposing }: SentenceDispla
       ))}
     </p>
   )
-}
+})

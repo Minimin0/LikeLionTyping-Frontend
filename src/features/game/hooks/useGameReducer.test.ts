@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { countKeystrokesOfText } from '@/shared/utils/typingCount'
+
 import type { SentenceDto } from '../types/game.types'
 import { gameReducer, initialGameState, type GameState } from './useGameReducer'
 
@@ -81,6 +83,33 @@ describe('gameReducer — 오타가 있으면 다음 문장으로 넘어가지 �
   it('마지막 문장에서는 NEXT_SENTENCE가 인덱스를 넘기지 않는다 (FINISH가 처리)', () => {
     const state = playing({ currentIndex: 1, input: '라마바' })
     expect(gameReducer(state, { type: 'NEXT_SENTENCE' }).currentIndex).toBe(1)
+  })
+})
+
+describe('gameReducer — 타건 수 누적', () => {
+  it('시작 시 누적 타건 수는 0이다', () => {
+    expect(playing().completedKeystrokes).toBe(0)
+  })
+
+  it('문장을 통과하면 그 문장의 타건 수가 누적된다', () => {
+    const next = gameReducer(playing({ input: '가나다' }), { type: 'NEXT_SENTENCE' })
+    // 가(2) + 나(2) + 다(2)
+    expect(next.completedKeystrokes).toBe(countKeystrokesOfText('가나다'))
+  })
+
+  it('오타로 진행이 막히면 타건 수도 누적되지 않는다', () => {
+    const next = gameReducer(playing({ input: '가라다' }), { type: 'NEXT_SENTENCE' })
+    expect(next.completedKeystrokes).toBe(0)
+  })
+
+  it('마지막 문장까지 끝내면 전체 문장의 타건 수가 누적된다', () => {
+    const afterFirst = gameReducer(playing({ input: '가나다' }), { type: 'NEXT_SENTENCE' })
+    const finished = gameReducer(
+      { ...afterFirst, input: '라마바' },
+      { type: 'FINISH', elapsedMs: 43821 },
+    )
+
+    expect(finished.completedKeystrokes).toBe(countKeystrokesOfText('가나다라마바'))
   })
 })
 

@@ -13,13 +13,15 @@ import type { CompleteGameResponse } from '../types/game.types'
 interface GameResultProps {
   /** 프론트가 측정한 이번 기록 */
   elapsedMs: number | null
+  /** 최종 평균 타수(타/분). 화면 표시 전용 값이다. */
+  cpm: number
   /** 완료 API 응답. 실패한 경우 null */
   result: CompleteGameResponse | null
   errorCode: ApiErrorCode | null
   onRestart: () => void
 }
 
-export function GameResult({ elapsedMs, result, errorCode, onRestart }: GameResultProps) {
+export function GameResult({ elapsedMs, cpm, result, errorCode, onRestart }: GameResultProps) {
   return (
     <section className="mx-auto flex w-full max-w-xl flex-col items-center gap-8 text-center">
       <div className="flex flex-col items-center gap-2">
@@ -36,6 +38,8 @@ export function GameResult({ elapsedMs, result, errorCode, onRestart }: GameResu
         <p className="tabular text-6xl font-bold text-ink sm:text-7xl">
           {elapsedMs === null ? '--.---' : formatElapsedMs(elapsedMs)}
         </p>
+        {/* 순위는 elapsedMs로만 정해진다. 타수는 참고용 표시일 뿐이다. */}
+        <p className="tabular mt-1 text-sm text-ink-muted">평균 {cpm} 타/분</p>
       </div>
 
       {errorCode ? (

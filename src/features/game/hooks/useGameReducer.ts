@@ -10,6 +10,7 @@
 import { useReducer } from 'react'
 
 import type { ApiErrorCode } from '@/shared/api/apiError'
+import { countKeystrokesOfText } from '@/shared/utils/typingCount'
 
 import type { CompleteGameResponse, GameStatus, SentenceDto } from '../types/game.types'
 import { canAdvance } from '../utils/charStatus'
@@ -26,6 +27,11 @@ export interface GameState {
   input: string
   /** 한글 IME 조합 진행 여부 */
   isComposing: boolean
+  /**
+   * 이미 통과한 문장들의 타건 수 합계.
+   * 현재 문장의 진행분은 매 입력마다 달라지므로 여기 담지 않고 화면에서 더한다.
+   */
+  completedKeystrokes: number
   /** 프론트가 측정한 공식 기록. FINISH 시점에 확정된다. */
   elapsedMs: number | null
   /** 완료 API 응답. PB/랭킹은 전부 여기(=Backend) 값만 쓴다. */
@@ -61,6 +67,7 @@ export const initialGameState: GameState = {
   currentIndex: 0,
   input: '',
   isComposing: false,
+  completedKeystrokes: 0,
   elapsedMs: null,
   result: null,
   errorCode: null,
@@ -112,7 +119,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // 마지막 문장은 FINISH가 처리한다. 여기서 인덱스를 넘기면 범위를 벗어난다.
       if (selectIsLastSentence(state)) return state
 
-      return { ...state, currentIndex: state.currentIndex + 1, input: '', isComposing: false }
+      return {
+        ...state,
+        currentIndex: state.currentIndex + 1,
+        input: '',
+        isComposing: false,
+        // 통과한 문장의 타건 수를 누적한다. 이 시점의 입력은 문장과 완전히 같다.
+        completedKeystrokes:
+          state.completedKeystrokes + countKeystrokesOfText(selectCurrentSentence(state)),
+      }
     }
 
     case 'FINISH': {
@@ -121,7 +136,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!canAdvance(selectCurrentSentence(state), state.input, state.isComposing)) return state
 
       // SUBMITTING으로 넘어가는 순간부터 Enter 연타가 들어와도 위의 가드에 전부 걸린다.
-      return { ...state, status: 'SUBMITTING', elapsedMs: action.elapsedMs }
+      return {
+        ...state,
+        status: 'SUBMITTING',
+        elapsedMs: action.elapsedMs,
+        // 마지막 문장분까지 더해야 결과 화면의 평균 타수가 맞는다.
+        completedKeystrokes:
+          state.completedKeystrokes + countKeystrokesOfText(selectCurrentSentence(state)),
+      }
     }
 
     case 'SUBMIT_SUCCESS':

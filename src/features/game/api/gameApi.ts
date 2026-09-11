@@ -34,6 +34,10 @@ export async function startGame(body: StartGameRequest): Promise<GameSessionResp
  * POST /api/game-sessions/{id}/complete
  * 프론트가 보내는 값은 elapsedMs 하나뿐이고,
  * PB / rank / 공식 기록 인정 여부는 전부 응답(=Backend)에서 받아온다.
+ *
+ * 화면에 보여주는 타수(cpm)는 명세서에 없는 필드이므로 body에 넣지 않는다.
+ * 랭킹 기준도 오직 elapsedMs다.
+ * TODO: 타수 저장이 필요해지면 BE와 DTO 협의 후 추가
  */
 export async function completeGame(
   gameSessionId: number,
