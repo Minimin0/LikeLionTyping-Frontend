@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ParticipantLookupPanel from './ParticipantLookupPanel'
 import RankingPanel from './RankingPanel'
 import OperationsPanel from './OperationsPanel'
@@ -11,9 +12,10 @@ const TABS = [
   { id: 'operations', label: '운영 관리' },
 ]
 
-// Shell shown after login: header + tab nav + the active tab's panel.
-function AdminDashboard({ onLogout }) {
+// Shell: header + tab nav + the active tab's panel.
+function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('participants')
+  const navigate = useNavigate()
 
   return (
     <div>
@@ -25,8 +27,12 @@ function AdminDashboard({ onLogout }) {
             <div className="admin-header__subtitle">운영진 콘솔 · STAFF CONSOLE</div>
           </div>
         </div>
-        <button type="button" className="btn btn--ghost btn--sm" onClick={onLogout}>
-          로그아웃
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={() => navigate('/play')}
+        >
+          참가자 화면으로
         </button>
       </header>
 

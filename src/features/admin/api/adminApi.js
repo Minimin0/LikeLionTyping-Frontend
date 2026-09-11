@@ -101,20 +101,6 @@ let nextPassId = 5
 
 let registrationOpen = true
 
-// POST /api/admin/login
-export async function adminLogin(password) {
-  await delay(500)
-  if (!password || password.trim().length < 4) {
-    const error = new Error('비밀번호를 4자 이상 입력해주세요.')
-    error.code = 'INVALID_ADMIN_PASSWORD'
-    throw error
-  }
-  // Actual credential verification happens on the Spring Boot server
-  // (server env var + Spring Security). This mock only simulates the
-  // network round trip so the Admin UI can be built ahead of Backend.
-  return { token: 'mock-admin-session-token' }
-}
-
 // GET /api/admin/participants?phone={phone}
 export async function searchParticipantByPhone(phone) {
   await delay(450)
