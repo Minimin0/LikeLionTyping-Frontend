@@ -26,11 +26,14 @@ const SESSION: GameSessionResponse = {
 
 let completeCallCount = 0
 let lastElapsedMs: number | null = null
+let lastRequestKeys: string[] = []
 
 const server = setupServer(
   http.post('*/game-sessions/:gameSessionId/complete', async ({ request }) => {
     completeCallCount += 1
-    const { elapsedMs } = (await request.json()) as { elapsedMs: number }
+    const body = (await request.json()) as { elapsedMs: number }
+    lastRequestKeys = Object.keys(body)
+    const { elapsedMs } = body
     lastElapsedMs = elapsedMs
     return HttpResponse.json({
       elapsedMs,
@@ -48,6 +51,7 @@ afterAll(() => server.close())
 beforeEach(() => {
   completeCallCount = 0
   lastElapsedMs = null
+  lastRequestKeys = []
 })
 
 function renderGamePage() {
@@ -114,6 +118,50 @@ describe('GamePage — 게임 진행', () => {
     // PB / 순위는 서버 응답을 그대로 보여준다
     expect(screen.getByText('3위')).toBeInTheDocument()
     expect(screen.getByText('개인 최고 기록 경신')).toBeInTheDocument()
+  }, 20000)
+
+  it('완료 요청 body에는 elapsedMs 외의 필드가 들어가지 않는다', async () => {
+    const user = userEvent.setup()
+    renderGamePage()
+    const input = await startGame(user)
+
+    await user.type(input, '가나다{Enter}')
+    await user.type(input, '라마바{Enter}')
+    await screen.findByText('방송 완료', undefined, { timeout: 6000 })
+
+    // 타수(cpm)는 화면 표시 전용이라 명세에 없는 필드로 새어 나가면 안 된다
+    expect(lastRequestKeys).toEqual(['elapsedMs'])
+  }, 20000)
+})
+
+describe('GamePage — 타수 표시', () => {
+  it('게임 중 스톱워치 옆에 현재 타수가 보인다', async () => {
+    const user = userEvent.setup()
+    renderGamePage()
+    const input = await startGame(user)
+
+    expect(screen.getByText('경과 시간')).toBeInTheDocument()
+    expect(screen.getByText('현재 타수')).toBeInTheDocument()
+
+    // 시작 직후에는 경과 시간이 짧아 0으로 표시된다 (Infinity/NaN 방지)
+    expect(screen.getByText('타').previousSibling?.textContent).not.toMatch(/Infinity|NaN/)
+
+    await user.type(input, '가나다')
+    expect(screen.getByText('현재 타수')).toBeInTheDocument()
+  }, 20000)
+
+  it('결과 화면에 최종 평균 타수가 표시된다', async () => {
+    const user = userEvent.setup()
+    renderGamePage()
+    const input = await startGame(user)
+
+    await user.type(input, '가나다{Enter}')
+    await user.type(input, '라마바{Enter}')
+    await screen.findByText('방송 완료', undefined, { timeout: 6000 })
+
+    expect(screen.getByText(/평균 \d+ 타\/분/)).toBeInTheDocument()
+    // 타이머가 멈췄으므로 "현재 타수"는 더 이상 보이지 않는다
+    expect(screen.queryByText('현재 타수')).not.toBeInTheDocument()
   }, 20000)
 })
 
