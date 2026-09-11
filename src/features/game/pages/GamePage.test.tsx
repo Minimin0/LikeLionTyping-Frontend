@@ -134,6 +134,71 @@ describe('GamePage — 게임 진행', () => {
   }, 20000)
 })
 
+describe('GamePage — CH.02 지도', () => {
+  it('CH.02에서는 지도가 나오고 첫 목표에 핀이 꽂힌다', async () => {
+    const user = userEvent.setup()
+    render(
+      <AppProviders>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/game/play',
+              state: {
+                session: {
+                  gameSessionId: 21,
+                  category: { id: 2, code: 'CH02', name: 'CH.02 캠퍼스 주파수' },
+                  sentences: [
+                    { sequence: 1, content: '성결대' },
+                    { sequence: 2, content: '제주대' },
+                  ],
+                },
+              },
+            },
+          ]}
+        >
+          <Routes>
+            <Route path="/game/play" element={<GamePage />} />
+          </Routes>
+        </MemoryRouter>
+      </AppProviders>,
+    )
+    await startGame(user)
+
+    expect(screen.getByRole('img', { name: /지도/ })).toBeInTheDocument()
+    // 첫 목표는 성결대 — 문장 영역과 지도 라벨 두 곳에 나온다
+    expect(screen.getAllByText('성결대').length).toBeGreaterThanOrEqual(1)
+  }, 20000)
+
+  it('CH.02가 아닌 채널에서는 지도가 나오지 않는다', async () => {
+    const user = userEvent.setup()
+    render(
+      <AppProviders>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/game/play',
+              state: {
+                session: {
+                  gameSessionId: 22,
+                  category: { id: 1, code: 'CH01', name: 'CH.01 성결 멋사 ON AIR' },
+                  sentences: [{ sequence: 1, content: '가나다' }],
+                },
+              },
+            },
+          ]}
+        >
+          <Routes>
+            <Route path="/game/play" element={<GamePage />} />
+          </Routes>
+        </MemoryRouter>
+      </AppProviders>,
+    )
+    await startGame(user)
+
+    expect(screen.queryByRole('img', { name: /지도/ })).not.toBeInTheDocument()
+  }, 20000)
+})
+
 describe('GamePage — 타수 표시', () => {
   it('게임 중 스톱워치 옆에 현재 타수가 보인다', async () => {
     const user = userEvent.setup()
