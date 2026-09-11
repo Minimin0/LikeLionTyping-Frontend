@@ -27,15 +27,22 @@ export const MOCK_INITIAL_PASS_COUNT = 3
  */
 export const CHANNEL_PRESENTATION: Record<string, { description: string; preview: string }> = {
   CH01: {
-    description: '교내 멋사 이야기와 개발 일상이 흐르는 채널',
-    preview: '오늘도 우리는 한 줄의 코드로 세상을 바꿉니다',
+    description: '성결대 멋쟁이사자처럼을 소개하는 채널입니다',
+    preview: '안녕하세요 저희는 성결대 멋사 입니다',
   },
   CH02: {
-    description: '전국 멋사 대학들이 함께 잡히는 연합 주파수',
-    preview: '학교는 달라도 우리는 같은 꿈을 꾸고 있습니다',
+    description: '전국 80개 멋쟁이사자처럼 대학의 이름을 입력하는 채널입니다',
+    preview: '성결대',
   },
   CH03: {
     description: 'DJ 멘트와 신청곡이 오가는 축제 현장 생방송',
     preview: '오늘의 첫 신청곡은 청춘에게 보내는 노래입니다',
   },
 }
+
+/**
+ * CH.02에서 출제할 대학 개수.
+ * 카테고리마다 항목 개수가 다르므로(CH01 5개 / CH02 20개 / CH03 5개)
+ * 화면에서는 이 값이 아니라 항상 API 응답 sentences 배열의 길이를 쓴다.
+ */
+export const CH02_ITEM_COUNT = 20
