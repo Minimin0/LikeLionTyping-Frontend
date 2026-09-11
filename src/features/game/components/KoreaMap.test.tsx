@@ -14,17 +14,29 @@ function renderMap(currentIndex: number, progress: number, names: string[] = NAM
 }
 
 describe('KoreaMap', () => {
-  it('현재 대학 이름만 라벨로 띄운다 — 전부 띄우면 지도가 글자로 뒤덮인다', () => {
+  it('현재 대학 이름을 핀 라벨로 띄운다', () => {
     renderMap(0, 0)
-
     expect(screen.getByText('성결대')).toBeInTheDocument()
-    expect(screen.queryByText('서울대')).not.toBeInTheDocument()
-    expect(screen.queryByText('제주대')).not.toBeInTheDocument()
   })
 
   it('현재 순번이 바뀌면 라벨도 따라간다', () => {
     renderMap(2, 0)
     expect(screen.getByText('제주대')).toBeInTheDocument()
+  })
+
+  it('멀리 이동해 축소된 상태에서는 주변 대학 라벨을 띄우지 않는다', () => {
+    // 성결대 → 제주대는 아주 먼 이동이라 배율이 낮아진다.
+    // 전국 뷰에서 서울 27개 라벨이 전부 뜨면 화면이 글자로 뒤덮인다.
+    renderMap(1, 0, ['성결대', '제주대', '서울대'])
+
+    expect(screen.getByText('제주대')).toBeInTheDocument()
+    expect(screen.queryByText('서울대')).not.toBeInTheDocument()
+  })
+
+  it('크게 확대된 상태에서는 주변 대학 라벨이 함께 보인다', () => {
+    // 첫 항목은 기본 배율(3.5)로 시작하므로 라벨 표시 기준을 넘는다.
+    renderMap(0, 0, ['성결대', '서울대'])
+    expect(screen.getByText('서울대')).toBeInTheDocument()
   })
 
   it('외부 이미지나 타일 서버를 부르지 않고 순수 SVG로만 그린다', () => {
