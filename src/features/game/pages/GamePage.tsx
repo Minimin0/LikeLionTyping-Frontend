@@ -232,15 +232,21 @@ export function GamePage() {
           {progressBar}
         </div>
 
-        {/* 하단 오버레이 — 대학 이름이 지도 위에 겹쳐도 읽히도록 백드롭을 깐다. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-gradient-to-t from-surface via-surface/85 to-transparent px-4 pb-8 pt-24">
-          <SentenceDisplay
-            sentence={currentSentence}
-            input={state.input}
-            isComposing={state.isComposing}
-            className="typing-sentence-hero"
-          />
-          {statusMessage}
+        {/*
+         * 타이핑 텍스트 — 화면 중앙보다 살짝 위(47%)에 둔다.
+         * 핀은 28% 지점이라 라벨 아래로 충분한 간격이 남는다.
+         * 그라데이션은 화면 하단 전체가 아니라 텍스트 블록 주변만 위아래로 흐리게 감싼다.
+         */}
+        <div className="pointer-events-none absolute inset-x-0 top-[47%] -translate-y-1/2">
+          <div className="flex flex-col items-center gap-4 bg-gradient-to-b from-transparent via-surface/85 to-transparent px-4 py-16">
+            <SentenceDisplay
+              sentence={currentSentence}
+              input={state.input}
+              isComposing={state.isComposing}
+              className="typing-sentence-hero"
+            />
+            {statusMessage}
+          </div>
         </div>
 
         {typingInput}

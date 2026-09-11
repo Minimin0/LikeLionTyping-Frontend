@@ -26,8 +26,12 @@ import {
 } from '../utils/mapProjection'
 import { buildRoutePoints, findPointAt, findPreviousPoint } from '../utils/mapRoute'
 
-/** 핀이 놓일 화면 세로 위치. 하단의 대학 이름 텍스트와 겹치지 않도록 위쪽에 둔다. */
-const FOCUS_Y_RATIO = 0.4
+/**
+ * 핀이 놓일 화면 세로 위치.
+ * 타이핑 텍스트가 화면 중앙(47%) 부근에 오므로, 핀은 그보다 충분히 위에 둬야 가려지지 않는다.
+ * viewBox 높이가 컨테이너 높이와 1:1로 대응하므로 이 비율이 곧 화면상 위치다.
+ */
+const PIN_ANCHOR_Y = 0.28
 /** 이동 중 잠깐 줌아웃하는 비율. 두 대학이 함께 보이도록 배율을 낮춘다. */
 const TRANSIT_ZOOM_RATIO = 0.55
 const MIN_TRANSIT_ZOOM = 1.2
@@ -113,11 +117,11 @@ export function KoreaMap({ names, currentIndex, progress, className }: KoreaMapP
   const viewX = (MAP_WIDTH - viewWidth) / 2
 
   /*
-   * 카메라 변환: 목표 대학(px, py)을 화면의 (가로 중앙, 세로 40%) 지점으로 끌어온다.
+   * 카메라 변환: 목표 대학(px, py)을 화면의 (가로 중앙, 세로 28%) 지점으로 끌어온다.
    * scale(zoom)이 먼저 적용되므로 translate 값에도 zoom을 곱해 상쇄해야 한다.
    */
   const focusX = MAP_WIDTH / 2
-  const focusY = MAP_HEIGHT * FOCUS_Y_RATIO
+  const focusY = MAP_HEIGHT * PIN_ANCHOR_Y
   const tx = focusPoint ? focusX - focusPoint.x * zoom : 0
   const ty = focusPoint ? focusY - focusPoint.y * zoom : 0
 
