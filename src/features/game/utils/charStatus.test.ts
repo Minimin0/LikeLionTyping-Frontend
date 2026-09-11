@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { canAdvance, getCharCells, hasTypo } from './charStatus'
+import { canAdvance, getCharCells, groupCellsByWord, hasTypo } from './charStatus'
 
 const statuses = (sentence: string, input: string, isComposing = false) =>
   getCharCells(sentence, input, isComposing).map((cell) => cell.status)
@@ -72,6 +72,64 @@ describe('getCharCells — 한글 자모 단위 진행', () => {
 
   it('조합이 끝나면 글자 단위로 비교한다', () => {
     expect(statuses('안녕하세요', '안', false)[0]).toBe('CORRECT')
+  })
+})
+
+describe('groupCellsByWord — 어절 단위 묶기', () => {
+  it('공백을 기준으로 어절과 공백 묶음이 번갈아 나온다', () => {
+    const chunks = groupCellsByWord(getCharCells('가나 다라', '', false))
+
+    expect(chunks.map((chunk) => chunk.isSpace)).toEqual([false, true, false])
+    expect(chunks.map((chunk) => chunk.cells.map((cell) => cell.char).join(''))).toEqual([
+      '가나',
+      ' ',
+      '다라',
+    ])
+  })
+
+  it('원본 인덱스가 0부터 빠짐없이 순서대로 붙는다 — 색상 판정이 이 값을 쓴다', () => {
+    const sentence = '프론트엔드, 백엔드, 기획디자인 세 개의 부서가 있습니다'
+    const chunks = groupCellsByWord(getCharCells(sentence, '', false))
+    const indices = chunks.flatMap((chunk) => chunk.cells.map((cell) => cell.index))
+
+    expect(indices).toEqual(Array.from({ length: sentence.length }, (_, i) => i))
+  })
+
+  it('묶음을 이어 붙이면 원래 렌더링 문자열과 같다', () => {
+    const chunks = groupCellsByWord(getCharCells('가나 다라', '가라 다', false))
+    const joined = chunks.flatMap((chunk) => chunk.cells.map((cell) => cell.char)).join('')
+
+    // 표시 규칙: 입력한 글자 + 아직 안 친 목표 문장
+    expect(joined).toBe('가라 다라')
+  })
+
+  it('어절 묶음 안에는 공백이 없고, 공백 묶음 안에는 공백만 있다', () => {
+    const chunks = groupCellsByWord(getCharCells('가나  다라', '', false))
+
+    for (const chunk of chunks) {
+      const chars = chunk.cells.map((cell) => cell.char)
+      if (chunk.isSpace) expect(chars.every((c) => /\s/.test(c))).toBe(true)
+      else expect(chars.some((c) => /\s/.test(c))).toBe(false)
+    }
+  })
+
+  it('연속된 공백은 하나의 공백 묶음이 된다', () => {
+    const chunks = groupCellsByWord(getCharCells('가  나', '', false))
+    expect(chunks).toHaveLength(3)
+    expect(chunks[1].cells).toHaveLength(2)
+  })
+
+  it('공백 위치의 오타 상태가 묶음에 그대로 보존된다', () => {
+    // 공백 자리에 다른 글자를 친 경우 — 그 셀은 INCORRECT이고 어절 묶음에 들어간다
+    const chunks = groupCellsByWord(getCharCells('가 나', '가_', false))
+    const typoCell = chunks.flatMap((chunk) => chunk.cells).find((cell) => cell.index === 1)
+
+    expect(typoCell?.status).toBe('INCORRECT')
+    expect(typoCell?.char).toBe('_')
+  })
+
+  it('빈 문장은 빈 배열이다', () => {
+    expect(groupCellsByWord([])).toEqual([])
   })
 })
 

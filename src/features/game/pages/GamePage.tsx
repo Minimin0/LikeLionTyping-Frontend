@@ -193,11 +193,12 @@ export function GamePage() {
     focusInput()
   }
 
-  // 세 카테고리가 모두 같은 화면을 쓴다. 뷰포트 높이에 고정해 스크롤이 생기지 않게 한다.
+  // 세 카테고리가 모두 같은 화면을 쓴다. 뷰포트 높이에 맞춰 스크롤이 생기지 않게 한다.
+  // overflow: hidden은 걸지 않는다. 문장이 넘칠 때 글자를 잘라내는 직접 원인이 된다.
   return (
     <main
       onMouseDown={handleSurfaceMouseDown}
-      className="relative mx-auto flex h-dvh w-full max-w-5xl flex-col overflow-hidden px-4 py-6 sm:px-8"
+      className="relative mx-auto flex h-dvh w-full max-w-5xl flex-col px-4 py-6 sm:px-8"
     >
       {state.status === 'COUNTDOWN' && <CountdownOverlay onComplete={handleCountdownComplete} />}
 

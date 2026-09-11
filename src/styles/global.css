@@ -25,16 +25,38 @@
 
 @layer components {
   /*
-   * 타이핑 문장 영역: 화면 중앙에서 가장 큰 요소다.
-   * - clamp로 화면 크기에 따라 자연스럽게 줄어든다.
-   * - max-width를 두어 긴 문장은 줄바꿈되고, min-height를 두 줄 분량으로 고정해
-   *   줄 수가 바뀌어도 위아래 레이아웃이 흔들리지 않는다.
+   * 타이핑 문장 프레임.
+   * - 글자 크기는 clamp로 화면 폭에 따라 자동 축소된다.
+   * - 최소 높이를 가장 긴 문장이 두 줄이 되는 기준으로 잡고 세로 가운데 정렬해서,
+   *   1줄과 2줄 문장을 오갈 때 화면이 위아래로 튀지 않는다.
+   * - 좌우 패딩으로 글자가 화면 가장자리에 닿지 않게 한다. (main 패딩과 합쳐 모바일 32px)
+   * - overflow: hidden은 여기에도, 부모에도 걸지 않는다. 잘림의 직접 원인이다.
+   */
+  .typing-sentence-frame {
+    @apply flex w-full items-center justify-center px-4 sm:px-8;
+    font-size: clamp(1.5rem, 3vw, 2.75rem);
+    min-height: calc(1.5em * 2);
+  }
+
+  /* 좁은 화면에서는 가장 긴 문장이 세 줄이 되므로 그 기준으로 높이를 확보한다. */
+  @media (max-width: 639px) {
+    .typing-sentence-frame {
+      min-height: calc(1.5em * 3);
+    }
+  }
+
+  /*
+   * 타이핑 문장 본문.
+   * - pre-wrap: 공백은 그대로 보존하되 줄바꿈은 허용한다. (nowrap/pre 금지)
+   * - break-keep: 한국어를 어절 단위로 끊는다.
+   * - overflow-wrap: anywhere — 띄어쓰기 없는 아주 긴 덩어리가 와도 최후의 보루로 줄바꿈된다.
+   * - text-balance: 두 줄로 나뉠 때 줄 길이가 고르게 분배된다. 미지원 브라우저에서는 무시된다.
+   * - max-width: 화면이 아무리 넓어도 한 줄이 너무 길어지지 않는다.
    */
   .typing-sentence {
-    @apply whitespace-pre-wrap break-keep text-center font-semibold leading-[1.5] tracking-[0.01em];
-    font-size: clamp(1.75rem, 3.5vw, 3rem);
-    max-width: 60ch;
-    min-height: 3em;
+    @apply mx-auto whitespace-pre-wrap break-keep text-balance text-center font-semibold leading-[1.5] tracking-[0.01em];
+    max-width: min(90vw, 60ch);
+    overflow-wrap: anywhere;
   }
 }
 

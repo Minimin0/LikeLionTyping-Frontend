@@ -47,6 +47,44 @@ export function getCharCells(sentence: string, input: string, isComposing: boole
   return cells
 }
 
+/** 원본 문장에서의 위치가 붙은 셀. 색상 판정은 이 index 기준이므로 절대 어긋나면 안 된다. */
+export interface IndexedCell extends CharCell {
+  index: number
+}
+
+/** 어절(공백이 아닌 글자 묶음) 또는 공백 묶음 */
+export interface CellChunk {
+  isSpace: boolean
+  cells: IndexedCell[]
+}
+
+/**
+ * 글자 셀을 어절 단위로 묶는다.
+ *
+ * 글자마다 <span>으로 쪼개 그리면 브라우저가 각 span을 독립된 단위로 보기 때문에
+ * word-break: keep-all이 어절을 지켜주지 못하고 "있습니 / 다"처럼 단어 중간에서 줄이 끊긴다.
+ * 어절을 nowrap span으로 한 번 더 감싸야 어절 단위로 줄바꿈된다.
+ *
+ * 공백도 별도 묶음으로 유지한다. 공백은 줄바꿈이 일어날 수 있는 지점이면서
+ * 동시에 오타 판정 대상이므로 렌더링에서 빠뜨리면 안 된다.
+ */
+export function groupCellsByWord(cells: CharCell[]): CellChunk[] {
+  const chunks: CellChunk[] = []
+
+  cells.forEach((cell, index) => {
+    const isSpace = /\s/.test(cell.char)
+    const last = chunks[chunks.length - 1]
+
+    if (last && last.isSpace === isSpace) {
+      last.cells.push({ ...cell, index })
+    } else {
+      chunks.push({ isSpace, cells: [{ ...cell, index }] })
+    }
+  })
+
+  return chunks
+}
+
 /**
  * 현재 입력에 오타가 하나라도 있는지 여부.
  * 자모 단위로 진행 중인 글자(COMPOSING)는 오타로 잡지 않는다.
