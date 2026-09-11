@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 게임 화면 통합 테스트.
  * 개별 함수가 아니라 "실제로 쳐서 넘어가는지"를 검증한다.
  */
@@ -65,7 +65,7 @@ function renderGamePage() {
 
 /** 시작 버튼을 누르고 카운트다운이 끝나 첫 문장이 나올 때까지 기다린다 */
 async function startGame(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: '방송 시작' }))
+  await user.click(screen.getByRole('button', { name: '게임 시작' }))
 
   const input = await screen.findByRole('textbox', { name: '타이핑 입력창' }, { timeout: 6000 })
   await waitFor(() => expect(input).not.toBeDisabled(), { timeout: 6000 })
@@ -83,7 +83,7 @@ describe('GamePage — 게임 진행', () => {
 
     // 오타를 낸 상태로 Enter
     await user.type(input, '가라다')
-    expect(screen.getByText('오타를 수정해야 다음 문장으로 넘어갈 수 있어요')).toBeInTheDocument()
+    expect(screen.getByText('오타를 수정해야 다음으로 넘어갈 수 있어요')).toBeInTheDocument()
 
     await user.type(input, '{Enter}')
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
@@ -117,6 +117,34 @@ describe('GamePage — 게임 진행', () => {
   }, 20000)
 })
 
+describe('GamePage — 표시', () => {
+  it('화면에 보이는 입력 칸이 따로 없고, 문장 영역 하나에 입력이 반영된다', async () => {
+    const user = userEvent.setup()
+    renderGamePage()
+    const input = await startGame(user)
+
+    // 실제 input은 IME를 받기 위해 남아있지만 시각적으로는 감춰져 있다
+    expect(input).toHaveClass('opacity-0')
+    expect(input).toHaveClass('outline-none')
+    expect(input).toHaveClass('caret-transparent')
+
+    // 문장 영역은 "입력한 글자 + 아직 안 친 목표 문장"으로 그려진다
+    await user.type(input, '가라')
+    expect(screen.getByLabelText('가나다')).toHaveTextContent('가라다')
+  }, 20000)
+
+  it('항목 개수는 하드코딩이 아니라 서버가 내려준 배열 길이를 따른다', async () => {
+    const user = userEvent.setup()
+    renderGamePage()
+    await startGame(user)
+
+    // 이 세션의 sentences는 2개이므로 5가 아니라 2가 나와야 한다
+    const progress = screen.getByRole('progressbar')
+    expect(progress).toHaveAttribute('aria-valuemax', '2')
+    expect(progress.parentElement).toHaveTextContent('1 / 2')
+  }, 20000)
+})
+
 describe('GamePage — 한글 IME', () => {
   it('조합 중 Enter는 무시되고, 조합이 끝난 뒤 Enter라야 넘어간다', async () => {
     const user = userEvent.setup()
@@ -128,9 +156,7 @@ describe('GamePage — 한글 IME', () => {
     fireEvent.change(input, { target: { value: '가나ㄷ' } })
 
     // 조합 중인 글자는 오타로 판정하지 않는다
-    expect(
-      screen.queryByText('오타를 수정해야 다음 문장으로 넘어갈 수 있어요'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('오타를 수정해야 다음으로 넘어갈 수 있어요')).not.toBeInTheDocument()
 
     // 조합이 확정되기 전 문장이 완성돼도 Enter는 제출로 인정되지 않는다
     fireEvent.change(input, { target: { value: '가나다' } })
