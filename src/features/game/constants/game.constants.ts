@@ -31,18 +31,11 @@ export const CHANNEL_PRESENTATION: Record<string, { description: string; preview
     preview: '안녕하세요 저희는 성결대 멋사 입니다',
   },
   CH02: {
-    description: '전국 80개 멋쟁이사자처럼 대학의 이름을 입력하는 채널입니다',
-    preview: '성결대',
+    description: '전국 멋쟁이사자처럼과 해커톤을 소개하는 채널입니다',
+    preview: '멋사에는 약 80개의 대학이 참여합니다',
   },
   CH03: {
-    description: 'DJ 멘트와 신청곡이 오가는 축제 현장 생방송',
-    preview: '오늘의 첫 신청곡은 청춘에게 보내는 노래입니다',
+    description: '축제의 밤을 담은 채널입니다',
+    preview: '축제의 밤은 언제나 짧고 반짝인다.',
   },
 }
-
-/**
- * CH.02에서 출제할 대학 개수.
- * 카테고리마다 항목 개수가 다르므로(CH01 5개 / CH02 20개 / CH03 5개)
- * 화면에서는 이 값이 아니라 항상 API 응답 sentences 배열의 길이를 쓴다.
- */
-export const CH02_ITEM_COUNT = 20
