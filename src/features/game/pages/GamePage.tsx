@@ -3,7 +3,7 @@
  * State Machine(useGameReducer) · 스톱워치(useStopwatch) · 완료 API를 연결하는 조립부다.
  * 판정 로직은 여기 두지 않고 전부 utils / reducer가 담당한다.
  */
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { getApiErrorCode } from '@/shared/api/apiError'
@@ -11,6 +11,7 @@ import { countMatchedKeystrokes } from '@/shared/utils/typingCount'
 
 import { CountdownOverlay } from '../components/CountdownOverlay'
 import { GameMeters } from '../components/GameMeters'
+import { KoreaMap } from '../components/KoreaMap'
 import { GameResult } from '../components/GameResult'
 import { ProgressBar } from '../components/ProgressBar'
 import { SentenceDisplay } from '../components/SentenceDisplay'
@@ -23,7 +24,7 @@ import {
 } from '../hooks/useGameReducer'
 import { useStopwatch } from '../hooks/useStopwatch'
 import { useTypingInput } from '../hooks/useTypingInput'
-import { hasTypo as checkTypo } from '../utils/charStatus'
+import { hasTypo as checkTypo, matchedPrefixLength } from '../utils/charStatus'
 import { calculateCpm } from '../utils/typingSpeed'
 import type { GameLocationState } from './CategorySelectPage'
 
@@ -45,6 +46,18 @@ export function GamePage() {
   // 오타 이후 구간은 세지 않으므로 오타를 고치는 동안에는 타수가 내려간다.
   const keystrokes =
     state.completedKeystrokes + countMatchedKeystrokes(currentSentence, state.input)
+
+  // 지도는 CH.02(전국 대학)에서만 보여준다.
+  const showMap = session?.category.code === 'CH02'
+  // sentences는 세션이 정해질 때 한 번만 세팅되므로 참조가 안정적이다.
+  const universityNames = useMemo(
+    () => state.sentences.map((item) => item.content),
+    [state.sentences],
+  )
+  const routeProgress =
+    currentSentence.length > 0
+      ? matchedPrefixLength(currentSentence, state.input) / currentSentence.length
+      : 0
 
   // 세션 없이 /game/play로 직접 들어온 경우(새로고침 포함)에는 채널 선택으로 되돌린다.
   useEffect(() => {
@@ -170,14 +183,27 @@ export function GamePage() {
         <ProgressBar current={state.currentIndex + 1} total={state.sentences.length} />
       </header>
 
-      {/* 문장이 화면에서 가장 큰 요소다. 주변 UI는 상대적으로 작게 둔다. */}
-      <section className="flex min-h-[9rem] items-center justify-center sm:min-h-[12rem]">
-        <SentenceDisplay
-          sentence={currentSentence}
-          input={state.input}
-          isComposing={state.isComposing}
-        />
-      </section>
+      <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-center lg:gap-10">
+        {showMap && (
+          <KoreaMap
+            names={universityNames}
+            currentIndex={state.currentIndex}
+            progress={routeProgress}
+            // 좁은 화면에서는 지도를 숨기고 타이핑만 남긴다.
+            // 지도가 타이핑 영역보다 커 보이면 안 되므로 폭을 제한한다.
+            className="hidden w-full max-w-[200px] shrink-0 sm:block lg:max-w-[240px]"
+          />
+        )}
+
+        {/* 문장이 화면에서 가장 큰 요소다. 주변 UI는 상대적으로 작게 둔다. */}
+        <section className="flex min-h-[9rem] w-full flex-1 items-center justify-center sm:min-h-[12rem]">
+          <SentenceDisplay
+            sentence={currentSentence}
+            input={state.input}
+            isComposing={state.isComposing}
+          />
+        </section>
+      </div>
 
       <TypingInput
         value={state.input}

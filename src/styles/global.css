@@ -3,6 +3,23 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * 지도 색 토큰.
+   * 배경 / 지도 / 강조 세 톤으로만 끝낸다. 색이 늘어나면 바로 촌스러워진다.
+   * 디자인 시스템을 받으면 이 값들만 교체하면 지도 전체 톤이 바뀐다.
+   *
+   * 앱 전체 accent(파랑)와 구분하려고 지도 강조색은 --color-map-accent로 따로 둔다.
+   * 지도 강조색은 라디오 콘셉트의 멋사 오렌지다.
+   */
+  :root {
+    --color-map-bg: #101829;
+    --color-map-land: #8ea3cc;
+    --color-map-stroke: #a6b8dd;
+    --color-route-done: #ff8a3d;
+    --color-route-todo: #8ea3cc;
+    --color-map-accent: #ff8a3d;
+  }
+
   html,
   body,
   #root {
@@ -30,5 +47,56 @@
    */
   .typing-sentence {
     @apply whitespace-pre-wrap break-keep text-center text-3xl font-semibold leading-[1.6] tracking-[0.01em] sm:text-4xl sm:leading-[1.6] lg:text-5xl lg:leading-[1.5];
+  }
+}
+
+/*
+ * 지도 모션.
+ * 기본 상태에는 애니메이션을 두지 않고 prefers-reduced-motion이 "상관없음"일 때만 켠다.
+ * 이렇게 하면 모션을 줄이도록 설정한 사용자에게는 위치만 즉시 바뀌고
+ * 카메라 이동·물결·바운스가 전부 꺼진다.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  /* 다음 대학으로 순간이동하지 않고 날아가듯 이동한다. */
+  .map-pin {
+    transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* 도착하는 순간 살짝 눌렸다 튀어오른다. currentIndex가 바뀔 때 재마운트되어 다시 실행된다. */
+  .map-pin-body {
+    animation: map-pin-drop 200ms ease-out;
+    transform-box: fill-box;
+    transform-origin: bottom center;
+  }
+
+  /* 물결은 하나만 돌린다. 여러 개 겹치면 산만하고 프레임을 잡아먹는다. */
+  .map-ripple {
+    animation: map-ripple 1800ms ease-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .map-camera {
+    transition: transform 600ms ease-out;
+  }
+}
+
+@keyframes map-pin-drop {
+  0% {
+    transform: scale(1, 0.88);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes map-ripple {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
   }
 }
