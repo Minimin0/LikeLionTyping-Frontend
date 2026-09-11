@@ -6,24 +6,26 @@
  * "대학이 바다 위에 찍히는" 문제가 생긴다.
  */
 
-/** 대한민국(제주 포함)을 감싸는 경위도 범위 */
-const LON_MIN = 125.6
-const LON_MAX = 129.8
-const LAT_MIN = 33.0
-const LAT_MAX = 38.7
+/**
+ * 대한민국을 감싸는 경위도 범위.
+ * 제주도가 아래쪽에서 잘리지 않도록 남쪽에 여백을 넉넉히 뒀다.
+ */
+const LON_MIN = 125.5
+const LON_MAX = 129.9
+const LAT_MIN = 32.9
+const LAT_MAX = 38.8
 
 /**
- * 경도 1도의 실제 거리는 위도가 올라갈수록 짧아진다(자오선이 극에서 모이므로).
- * 한국 중앙 위도(약 36도)의 코사인을 곱해 가로 폭을 줄이지 않으면
- * 국토가 옆으로 뚱뚱하게 늘어나 보인다.
+ * 한국 중앙 위도(약 36도)에서 경도 1도는 위도 1도보다 짧다(자오선이 극에서 모이므로).
+ *
+ * 주의: 이 보정을 project() 안에서 분자·분모에 함께 곱하면 그대로 약분되어
+ * 아무 효과가 없다. 실제로 모양을 바로잡으려면 캔버스 가로폭을 정할 때 적용해야 한다.
  */
-const LON_SCALE = Math.cos((36 * Math.PI) / 180)
+const LAT_SCALE = Math.cos((36 * Math.PI) / 180)
 
-/** 실제 지리 비율. 이 값으로 캔버스 가로폭을 정해야 모양이 왜곡되지 않는다. */
-const ASPECT_RATIO = ((LON_MAX - LON_MIN) * LON_SCALE) / (LAT_MAX - LAT_MIN)
-
-export const MAP_HEIGHT = 520
-export const MAP_WIDTH = Math.round(MAP_HEIGHT * ASPECT_RATIO)
+/** 세로를 기준으로 잡고 가로는 실제 지리 비율에서 역산한다. */
+export const MAP_HEIGHT = 1000
+export const MAP_WIDTH = MAP_HEIGHT * (((LON_MAX - LON_MIN) * LAT_SCALE) / (LAT_MAX - LAT_MIN))
 
 export interface Point {
   x: number
@@ -31,16 +33,31 @@ export interface Point {
 }
 
 export function project([lon, lat]: [number, number]): Point {
-  // 경위도를 0~1 범위로 정규화한 뒤 캔버스 크기를 곱한다.
-  // 가로 비율 보정은 MAP_WIDTH를 정할 때 이미 반영되어 있다.
-  const nx = (lon - LON_MIN) / (LON_MAX - LON_MIN)
-  const ny = (lat - LAT_MIN) / (LAT_MAX - LAT_MIN)
-
   return {
-    x: nx * MAP_WIDTH,
+    x: ((lon - LON_MIN) / (LON_MAX - LON_MIN)) * MAP_WIDTH,
     // SVG는 y축이 아래로 증가하는데 위도는 위로 증가하므로 뒤집는다.
-    y: (1 - ny) * MAP_HEIGHT,
+    y: (1 - (lat - LAT_MIN) / (LAT_MAX - LAT_MIN)) * MAP_HEIGHT,
   }
+}
+
+/**
+ * 이전 대학에서 현재 대학까지의 거리(SVG 단위)로 확대 배율을 정한다.
+ *
+ * 서울 안에서의 이동과 서울→제주 이동에 같은 배율을 쓰면 안 된다.
+ * 가까우면 크게 확대해 캠퍼스가 구분되게 하고, 멀면 덜 확대해 두 지점이 모두 보이게 한다.
+ */
+export function getZoomLevel(distance: number): number {
+  if (distance < 40) return 5.0 // 서울 안 이동
+  if (distance < 120) return 3.5 // 수도권 내 이동
+  if (distance < 300) return 2.4 // 지방 간 이동
+  return 1.8 // 제주 등 아주 먼 이동
+}
+
+/** 첫 대학은 이전 지점이 없어 거리를 잴 수 없으므로 이 배율로 시작한다. */
+export const DEFAULT_ZOOM = 3.5
+
+export function distanceBetween(from: Point, to: Point): number {
+  return Math.hypot(to.x - from.x, to.y - from.y)
 }
 
 /**

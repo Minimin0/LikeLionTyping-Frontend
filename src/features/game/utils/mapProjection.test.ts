@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { MAP_HEIGHT, MAP_WIDTH, interpolate, project, toSmoothClosedPath } from './mapProjection'
+import {
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  distanceBetween,
+  getZoomLevel,
+  interpolate,
+  project,
+  toSmoothClosedPath,
+} from './mapProjection'
 
 /** 실제 지점들 */
 const GANGWON_NORTH: [number, number] = [128.4, 38.58] // 고성 부근
@@ -46,8 +54,42 @@ describe('project — 캔버스 범위', () => {
     }
   })
 
-  it('가로 폭이 위도 보정을 거쳐 세로보다 좁다 (국토가 옆으로 늘어나지 않는다)', () => {
-    expect(MAP_WIDTH).toBeLessThan(MAP_HEIGHT)
+  it('가로세로 비율이 실제 한국 종횡비(약 0.6)에 가깝다', () => {
+    // 코사인 보정이 실제로 먹혀야 나오는 값이다.
+    // 보정이 상쇄되면 0.75 근처가 되어 국토가 옆으로 뚱뚱해진다.
+    expect(MAP_WIDTH / MAP_HEIGHT).toBeCloseTo(0.6, 1)
+  })
+
+  it('제주도가 캔버스 아래쪽에서 잘리지 않도록 여백이 있다', () => {
+    // 제주 남단(약 33.1도)도 캔버스 안에 들어와야 한다
+    expect(project([126.5, 33.1]).y).toBeLessThan(MAP_HEIGHT)
+  })
+})
+
+describe('getZoomLevel', () => {
+  it('거리가 멀수록 배율이 작아진다 (두 지점이 모두 보이게)', () => {
+    const seoulInner = getZoomLevel(20)
+    const metro = getZoomLevel(80)
+    const regional = getZoomLevel(200)
+    const jeju = getZoomLevel(500)
+
+    expect(seoulInner).toBeGreaterThan(metro)
+    expect(metro).toBeGreaterThan(regional)
+    expect(regional).toBeGreaterThan(jeju)
+  })
+
+  it('서울 안 이동은 캠퍼스가 구분되도록 크게 확대한다', () => {
+    expect(getZoomLevel(10)).toBeGreaterThanOrEqual(5)
+  })
+
+  it('아주 먼 이동도 1배 미만으로 축소하지는 않는다', () => {
+    expect(getZoomLevel(9999)).toBeGreaterThan(1)
+  })
+})
+
+describe('distanceBetween', () => {
+  it('두 점 사이의 직선 거리를 반환한다', () => {
+    expect(distanceBetween({ x: 0, y: 0 }, { x: 3, y: 4 })).toBe(5)
   })
 })
 
