@@ -48,6 +48,15 @@
   .typing-sentence {
     @apply whitespace-pre-wrap break-keep text-center text-3xl font-semibold leading-[1.6] tracking-[0.01em] sm:text-4xl sm:leading-[1.6] lg:text-5xl lg:leading-[1.5];
   }
+
+  /*
+   * 지도 위에 겹쳐 띄우는 대학 이름.
+   * 화면 크기에 따라 자연스럽게 줄어들도록 clamp를 쓴다.
+   */
+  .typing-sentence-hero {
+    @apply whitespace-pre-wrap break-keep text-center font-bold leading-[1.15] tracking-[0.01em];
+    font-size: clamp(2.25rem, 6vw, 5rem);
+  }
 }
 
 /*
@@ -76,8 +85,12 @@
     transform-origin: center;
   }
 
-  .map-camera {
-    transition: transform 600ms ease-out;
+  /*
+   * 마커·핀의 확대 역보정(scale(1/zoom))도 카메라와 같은 시간으로 따라가야
+   * 이동 중에 지도에서 떨어져 보이지 않는다.
+   */
+  .map-scaled {
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 

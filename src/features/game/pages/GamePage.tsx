@@ -4,6 +4,7 @@
  * 판정 로직은 여기 두지 않고 전부 utils / reducer가 담당한다.
  */
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import type { MouseEvent as ReactMouseEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { getApiErrorCode } from '@/shared/api/apiError'
@@ -155,75 +156,121 @@ export function GamePage() {
     )
   }
 
+  const meters = (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-xs font-semibold tracking-widest text-onair sm:text-sm">
+        {session.category.name}
+      </span>
+      {/* 타이머는 이 안에서만 돈다. PLAYING이 끝나면 즉시 정지한다. */}
+      <GameMeters
+        running={isPlaying}
+        getElapsedMs={stopwatch.getElapsedMs}
+        keystrokes={keystrokes}
+      />
+    </div>
+  )
+
+  // 전체 개수는 카테고리마다 다르므로(CH02는 20개) 배열 길이를 그대로 쓴다.
+  const progressBar = (
+    <ProgressBar current={state.currentIndex + 1} total={state.sentences.length} />
+  )
+
+  const statusMessage = (
+    <p className="min-h-[1.5rem] text-center text-sm" role="status">
+      {state.status === 'SUBMITTING' ? (
+        <span className="text-ink-muted">기록을 전송하는 중입니다...</span>
+      ) : hasTypo ? (
+        <span className="text-typing-typo">오타를 수정해야 다음으로 넘어갈 수 있어요</span>
+      ) : !isFocused && isPlaying ? (
+        <span className="text-ink-muted">클릭해서 계속 입력하세요</span>
+      ) : (
+        <span className="text-ink-dim">정확히 입력한 뒤 Enter를 누르세요</span>
+      )}
+    </p>
+  )
+
+  const typingInput = (
+    <TypingInput
+      value={state.input}
+      // SUBMITTING 중에는 입력과 Enter를 전부 막아 완료 요청이 중복되지 않게 한다.
+      disabled={!isPlaying}
+      inputRef={inputRef}
+      inputProps={inputProps}
+    />
+  )
+
+  // 화면 아무 곳이나 누르면 숨겨진 입력창으로 포커스를 되돌린다.
+  // mousedown에서 preventDefault를 해야 브라우저가 포커스를 다른 곳으로 옮기지 않는다.
+  const handleSurfaceMouseDown = (event: ReactMouseEvent) => {
+    event.preventDefault()
+    focusInput()
+  }
+
+  /*
+   * CH.02는 지도가 주 무대다. 지도를 화면 전체에 깔고 그 위에 정보를 겹친다.
+   * 스크롤이 생기지 않도록 뷰포트 높이에 고정한다.
+   */
+  if (showMap) {
+    return (
+      <main onMouseDown={handleSurfaceMouseDown} className="relative h-dvh w-full overflow-hidden">
+        {state.status === 'COUNTDOWN' && <CountdownOverlay onComplete={handleCountdownComplete} />}
+
+        <KoreaMap
+          names={universityNames}
+          currentIndex={state.currentIndex}
+          progress={routeProgress}
+          className="absolute inset-0"
+        />
+
+        {/*
+         * 상단 오버레이. 그라데이션으로 뒤를 어둡게 깔아 지도 위에서도 글자가 읽힌다.
+         * backdrop-filter는 저사양 기기에서 프레임을 떨어뜨리므로 쓰지 않는다.
+         * pointer-events-none이라 입력 포커스를 가로채지 않는다.
+         */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-4 bg-gradient-to-b from-surface via-surface/80 to-transparent px-4 pb-12 pt-5 sm:px-8">
+          {meters}
+          {progressBar}
+        </div>
+
+        {/* 하단 오버레이 — 대학 이름이 지도 위에 겹쳐도 읽히도록 백드롭을 깐다. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-gradient-to-t from-surface via-surface/85 to-transparent px-4 pb-8 pt-24">
+          <SentenceDisplay
+            sentence={currentSentence}
+            input={state.input}
+            isComposing={state.isComposing}
+            className="typing-sentence-hero"
+          />
+          {statusMessage}
+        </div>
+
+        {typingInput}
+      </main>
+    )
+  }
+
   return (
     <main
-      // 화면 아무 곳이나 누르면 숨겨진 입력창으로 포커스를 되돌린다.
-      // mousedown에서 preventDefault를 해야 브라우저가 포커스를 다른 곳으로 옮기지 않는다.
-      onMouseDown={(event) => {
-        event.preventDefault()
-        focusInput()
-      }}
+      onMouseDown={handleSurfaceMouseDown}
       className="relative mx-auto flex min-h-full w-full max-w-4xl flex-col justify-center gap-10 px-4 py-10"
     >
       {state.status === 'COUNTDOWN' && <CountdownOverlay onComplete={handleCountdownComplete} />}
 
       <header className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-xs font-semibold tracking-widest text-onair sm:text-sm">
-            {session.category.name}
-          </span>
-          {/* 타이머는 이 안에서만 돈다. PLAYING이 끝나면 즉시 정지한다. */}
-          <GameMeters
-            running={isPlaying}
-            getElapsedMs={stopwatch.getElapsedMs}
-            keystrokes={keystrokes}
-          />
-        </div>
-        {/* 전체 개수는 카테고리마다 다르므로(CH02는 20개) 배열 길이를 그대로 쓴다. */}
-        <ProgressBar current={state.currentIndex + 1} total={state.sentences.length} />
+        {meters}
+        {progressBar}
       </header>
 
-      <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-center lg:gap-10">
-        {showMap && (
-          <KoreaMap
-            names={universityNames}
-            currentIndex={state.currentIndex}
-            progress={routeProgress}
-            // 좁은 화면에서는 지도를 숨기고 타이핑만 남긴다.
-            // 지도가 타이핑 영역보다 커 보이면 안 되므로 폭을 제한한다.
-            className="hidden w-full max-w-[200px] shrink-0 sm:block lg:max-w-[240px]"
-          />
-        )}
+      {/* 문장이 화면에서 가장 큰 요소다. 주변 UI는 상대적으로 작게 둔다. */}
+      <section className="flex min-h-[9rem] w-full items-center justify-center sm:min-h-[12rem]">
+        <SentenceDisplay
+          sentence={currentSentence}
+          input={state.input}
+          isComposing={state.isComposing}
+        />
+      </section>
 
-        {/* 문장이 화면에서 가장 큰 요소다. 주변 UI는 상대적으로 작게 둔다. */}
-        <section className="flex min-h-[9rem] w-full flex-1 items-center justify-center sm:min-h-[12rem]">
-          <SentenceDisplay
-            sentence={currentSentence}
-            input={state.input}
-            isComposing={state.isComposing}
-          />
-        </section>
-      </div>
-
-      <TypingInput
-        value={state.input}
-        // SUBMITTING 중에는 입력과 Enter를 전부 막아 완료 요청이 중복되지 않게 한다.
-        disabled={!isPlaying}
-        inputRef={inputRef}
-        inputProps={inputProps}
-      />
-
-      <p className="min-h-[1.5rem] text-center text-sm" role="status">
-        {state.status === 'SUBMITTING' ? (
-          <span className="text-ink-muted">기록을 전송하는 중입니다...</span>
-        ) : hasTypo ? (
-          <span className="text-typing-typo">오타를 수정해야 다음으로 넘어갈 수 있어요</span>
-        ) : !isFocused && isPlaying ? (
-          <span className="text-ink-muted">클릭해서 계속 입력하세요</span>
-        ) : (
-          <span className="text-ink-dim">정확히 입력한 뒤 Enter를 누르세요</span>
-        )}
-      </p>
+      {typingInput}
+      {statusMessage}
     </main>
   )
 }

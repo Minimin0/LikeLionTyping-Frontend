@@ -14,6 +14,8 @@ interface SentenceDisplayProps {
   sentence: string
   input: string
   isComposing: boolean
+  /** 지도 위에 겹쳐 띄울 때처럼 크기를 바꿔야 하는 경우 교체한다 */
+  className?: string
 }
 
 /** 글자 상태별 색상. 원색 유틸리티 대신 tailwind.config.js의 토큰만 사용한다. */
@@ -37,11 +39,12 @@ export const SentenceDisplay = memo(function SentenceDisplay({
   sentence,
   input,
   isComposing,
+  className = 'typing-sentence',
 }: SentenceDisplayProps) {
   const cells = getCharCells(sentence, input, isComposing)
 
   return (
-    <p className="typing-sentence" aria-label={sentence}>
+    <p className={className} aria-label={sentence}>
       {cells.map((cell, index) => (
         <span key={index} className={STATUS_CLASS[cell.status]}>
           {/* 공백도 한 글자로 판정한다. 줄바꿈 위치가 흔들리지 않도록 NBSP로 그린다. */}
