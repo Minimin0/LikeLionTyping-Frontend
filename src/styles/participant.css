@@ -1,0 +1,28 @@
+/* 참가자 화면에만 쓰는 표현. 팀원 B의 global.css와 디자인 토큰은 그대로 유지한다. */
+
+.primary-button {
+  @apply inline-flex min-h-12 items-center justify-center gap-5 rounded-xl border border-accent bg-accent px-6 py-3 font-semibold text-surface transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-50;
+}
+.secondary-button {
+  @apply inline-flex min-h-12 items-center justify-center rounded-xl border border-line-strong bg-surface-soft px-6 py-3 font-semibold text-ink transition-colors hover:bg-surface-card;
+}
+.eyebrow {
+  @apply text-xs font-semibold tracking-[0.2em] text-accent;
+}
+.field-label {
+  @apply mb-3 block text-sm font-semibold;
+}
+.participant-input {
+  @apply w-full rounded-xl border border-line-strong bg-surface px-4 py-4 text-lg text-ink placeholder:text-ink-dim;
+  caret-color: auto;
+}
+.field-error {
+  @apply mt-2 text-sm text-ink;
+}
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-surface-card focus:p-4;
+}
+:where(a, button, input, summary):focus-visible {
+  outline: 2px solid #4f8dff;
+  outline-offset: 4px;
+}
