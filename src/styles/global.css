@@ -1,5 +1,24 @@
 @import 'tailwindcss';
 
+/* Admin-only display font (라디오 부스 최종 디자인). Declaring it here
+   only makes the family available — nothing outside Admin references
+   'Maru Buri', so this can't affect any other page's look. */
+@font-face {
+  font-family: 'Maru Buri';
+  src: url('../features/admin/assets/fonts/MaruBuri-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Maru Buri';
+  src: url('../features/admin/assets/fonts/MaruBuri-SemiBold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
 :root {
   font-family: Inter, Pretendard, 'Noto Sans KR', system-ui, sans-serif;
   color: #17201b;
