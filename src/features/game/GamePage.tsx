@@ -16,6 +16,7 @@ import {
   panelClass,
   secondaryButtonClass,
 } from '../../shared/components'
+import { ROUTES } from '../../shared/constants/routes'
 import { canAdvanceSentence, gameReducer } from './gameMachine'
 
 const now = () => performance.timeOrigin + performance.now()
@@ -41,10 +42,13 @@ export function GamePage() {
     onSuccess: (result) => {
       dispatch({ type: 'RESULT' })
       setActiveGame(null)
-      navigate(`/result/${result.gameSessionId}?categoryId=${categoryId}`, {
-        replace: true,
-        state: result,
-      })
+      navigate(
+        `${ROUTES.RESULT(result.gameSessionId)}?categoryId=${categoryId}`,
+        {
+          replace: true,
+          state: result,
+        },
+      )
     },
     onError: (error) => dispatch({ type: 'FAIL', error: errorMessage(error) }),
   })
@@ -54,10 +58,13 @@ export function GamePage() {
     onSuccess: (result) => {
       if (result.status === 'COMPLETED') {
         setActiveGame(null)
-        navigate(`/result/${result.gameSessionId}?categoryId=${categoryId}`, {
-          replace: true,
-          state: result,
-        })
+        navigate(
+          `${ROUTES.RESULT(result.gameSessionId)}?categoryId=${categoryId}`,
+          {
+            replace: true,
+            state: result,
+          },
+        )
       } else if (result.status === 'IN_PROGRESS') {
         submitLock.current = false
         dispatch({ type: 'PLAY' })
@@ -90,9 +97,10 @@ export function GamePage() {
     return () => window.clearTimeout(timer)
   }, [countdown, game, setActiveGame, state.phase])
 
-  if (!participant) return <Navigate to="/" replace />
+  // 참가자 정보가 없으면 참가자 확인 화면으로 보낸다. (팀 확정: 목적지만 /participate)
+  if (!participant) return <Navigate to={ROUTES.PARTICIPATE} replace />
   if (!Number.isInteger(categoryId))
-    return <Navigate to="/categories" replace />
+    return <Navigate to={ROUTES.CATEGORIES} replace />
 
   if (activeGame && !game)
     return (
@@ -100,7 +108,7 @@ export function GamePage() {
         <Alert>다른 카테고리의 진행 중 경기가 있습니다.</Alert>
         <Link
           className={`${buttonClass} mt-5 w-full`}
-          to={`/game/${activeGame.category.id}`}
+          to={ROUTES.GAME(activeGame.category.id)}
         >
           진행 중 경기로 이동
         </Link>
@@ -112,7 +120,7 @@ export function GamePage() {
       <section className={panelClass}>
         <Link
           className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-zinc-600"
-          to="/categories"
+          to={ROUTES.CATEGORIES}
         >
           <ArrowLeft className="size-4" />
           카테고리

@@ -11,6 +11,7 @@ import {
   panelClass,
   secondaryButtonClass,
 } from '../../shared/components'
+import { ROUTES } from '../../shared/constants/routes'
 
 const seconds = (milliseconds: number | null) =>
   milliseconds == null ? '-' : `${(milliseconds / 1_000).toFixed(3)}초`
@@ -69,11 +70,11 @@ export function ResultPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Link
               className={buttonClass}
-              to={`/rankings?categoryId=${search.get('categoryId') ?? ''}`}
+              to={`${ROUTES.RANKINGS}?categoryId=${search.get('categoryId') ?? ''}`}
             >
               랭킹 보기
             </Link>
-            <Link className={secondaryButtonClass} to="/">
+            <Link className={secondaryButtonClass} to={ROUTES.LANDING}>
               <RotateCcw className="size-4" />
               다시 참가하기
             </Link>
