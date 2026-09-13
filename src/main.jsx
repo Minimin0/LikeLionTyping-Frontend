@@ -14,7 +14,12 @@ async function enableMocking() {
   // `vite build` output entirely — mocks can never ship to Production.
   if (!import.meta.env.DEV || import.meta.env.VITE_USE_MSW !== 'true') return
   const { worker } = await import('./mocks/browser')
-  return worker.start({ onUnhandledRequest: 'bypass' })
+  await worker.start({ onUnhandledRequest: 'bypass' })
+  // worker.start() can resolve slightly before the service worker is
+  // actually controlling this page (seen as an intermittent "request
+  // falls through to the real dev server" race on rapid reloads) —
+  // this closes that gap so no request ever fires before mocking is live.
+  await navigator.serviceWorker.ready
 }
 
 enableMocking().then(() => {
