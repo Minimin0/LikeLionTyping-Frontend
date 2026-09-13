@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { useSession } from '../../app/session'
 import { errorMessage } from '../../shared/api/client'
 import { identifyParticipant } from '../../shared/api/endpoints'
+import { ROUTES } from '../../shared/constants/routes'
 import {
   Alert,
   Busy,
@@ -38,7 +39,7 @@ export function ParticipantPage() {
     onSuccess: (data) => {
       setParticipant(data)
       setActiveGame(null)
-      navigate('/categories')
+      navigate(ROUTES.CATEGORIES)
     },
   })
 

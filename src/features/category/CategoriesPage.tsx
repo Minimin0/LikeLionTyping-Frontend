@@ -5,6 +5,7 @@ import { useSession } from '../../app/session'
 import { errorMessage } from '../../shared/api/client'
 import { getCategories } from '../../shared/api/endpoints'
 import { Alert, Busy, buttonClass, panelClass } from '../../shared/components'
+import { ROUTES } from '../../shared/constants/routes'
 
 export function CategoriesPage() {
   const navigate = useNavigate()
@@ -13,7 +14,8 @@ export function CategoriesPage() {
     queryKey: ['categories'],
     queryFn: getCategories,
   })
-  if (!participant) return <Navigate to="/" replace />
+  // 참가자 정보가 없으면 참가자 확인 화면으로 보낸다. (팀 확정: 목적지만 /participate)
+  if (!participant) return <Navigate to={ROUTES.PARTICIPATE} replace />
 
   return (
     <section className={panelClass}>
@@ -39,7 +41,7 @@ export function CategoriesPage() {
           <button
             key={category.id}
             className="group flex min-h-36 flex-col items-start justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-left transition hover:border-emerald-700 hover:bg-emerald-50"
-            onClick={() => navigate(`/game/${category.id}`)}
+            onClick={() => navigate(ROUTES.GAME(category.id))}
           >
             <Radio className="size-5 text-emerald-700" aria-hidden />
             <span>
@@ -59,7 +61,7 @@ export function CategoriesPage() {
       )}
       <button
         className={`${buttonClass} mt-7 w-full`}
-        onClick={() => navigate('/rankings')}
+        onClick={() => navigate(ROUTES.RANKINGS)}
       >
         랭킹 보기
       </button>
