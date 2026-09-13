@@ -8,12 +8,6 @@ import { ParticipantPage } from '../features/participant/ParticipantPage'
 import { RankingPage } from '../features/ranking/RankingPage'
 import { ROUTE_PATTERNS, ROUTES } from '../shared/constants/routes'
 
-/* 아직 최종 화면이 준비되지 않은 경로 — 담당자가 자기 브랜치에서 교체한다.
-   빈 컴포넌트라도 넣어둬야 빌드가 깨지지 않는다. */
-const Placeholder = ({ name }: { name: string }) => (
-  <div className="p-8 text-center opacity-60">{name} 준비 중</div>
-)
-
 export default function App() {
   return (
     <div className="min-h-screen bg-[#f4f6f2]">
@@ -48,14 +42,14 @@ export default function App() {
       </header>
       <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
         <Routes>
-          {/* 홈. 현재는 참가자 입력 화면이 그대로 들어 있다. 분리는 Participant 담당자가 진행한다. */}
+          {/* 당분간 / 와 /participate 가 같은 화면을 가리킨다.
+              가드가 /participate 로 보내는데 그곳이 빈 화면이면 참가자 정보 없이 보호 화면에
+              접근한 사람이 아무것도 못 하고 갇힌다.
+              Landing이 준비되면 / 만 Landing으로 교체하면 되므로, 이 구조가 인수인계도 쉽다. */}
           <Route path={ROUTE_PATTERNS.LANDING} element={<ParticipantPage />} />
-
-          {/* 새로 추가되는 경로. 화면 분리는 Participant 담당자가 진행하므로
-              이번 PR에서는 경로만 뚫어두고 Placeholder로 채운다. */}
           <Route
             path={ROUTE_PATTERNS.PARTICIPATE}
-            element={<Placeholder name="참가자 확인" />}
+            element={<ParticipantPage />}
           />
 
           <Route
