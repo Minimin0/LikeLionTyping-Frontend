@@ -2,19 +2,18 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ParticipantLookupPanel from './ParticipantLookupPanel'
 import RankingPanel from './RankingPanel'
-import OperationsPanel from './OperationsPanel'
 import lpRed from '../assets/images/LP_red.png'
 
-// Three tabs = the three operator jobs from the Notion 운영진 화면 spec:
-// 참가자 조회(+결제 확인/이용권 발급/무효 처리), 랭킹 확인, 마감 관리.
+// Two tabs = the locked admin scope (2026-09-13): 참가자 조회(read-only +
+// PAID 발급 + 경기 무효화/복구), 랭킹 확인. 등록 마감 on/off is explicitly
+// out of scope — see [[project-typing-admin-page]].
 const TABS = [
   { id: 'participants', label: '참가자 조회' },
   { id: 'ranking', label: '랭킹 확인' },
-  { id: 'operations', label: '운영 관리' },
 ]
 
-// Shell: header + tab nav + the active tab's panel.
-function AdminDashboard() {
+// Shell shown after login: header + tab nav + the active tab's panel.
+function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('participants')
   const navigate = useNavigate()
 
@@ -34,13 +33,14 @@ function AdminDashboard() {
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          onClick={() => navigate('/play')}
-        >
-          참가자 화면으로
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => navigate('/play')}>
+            참가자 화면으로
+          </button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onLogout}>
+            로그아웃
+          </button>
+        </div>
       </header>
 
       <div className="admin-body">
@@ -59,7 +59,6 @@ function AdminDashboard() {
 
         {activeTab === 'participants' && <ParticipantLookupPanel />}
         {activeTab === 'ranking' && <RankingPanel />}
-        {activeTab === 'operations' && <OperationsPanel />}
       </div>
     </div>
   )

@@ -79,6 +79,62 @@
   margin: -8px 0 16px;
 }
 
+/* ---------- Login ---------- */
+
+.admin-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.admin-login__card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-top: 3px solid var(--admin-accent);
+  border-radius: 10px;
+  padding: 32px 28px;
+  box-shadow: 0 20px 60px rgba(34, 31, 29, 0.12);
+}
+
+.admin-login__onair {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+
+.admin-login__onair-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--admin-accent);
+}
+
+.admin-login__title {
+  margin: 0 0 4px;
+  font-family: 'Maru Buri', system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--admin-ink);
+}
+
+.admin-login__subtitle {
+  margin: 0 0 24px;
+  color: var(--admin-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .btn {
   border: none;
   border-radius: 6px;

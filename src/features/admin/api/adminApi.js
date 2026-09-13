@@ -1,315 +1,67 @@
-// Mock Admin API layer.
-//
-// Backend (Spring Boot + MySQL) doesn't exist yet, so every export here
-// simulates one Admin endpoint against an in-memory "database" (the
-// mock* arrays below). DTO shapes mirror the locked contract in
-// AGENTS.md so swapping a function body for a real axios call later
-// requires no changes in the components that import it.
-//
-// Endpoints marked with a route comment above them are already in
-// AGENTS.md. cancelPass / restorePassById / updateParticipantPhone are
-// NOT in that contract yet — they cover operational cases from the
-// Notion "오류·취소 처리안" table and need a matching real endpoint
-// before backend integration.
+// Admin API layer — thin wrappers around the shared apiClient, one
+// function per endpoint in the locked Admin policy (관리자 로그인 /
+// 참가자 조회 / PAID 이용권 발급 / 경기 무효화+이용권 복구). No mock data
+// lives here per the 2026-09-13 Production policy (§11): Mock
+// Category/Participant/Ranking/GameSession are all forbidden outside a
+// test environment. See [[project-typing-admin-page]] for the full scope
+// decision and why fields like standalone pass-cancel/restore and phone
+// edit were intentionally never added back.
+import { apiClient } from '../../../shared/api/apiClient'
+import { setAuth, clearAuth } from '../../../shared/api/adminAuth'
 
-// Fake network latency so loading states are visible during dev/demo.
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
-// Strips hyphens/spaces so "010-1234-5678" and "01012345678" match the
-// same participant (per AGENTS.md: normalize before comparing).
-const normalizePhone = (phone) => phone.replace(/[-\s]/g, '')
-
-const mockCategories = [
-  { id: 1, code: 'CH01', name: '성결 멋사 ON AIR' },
-  { id: 2, code: 'CH02', name: '캠퍼스 주파수' },
-  { id: 3, code: 'CH03', name: '페스티벌 라디오' },
-]
-
-// 카테고리별 5문장 세트의 총 글자 수(고정). 모든 참가자가 같은 문장을
-// 입력하므로, 완료 시간과 함께 분당 타수(CPM)를 계산하는 데 사용한다.
-const categoryCharCount = { 1: 240, 2: 268, 3: 255 }
-
-function calculateTypingSpeed(categoryId, elapsedMs) {
-  if (elapsedMs == null) return null
-  const totalChars = categoryCharCount[categoryId] ?? 0
-  const minutes = elapsedMs / 60000
-  return Math.round(totalChars / minutes)
+// POST /api/admin/login
+export async function adminLogin(password) {
+  const { data } = await apiClient.post('/admin/login', { password })
+  // Works whether the backend replies with a Bearer token or just sets
+  // the session cookie (data.token is then simply undefined).
+  setAuth(data?.token)
+  return data
 }
 
-// --- In-memory mock "database" ---------------------------------------
-// Reset whenever the page fully reloads (module re-evaluates). Mutated
-// in place by the functions below so the Admin UI reflects each action
-// immediately without a page refresh.
-
-let mockParticipants = [
-  { id: 1, nickname: '타자왕', phone: '01012345678', createdAt: '2026-09-11T09:12:00' },
-  { id: 2, nickname: '사자왕', phone: '01099998888', createdAt: '2026-09-11T09:20:00' },
-  { id: 3, nickname: '코딩사자', phone: '01055554444', createdAt: '2026-09-11T09:31:00' },
-]
-
-let mockPasses = [
-  { id: 1, participantId: 1, type: 'FREE', status: 'CONSUMED', createdAt: '2026-09-11T09:12:00' },
-  { id: 2, participantId: 1, type: 'PAID', status: 'CONSUMED', createdAt: '2026-09-11T09:40:00' },
-  { id: 3, participantId: 2, type: 'FREE', status: 'CONSUMED', createdAt: '2026-09-11T09:20:00' },
-  { id: 4, participantId: 3, type: 'FREE', status: 'AVAILABLE', createdAt: '2026-09-11T09:31:00' },
-]
-
-let mockSessions = [
-  {
-    id: 21,
-    participantId: 1,
-    categoryId: 2,
-    playPassId: 1,
-    status: 'COMPLETED',
-    elapsedMs: 43821,
-    startedAt: '2026-09-11T09:13:00',
-    completedAt: '2026-09-11T09:13:44',
-  },
-  {
-    id: 24,
-    participantId: 1,
-    categoryId: 2,
-    playPassId: 2,
-    status: 'IN_PROGRESS',
-    elapsedMs: null,
-    startedAt: '2026-09-11T09:41:00',
-    completedAt: null,
-  },
-  {
-    id: 22,
-    participantId: 2,
-    categoryId: 2,
-    playPassId: 3,
-    status: 'COMPLETED',
-    elapsedMs: 38990,
-    startedAt: '2026-09-11T09:21:00',
-    completedAt: '2026-09-11T09:21:39',
-  },
-  {
-    id: 23,
-    participantId: 3,
-    categoryId: 1,
-    playPassId: null,
-    status: 'INVALIDATED',
-    elapsedMs: 51200,
-    startedAt: '2026-09-11T09:33:00',
-    completedAt: '2026-09-11T09:33:51',
-  },
-]
-
-let nextPassId = 5
-
-let registrationOpen = true
+export function adminLogout() {
+  clearAuth()
+}
 
 // GET /api/admin/participants?phone={phone}
+// Read-only: nickname, phone, every pass, and every game session for one
+// participant. No admin action here can edit any of these fields.
 export async function searchParticipantByPhone(phone) {
-  await delay(450)
-  const normalized = normalizePhone(phone)
-  const participant = mockParticipants.find((p) => p.phone === normalized)
-
-  if (!participant) {
-    const error = new Error('일치하는 참가자를 찾을 수 없습니다.')
-    error.code = 'PARTICIPANT_NOT_FOUND'
-    throw error
-  }
-
-  const passes = mockPasses.filter((pass) => pass.participantId === participant.id)
-  const sessions = mockSessions
-    .filter((session) => session.participantId === participant.id)
-    .map((session) => ({
-      ...session,
-      category: mockCategories.find((c) => c.id === session.categoryId) ?? null,
-      typingSpeed: calculateTypingSpeed(session.categoryId, session.elapsedMs),
-    }))
-
-  return { participant, passes, sessions }
+  const normalized = phone.replace(/[-\s]/g, '')
+  const { data } = await apiClient.get('/admin/participants', { params: { phone: normalized } })
+  return data
 }
 
 // POST /api/admin/participants/{participantId}/passes
+// Idempotent on the backend: if the participant already has an AVAILABLE
+// PAID pass, it's returned as-is instead of minting a duplicate.
 export async function issuePaidPass(participantId) {
-  await delay(450)
-  const participant = mockParticipants.find((p) => p.id === participantId)
-  if (!participant) {
-    const error = new Error('참가자를 찾을 수 없습니다.')
-    error.code = 'PARTICIPANT_NOT_FOUND'
-    throw error
-  }
-
-  const pass = {
-    id: nextPassId++,
-    participantId,
-    type: 'PAID',
-    status: 'AVAILABLE',
-    createdAt: new Date().toISOString(),
-  }
-  mockPasses = [...mockPasses, pass]
-  return pass
-}
-
-// POST /api/admin/participants/{participantId}/passes/{passId}/cancel
-// 결제 후 게임 시작 전 취소: 미사용(AVAILABLE) 이용권을 회수하고 현장에서
-// 500원(PAID인 경우)을 환불한다.
-export async function cancelPass(passId) {
-  await delay(400)
-  const pass = mockPasses.find((p) => p.id === passId)
-  if (!pass) {
-    const error = new Error('이용권을 찾을 수 없습니다.')
-    error.code = 'PASS_NOT_FOUND'
-    throw error
-  }
-  if (pass.status !== 'AVAILABLE') {
-    const error = new Error('사용 가능 상태의 이용권만 취소할 수 있습니다.')
-    error.code = 'INVALID_PASS_STATE'
-    throw error
-  }
-
-  pass.status = 'CANCELLED'
-  return pass
-}
-
-// POST /api/admin/passes/{passId}/restore
-// 경기와 무관하게 이용권이 중복 차감된 경우, 해당 이용권만 단독으로
-// AVAILABLE 상태로 복구한다. (경기 무효 처리에 딸린 복구와는 별개 동작)
-export async function restorePassById(passId) {
-  await delay(400)
-  const pass = mockPasses.find((p) => p.id === passId)
-  if (!pass) {
-    const error = new Error('이용권을 찾을 수 없습니다.')
-    error.code = 'PASS_NOT_FOUND'
-    throw error
-  }
-  if (pass.status !== 'CONSUMED') {
-    const error = new Error('사용된(CONSUMED) 이용권만 복구할 수 있습니다.')
-    error.code = 'INVALID_PASS_STATE'
-    throw error
-  }
-
-  pass.status = 'AVAILABLE'
-  return pass
-}
-
-// PATCH /api/admin/participants/{participantId}/phone
-// 전화번호 오입력 정정: 운영진이 본인 확인 후에만 사용한다.
-export async function updateParticipantPhone(participantId, newPhone) {
-  await delay(400)
-  const participant = mockParticipants.find((p) => p.id === participantId)
-  if (!participant) {
-    const error = new Error('참가자를 찾을 수 없습니다.')
-    error.code = 'PARTICIPANT_NOT_FOUND'
-    throw error
-  }
-
-  const normalized = normalizePhone(newPhone)
-  if (normalized.length !== 11) {
-    const error = new Error('전화번호 11자리를 입력해주세요.')
-    error.code = 'INVALID_PHONE'
-    throw error
-  }
-
-  const duplicate = mockParticipants.find((p) => p.phone === normalized && p.id !== participantId)
-  if (duplicate) {
-    const error = new Error('이미 다른 참가자가 사용 중인 전화번호입니다.')
-    error.code = 'PHONE_ALREADY_REGISTERED'
-    throw error
-  }
-
-  participant.phone = normalized
-  return participant
+  const { data } = await apiClient.post(`/admin/participants/${participantId}/passes`)
+  return data
 }
 
 // POST /api/admin/game-sessions/{gameSessionId}/invalidate
-// AGENTS.md requires invalidate + pass-restore to be a single DB
-// transaction on the real backend so a crash can't leave the session
-// invalidated but the pass still stuck as CONSUMED. This mock does both
-// mutations before the single `return`, matching that all-or-nothing intent.
 export async function invalidateGameSession(gameSessionId, restorePass) {
-  await delay(450)
-  const session = mockSessions.find((s) => s.id === gameSessionId)
-  if (!session) {
-    const error = new Error('경기를 찾을 수 없습니다.')
-    error.code = 'GAME_SESSION_NOT_FOUND'
-    throw error
-  }
-  if (session.status === 'INVALIDATED') {
-    const error = new Error('이미 무효 처리된 경기입니다.')
-    error.code = 'INVALID_GAME_STATE'
-    throw error
-  }
-
-  session.status = 'INVALIDATED'
-
-  let restoredPass = null
-  if (restorePass && session.playPassId) {
-    const pass = mockPasses.find((p) => p.id === session.playPassId)
-    if (pass) {
-      pass.status = 'AVAILABLE'
-      restoredPass = pass
-    }
-  }
-
-  return { session, restoredPass }
+  const { data } = await apiClient.post(`/admin/game-sessions/${gameSessionId}/invalidate`, { restorePass })
+  return data
 }
 
 // GET /api/categories
 export async function getCategories() {
-  await delay(200)
-  return mockCategories
+  const { data } = await apiClient.get('/categories')
+  return data
 }
 
 // GET /api/rankings?categoryId={id}
-// 공개 랭킹 화면은 이 값에서 phone을 제외하고 사용한다(전화번호는
-// 공개 API·화면에 노출 금지). 아래 getAdminRankings가 운영진 전용이다.
+// Public ranking — no phone number.
 export async function getRankings(categoryId) {
-  await delay(400)
-  return buildRankingList(categoryId).map(({ phone: _phone, ...entry }) => entry)
+  const { data } = await apiClient.get('/rankings', { params: { categoryId } })
+  return data
 }
 
 // GET /api/admin/rankings?categoryId={id}
-// 운영진 화면 전용: 상품 지급 시 본인 확인을 위해 전화번호를 함께 내려준다.
+// Admin-only: includes the phone number for prize-handout verification,
+// which the public /api/rankings response must never include.
 export async function getAdminRankings(categoryId) {
-  await delay(400)
-  return buildRankingList(categoryId)
-}
-
-// Shared by both ranking exports. Per the spec: only a participant's
-// single fastest COMPLETED run in this category counts, and rank order
-// is always by elapsedMs (typingSpeed is just a display conversion of
-// the same value, so sorting by time keeps both in sync).
-function buildRankingList(categoryId) {
-  const bestByParticipant = new Map()
-
-  mockSessions
-    .filter((s) => s.categoryId === categoryId && s.status === 'COMPLETED')
-    .forEach((s) => {
-      const current = bestByParticipant.get(s.participantId)
-      if (!current || s.elapsedMs < current.elapsedMs) {
-        bestByParticipant.set(s.participantId, s)
-      }
-    })
-
-  return Array.from(bestByParticipant.values())
-    .sort((a, b) => a.elapsedMs - b.elapsedMs)
-    .map((s, index) => {
-      const participant = mockParticipants.find((p) => p.id === s.participantId)
-      return {
-        rank: index + 1,
-        nickname: participant?.nickname ?? '알 수 없음',
-        phone: participant?.phone ?? null,
-        elapsedMs: s.elapsedMs,
-        typingSpeed: calculateTypingSpeed(categoryId, s.elapsedMs),
-      }
-    })
-}
-
-// GET /api/admin/registration-status (마감 관리)
-export async function getRegistrationStatus() {
-  await delay(150)
-  return { open: registrationOpen }
-}
-
-// POST /api/admin/registration-status
-export async function setRegistrationStatus(open) {
-  await delay(300)
-  registrationOpen = open
-  return { open: registrationOpen }
+  const { data } = await apiClient.get('/admin/rankings', { params: { categoryId } })
+  return data
 }

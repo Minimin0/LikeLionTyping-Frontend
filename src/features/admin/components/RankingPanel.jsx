@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getAdminRankings, getCategories } from '../api/adminApi'
-import { formatPhone, formatTypingSpeed } from '../../../shared/utils/format'
+import { formatElapsedMs, formatPhone } from '../../../shared/utils/format'
 
 // Admin-only ranking view. Deliberately calls getAdminRankings() (not the
 // public getRankings()) because staff need the phone number on screen to
@@ -72,7 +72,7 @@ function RankingPanel() {
                 <td data-label="순위" className="rank-cell">{entry.rank}</td>
                 <td data-label="닉네임">{entry.nickname}</td>
                 <td data-label="전화번호">{formatPhone(entry.phone)}</td>
-                <td data-label="기록">{formatTypingSpeed(entry.typingSpeed)}</td>
+                <td data-label="기록">{formatElapsedMs(entry.elapsedMs)}</td>
               </tr>
             ))}
           </tbody>
