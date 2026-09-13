@@ -7,6 +7,16 @@ import { describe, expect, it } from 'vitest'
 
 import { MOCK_CATEGORIES, MOCK_SENTENCES } from './mockSentences'
 
+describe('MOCK_CATEGORIES — 운영 확정 표시 이름', () => {
+  it('카테고리 표시 이름이 확정본과 글자 하나까지 일치한다', () => {
+    expect(MOCK_CATEGORIES.map((category) => [category.code, category.name])).toEqual([
+      ['CH01', '성결대 멋사'],
+      ['CH02', '멋쟁이사자처럼'],
+      ['CH03', '페스티벌 라디오'],
+    ])
+  })
+})
+
 describe('MOCK_SENTENCES — 운영 확정본', () => {
   it('세 카테고리 모두 문장이 있다', () => {
     for (const category of MOCK_CATEGORIES) {

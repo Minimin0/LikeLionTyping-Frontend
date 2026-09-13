@@ -13,7 +13,6 @@ export function ProgressBar({ current, total }: ProgressBarProps) {
   return (
     <div className="w-full">
       <div className="mb-2 flex items-baseline justify-between text-sm text-ink-muted">
-        {/* CH.02는 문장이 아니라 대학 이름이므로 "문장"이라고 쓰지 않는다 */}
         <span>진행</span>
         <span className="tabular">
           <span className="text-ink">{current}</span> / {total}

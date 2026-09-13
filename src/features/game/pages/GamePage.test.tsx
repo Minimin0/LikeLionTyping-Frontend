@@ -17,7 +17,7 @@ import { GamePage } from './GamePage'
 
 const SESSION: GameSessionResponse = {
   gameSessionId: 21,
-  category: { id: 2, code: 'CH02', name: 'CH.02 캠퍼스 주파수' },
+  category: { id: 2, code: 'CH02', name: '멋쟁이사자처럼' },
   sentences: [
     { sequence: 1, content: '가나다' },
     { sequence: 2, content: '라마바' },
@@ -136,9 +136,9 @@ describe('GamePage — 게임 진행', () => {
 
 describe('GamePage — 카테고리 공통 레이아웃', () => {
   it.each([
-    ['CH01', 'CH.01 성결 멋사 ON AIR'],
-    ['CH02', 'CH.02 캠퍼스 주파수'],
-    ['CH03', 'CH.03 페스티벌 라디오'],
+    ['CH01', '성결대 멋사'],
+    ['CH02', '멋쟁이사자처럼'],
+    ['CH03', '페스티벌 라디오'],
   ])(
     '%s도 다른 채널과 같은 문장 타이핑 화면을 쓴다',
     async (code, name) => {

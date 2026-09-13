@@ -67,7 +67,7 @@ export function CategorySelectPage() {
       <header className="text-center">
         <p className="text-sm font-semibold tracking-widest text-onair">멋쟁이 타자처럼</p>
         <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">채널을 선택하세요</h1>
-        {/* 항목 개수는 채널마다 다르므로(CH.02는 대학 20개) 숫자를 적지 않는다. */}
+        {/* 문장 개수는 백엔드가 정하므로 숫자를 적지 않는다. */}
         <p className="mt-2 text-ink-muted">선택한 채널의 문장을 순서대로 입력하게 됩니다</p>
       </header>
 

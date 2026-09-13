@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 채널 선택 화면 테스트.
  * 정상 선택보다 실패 케이스(시작 연타 / 이용권 소진) 검증에 무게를 둔다.
  */
@@ -44,7 +44,7 @@ function renderPage() {
 describe('CategorySelectPage', () => {
   it('채널을 선택해야 시작할 수 있다', async () => {
     renderPage()
-    await screen.findByRole('button', { name: /CH.01/ })
+    await screen.findByRole('button', { name: /성결대 멋사/ })
 
     expect(screen.getByRole('button', { name: '방송 참여하기' })).toBeDisabled()
   })
@@ -65,7 +65,7 @@ describe('CategorySelectPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(await screen.findByRole('button', { name: /CH.02/ }))
+    await user.click(await screen.findByRole('button', { name: /^멋쟁이사자처럼/ }))
     const startButton = screen.getByRole('button', { name: '방송 참여하기' })
 
     // 리렌더를 기다리지 않고 연속으로 눌러본다
@@ -90,7 +90,7 @@ describe('CategorySelectPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(await screen.findByRole('button', { name: /CH.01/ }))
+    await user.click(await screen.findByRole('button', { name: /성결대 멋사/ }))
     await user.click(screen.getByRole('button', { name: '방송 참여하기' }))
 
     await waitFor(() =>
