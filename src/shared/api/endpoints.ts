@@ -23,7 +23,9 @@ export const startGame = (participantId: number, categoryId: number) =>
   apiClient
     .post<GameStart>('/game-sessions', { participantId, categoryId })
     .then(({ data }) => {
-      if (data.sentences.length !== 5)
+      // 문장 개수는 카테고리마다 달라질 수 있다.
+      // 개수를 고정하면 백엔드가 콘텐츠를 조정했을 때 게임 시작이 막힌다.
+      if (!Array.isArray(data.sentences) || data.sentences.length === 0)
         throw new ApiError('SENTENCE_CONTENT_INVALID', 409)
       return data
     })
