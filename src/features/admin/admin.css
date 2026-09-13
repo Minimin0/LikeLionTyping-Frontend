@@ -1,26 +1,45 @@
-/* Admin console theme: dark background + LikeLion orange accent, per the
-   Notion design direction ("라디오 기기·방송 화면을 연상시키는 구성 / 어두운
-   배경과 멋사 오렌지색 포인트"). Scoped under src/features/admin only —
-   not imported by the (not-yet-built) participant-facing pages. */
+/* Admin console theme: vintage radio-booth concept (cream paper, deep-red
+   accent, LP/cassette motifs, Maru Buri display font), matched to the
+   festival's participant-facing "라디오 부스" branding. Scoped under
+   src/features/admin only — not imported by the (not-yet-built)
+   participant-facing pages. */
+@font-face {
+  font-family: 'Maru Buri';
+  src: url('./assets/fonts/MaruBuri-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Maru Buri';
+  src: url('./assets/fonts/MaruBuri-SemiBold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
 :root {
-  --admin-bg: #0b0d12;
-  --admin-surface: #161923;
-  --admin-surface-alt: #1e2230;
-  --admin-border: #2a2f3f;
-  --admin-text: #e7e9f0;
-  --admin-text-muted: #8b91a7;
-  --admin-orange: #ff6a1a;
-  --admin-orange-soft: rgba(255, 106, 26, 0.16);
-  --admin-green: #34d399;
-  --admin-amber: #fbbf24;
-  --admin-red: #f87171;
-  --admin-gray: #6b7280;
+  --admin-bg: #f4f5f0;
+  --admin-surface: #fffdf8;
+  --admin-surface-alt: #ece3d3;
+  --admin-border: #ddd2bc;
+  --admin-ink: #221f1d;
+  --admin-text: #221f1d;
+  --admin-text-muted: #7a675c;
+  --admin-accent: #730c02;
+  --admin-accent-soft: rgba(115, 12, 2, 0.1);
+  --admin-green: #4c7a5e;
+  --admin-amber: #b8860b;
+  --admin-red: #b5301f;
+  --admin-gray: #948474;
 }
 
 .admin-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 15% 0%, rgba(255, 106, 26, 0.12), transparent 45%),
+    radial-gradient(ellipse at 100% 0%, rgba(231, 123, 73, 0.1), transparent 45%),
+    radial-gradient(ellipse at 0% 100%, rgba(115, 12, 2, 0.06), transparent 40%),
     var(--admin-bg);
   color: var(--admin-text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -42,7 +61,7 @@
 .admin-field input {
   background: var(--admin-surface-alt);
   border: 1px solid var(--admin-border);
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 11px 12px;
   color: var(--admin-text);
   font-size: 14px;
@@ -51,7 +70,7 @@
 }
 
 .admin-field input:focus {
-  border-color: var(--admin-orange);
+  border-color: var(--admin-accent);
 }
 
 .admin-error {
@@ -62,10 +81,11 @@
 
 .btn {
   border: none;
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 10px 16px;
+  font-family: 'Maru Buri', system-ui, sans-serif;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: filter 0.15s, opacity 0.15s;
 }
@@ -76,12 +96,12 @@
 }
 
 .btn--primary {
-  background: var(--admin-orange);
-  color: #16130f;
+  background: var(--admin-accent);
+  color: #f4f5f0;
 }
 
 .btn--primary:hover:not(:disabled) {
-  filter: brightness(1.08);
+  filter: brightness(1.1);
 }
 
 .btn--block {
@@ -95,61 +115,100 @@
 }
 
 .btn--ghost:hover:not(:disabled) {
-  border-color: var(--admin-orange);
-  color: var(--admin-orange);
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
 }
 
 .btn--danger {
-  background: rgba(248, 113, 113, 0.14);
+  background: rgba(181, 48, 31, 0.12);
   color: var(--admin-red);
 }
 
 .btn--danger:hover:not(:disabled) {
-  filter: brightness(1.15);
+  filter: brightness(1.1);
 }
 
 .btn--sm {
   padding: 6px 10px;
   font-size: 12.5px;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
 /* ---------- Dashboard shell ---------- */
 
 .admin-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 18px 28px;
-  border-bottom: 1px solid var(--admin-border);
+  border-bottom: 1px solid var(--admin-ink);
+  background: var(--admin-surface);
 }
 
 .admin-header__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.admin-header__logo-wrap {
+  position: relative;
+  width: 34px;
+  height: 34px;
+}
+
+.admin-header__lp {
+  position: absolute;
+  top: -10px;
+  left: -12px;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transform: rotate(-18deg);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .admin-header__logo {
+  position: relative;
+  z-index: 1;
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  background: var(--admin-orange);
+  background: var(--admin-accent);
   display: grid;
   place-items: center;
-  font-weight: 900;
-  color: #16130f;
+  font-family: 'Maru Buri', system-ui, sans-serif;
+  font-weight: 600;
+  color: #f4f5f0;
 }
 
 .admin-header__title {
-  font-size: 15px;
-  font-weight: 800;
+  font-family: 'Maru Buri', system-ui, sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   line-height: 1.1;
+  color: var(--admin-ink);
 }
 
 .admin-header__subtitle {
-  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
   color: var(--admin-text-muted);
+}
+
+.admin-header__onair-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--admin-accent);
+  box-shadow: 0 0 0 2px var(--admin-accent-soft);
 }
 
 .admin-body {
@@ -171,21 +230,24 @@
   color: var(--admin-text-muted);
   padding: 9px 16px;
   border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
+  font-family: 'Maru Buri', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   cursor: pointer;
 }
 
 .admin-tab--active {
-  background: var(--admin-orange-soft);
-  border-color: var(--admin-orange);
-  color: var(--admin-orange);
+  background: var(--admin-accent-soft);
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
 }
 
 .admin-panel {
   background: var(--admin-surface);
   border: 1px solid var(--admin-border);
-  border-radius: 16px;
+  border-top: 3px solid var(--admin-accent);
+  border-radius: 8px;
   padding: 22px;
 }
 
@@ -195,14 +257,18 @@
 
 .admin-panel__title {
   margin: 0 0 4px;
-  font-size: 16px;
-  font-weight: 800;
+  font-family: 'Maru Buri', system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--admin-ink);
 }
 
 .admin-panel__hint {
   margin: 0 0 18px;
   color: var(--admin-text-muted);
-  font-size: 12.5px;
+  font-family: 'Maru Buri', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 13px;
 }
 
 /* ---------- Search ---------- */
@@ -216,7 +282,7 @@
   flex: 1;
   background: var(--admin-surface-alt);
   border: 1px solid var(--admin-border);
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 10px 12px;
   color: var(--admin-text);
   font-size: 14px;
@@ -224,7 +290,7 @@
 }
 
 .search-form input:focus {
-  border-color: var(--admin-orange);
+  border-color: var(--admin-accent);
 }
 
 .empty-state {
@@ -252,8 +318,10 @@
 }
 
 .participant-card__name {
+  font-family: 'Maru Buri', system-ui, sans-serif;
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
+  color: var(--admin-ink);
 }
 
 .participant-card__phone {
@@ -279,14 +347,14 @@
   letter-spacing: 0.02em;
 }
 
-.badge--available { background: rgba(52, 211, 153, 0.15); color: var(--admin-green); }
-.badge--consumed { background: rgba(107, 114, 128, 0.2); color: var(--admin-text-muted); }
-.badge--cancelled { background: rgba(248, 113, 113, 0.15); color: var(--admin-red); }
-.badge--in_progress { background: rgba(251, 191, 36, 0.15); color: var(--admin-amber); }
-.badge--completed { background: rgba(52, 211, 153, 0.15); color: var(--admin-green); }
-.badge--invalidated { background: rgba(248, 113, 113, 0.15); color: var(--admin-red); }
-.badge--free { background: var(--admin-orange-soft); color: var(--admin-orange); }
-.badge--paid { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+.badge--available { background: rgba(76, 122, 94, 0.14); color: var(--admin-green); }
+.badge--consumed { background: rgba(148, 132, 116, 0.18); color: var(--admin-text-muted); }
+.badge--cancelled { background: rgba(181, 48, 31, 0.12); color: var(--admin-red); }
+.badge--in_progress { background: rgba(184, 134, 11, 0.14); color: var(--admin-amber); }
+.badge--completed { background: rgba(76, 122, 94, 0.14); color: var(--admin-green); }
+.badge--invalidated { background: rgba(181, 48, 31, 0.12); color: var(--admin-red); }
+.badge--free { background: var(--admin-accent-soft); color: var(--admin-accent); }
+.badge--paid { background: rgba(60, 110, 113, 0.14); color: #3c6e71; }
 
 table {
   width: 100%;
@@ -333,18 +401,18 @@ tbody tr:last-child td {
 .toast {
   margin-top: 12px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 12.5px;
   font-weight: 600;
 }
 
 .toast--success {
-  background: rgba(52, 211, 153, 0.12);
+  background: rgba(76, 122, 94, 0.12);
   color: var(--admin-green);
 }
 
 .toast--error {
-  background: rgba(248, 113, 113, 0.12);
+  background: rgba(181, 48, 31, 0.12);
   color: var(--admin-red);
 }
 
@@ -362,32 +430,33 @@ tbody tr:last-child td {
   border: 1px solid var(--admin-border);
   color: var(--admin-text);
   padding: 8px 14px;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   text-align: left;
 }
 
 .channel-tab__code {
   display: block;
-  color: var(--admin-orange);
+  color: var(--admin-accent);
   font-size: 10.5px;
   letter-spacing: 0.08em;
   margin-bottom: 2px;
 }
 
 .channel-tab--active {
-  border-color: var(--admin-orange);
-  background: var(--admin-orange-soft);
+  border-color: var(--admin-accent);
+  background: var(--admin-accent-soft);
 }
 
 .rank-cell {
-  font-weight: 800;
+  font-family: 'Maru Buri', system-ui, sans-serif;
+  font-weight: 600;
 }
 
-tr.rank-1 .rank-cell { color: #ffd166; }
-tr.rank-2 .rank-cell { color: #cbd5e1; }
+tr.rank-1 .rank-cell { color: #b8860b; }
+tr.rank-2 .rank-cell { color: #7a675c; }
 
 /* ---------- Operations ---------- */
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import ParticipantLookupPanel from './ParticipantLookupPanel'
 import RankingPanel from './RankingPanel'
 import OperationsPanel from './OperationsPanel'
+import lpRed from '../assets/images/LP_red.png'
 
 // Three tabs = the three operator jobs from the Notion 운영진 화면 spec:
 // 참가자 조회(+결제 확인/이용권 발급/무효 처리), 랭킹 확인, 마감 관리.
@@ -21,10 +22,16 @@ function AdminDashboard() {
     <div>
       <header className="admin-header">
         <div className="admin-header__brand">
-          <div className="admin-header__logo">멋</div>
+          <div className="admin-header__logo-wrap">
+            <img className="admin-header__lp" src={lpRed} alt="" aria-hidden="true" />
+            <div className="admin-header__logo">멋</div>
+          </div>
           <div>
             <div className="admin-header__title">멋쟁이 타자처럼</div>
-            <div className="admin-header__subtitle">운영진 콘솔 · STAFF CONSOLE</div>
+            <div className="admin-header__subtitle">
+              <span className="admin-header__onair-dot" aria-hidden="true" />
+              운영진 콘솔 · STAFF CONSOLE
+            </div>
           </div>
         </div>
         <button
