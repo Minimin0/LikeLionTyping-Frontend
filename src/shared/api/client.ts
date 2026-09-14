@@ -21,7 +21,18 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 백엔드가 아직 응답하지 않는 경로(개발 서버의 SPA fallback 등)는
+    // JSON이 아닌 HTML을 200으로 돌려줄 수 있다. 그걸 정상 데이터로
+    // 취급하면 화면이 크래시하니, 에러로 변환해 기존 에러 UI로 흘려보낸다.
+    const contentType = String(response.headers['content-type'] ?? '')
+    if (!contentType.includes('application/json')) {
+      return Promise.reject(
+        new ApiError('NETWORK_ERROR', response.status, 'Unexpected response format'),
+      )
+    }
+    return response
+  },
   (error: AxiosError<BackendError>) => {
     const status = error.response?.status ?? 0
     const code =
