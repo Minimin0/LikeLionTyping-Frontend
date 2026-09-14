@@ -21,11 +21,15 @@ import lpRed from './assets/images/LP_red.png'
 // state, API calls, and error branching below are unchanged from the
 // original implementation; only markup/classNames were replaced.
 const panel =
-  'rounded-lg border border-[#ddd2bc] border-t-[3px] border-t-[#730c02] bg-[#fffdf8] p-6 shadow-sm sm:p-8'
+  'admin-studio rounded-lg border border-[#ddd2bc] border-t-[3px] border-t-[#730c02] bg-[#fffdf8] p-6 shadow-sm sm:p-8'
+const brandLine =
+  "flex items-center gap-2 font-['Maru_Buri'] text-[11px] tracking-[0.12em] text-[#7a675c]"
 const primaryButton =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#730c02] px-4 py-2 font-['Maru_Buri'] font-semibold text-[#f4f5f0] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-const ghostButton =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#ddd2bc] bg-transparent px-4 py-2 font-['Maru_Buri'] font-semibold text-[#221f1d] transition hover:border-[#730c02] hover:text-[#730c02] disabled:cursor-not-allowed disabled:opacity-50"
+const issueButton =
+  "inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-[#730c02] px-4 py-2 font-['Maru_Buri'] text-sm font-semibold text-[#f4f5f0] shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+const invalidateButton =
+  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-[#b5301f]/30 bg-[#b5301f]/5 px-3.5 py-1.5 font-['Maru_Buri'] text-sm font-semibold text-[#b5301f] transition hover:border-[#b5301f]/60 hover:bg-[#b5301f]/10 disabled:cursor-not-allowed disabled:opacity-50"
 const fieldInput =
   'min-h-11 w-full rounded-lg border border-[#ddd2bc] bg-[#ece3d3] px-3 py-2 text-[#221f1d] outline-none transition focus:border-[#730c02]'
 
@@ -102,8 +106,13 @@ export function AdminPage() {
   if (!token)
     return (
       <section className={panel}>
+        <div className={`${brandLine} mb-3`}>
+          <strong className="font-semibold text-[#432f2e]">LIKELION TYPING</strong>
+          <span aria-hidden="true">/</span>
+          <span>성결대학교 축제 부스</span>
+        </div>
         <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#730c02]/10 px-3 py-1 text-xs font-bold tracking-wider text-[#730c02]">
-          <span className="size-1.5 rounded-full bg-[#730c02]" />
+          <span className="size-1.5 animate-pulse-air rounded-full bg-[#730c02]" />
           ON AIR · STAFF ONLY
         </span>
         <h1 className="font-['Maru_Buri'] text-2xl font-semibold text-[#221f1d]">
@@ -147,7 +156,7 @@ export function AdminPage() {
     <section className={panel}>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative size-9">
+          <div className="relative size-9 shrink-0">
             <img
               src={lpRed}
               alt=""
@@ -159,9 +168,9 @@ export function AdminPage() {
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-1.5 text-[11px] tracking-wide text-[#7a675c]">
-              <span className="size-1.5 rounded-full bg-[#730c02]" />
-              운영진 콘솔 · STAFF CONSOLE
+            <div className={brandLine}>
+              <span className="size-1.5 animate-pulse-air rounded-full bg-[#730c02]" />
+              LIKELION TYPING <span aria-hidden="true">/</span> 운영진 콘솔
             </div>
             <h1 className="font-['Maru_Buri'] text-xl font-semibold text-[#221f1d]">
               참가자 관리
@@ -232,7 +241,7 @@ export function AdminPage() {
                 장 사용 가능
               </p>
             </div>
-            <button className={ghostButton} disabled={issue.isPending} onClick={() => issue.mutate()}>
+            <button className={issueButton} disabled={issue.isPending} onClick={() => issue.mutate()}>
               {issue.isPending ? (
                 <Busy label="발급 중" />
               ) : (
@@ -266,7 +275,7 @@ export function AdminPage() {
                     </div>
                     {session.status !== 'INVALIDATED' && (
                       <button
-                        className={ghostButton}
+                        className={invalidateButton}
                         disabled={invalidate.isPending}
                         onClick={() => invalidate.mutate(session.id)}
                       >

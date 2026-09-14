@@ -148,3 +148,32 @@ a {
 .page-enter {
   animation: pop-in 180ms ease-out;
 }
+
+/*
+ * Admin 콘솔 스튜디오 질감.
+ * likelion-writer 참가자 홈 화면(hero 배경)의 라디오 부스 톤을 가져오되,
+ * 폼 위주 화면이라 무늬는 아주 옅게 — 텍스트 대비를 해치면 안 된다.
+ */
+.admin-studio {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.admin-studio::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 105% -10%, rgb(115 12 2 / 10%) 0, transparent 42%),
+    radial-gradient(ellipse at -10% 110%, rgb(231 123 73 / 10%) 0, transparent 42%),
+    repeating-radial-gradient(
+      circle at 0 0,
+      rgb(34 31 29 / 4%) 0,
+      rgb(34 31 29 / 4%) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+}
