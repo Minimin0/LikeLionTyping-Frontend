@@ -1,5 +1,22 @@
 @import 'tailwindcss';
 
+/* Admin 화면에서만 사용하는 라디오 부스 글꼴 */
+@font-face {
+  font-family: 'Maru Buri';
+  src: url('../features/admin/assets/fonts/MaruBuri-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Maru Buri';
+  src: url('../features/admin/assets/fonts/MaruBuri-SemiBold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
 /*
  * 게임 화면(타이핑 부스) 전용 디자인 토큰.
  * 참가자 확인/카테고리 등 나머지 화면은 기존 라이트 테마를 그대로 쓰고,
