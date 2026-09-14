@@ -37,6 +37,51 @@ describe('getCharCells — 표시 내용', () => {
     ])
     expect(cells[2]).toMatchObject({ char: '다', isOverflow: true })
   })
+})
+
+describe('getCharCells — 공백 오타', () => {
+  // 입력한 구간까지만 비교한다. 나머지는 항상 PENDING이라 다른 테스트에서 이미 검증했다.
+  const typedStatuses = (sentence: string, input: string) =>
+    statuses(sentence, input).slice(0, input.length)
+
+  it('목표에 공백이 없는데 스페이스바를 잘못 누르면 오타이고, 목표 글자를 대신 보여준다', () => {
+    // 목표 "안녕하세요", 입력 "안녕 " → 세 번째 글자(공백)가 오타
+    expect(typedStatuses('안녕하세요', '안녕 ')).toEqual(['CORRECT', 'CORRECT', 'INCORRECT'])
+    // 공백은 배경 없이는 안 보이므로, 원래 쳐야 했던 "하"를 대신 보여준다.
+    // (뒤는 아직 안 친 나머지 문장이 그대로 이어 붙는다)
+    expect(rendered('안녕하세요', '안녕 ')).toBe('안녕하세요')
+  })
+
+  it('목표 자리에 정확히 공백을 치면 오타가 아니다', () => {
+    // 목표 "안녕 하세요"의 3번째 글자는 공백이고, 입력도 거기서 공백을 쳤다
+    expect(typedStatuses('안녕 하세요', '안녕 ')).toEqual(['CORRECT', 'CORRECT', 'CORRECT'])
+  })
+
+  it('공백이 정타인 자리를 지나 그다음 글자 대신 공백을 또 치면 그 공백만 오타다', () => {
+    // 목표 "안녕 하세요", 입력 "안녕  " (공백 2개)
+    // — 3번째(정타 공백)는 그대로, 4번째("하" 자리에 친 공백)만 오타
+    expect(typedStatuses('안녕 하세요', '안녕  ')).toEqual([
+      'CORRECT',
+      'CORRECT',
+      'CORRECT',
+      'INCORRECT',
+    ])
+  })
+
+  it('목표가 공백인데 다른 글자를 치면 오타이고, 사용자가 친 글자를 그대로 보여준다', () => {
+    expect(typedStatuses('안녕 하세요', '안녕_')).toEqual(['CORRECT', 'CORRECT', 'INCORRECT'])
+    expect(rendered('안녕 하세요', '안녕_')).toBe('안녕_하세요')
+  })
+
+  it('문장 끝에 공백을 추가로 치면 초과 입력이자 오타다', () => {
+    const cells = getCharCells('안녕하세요', '안녕하세요 ', false)
+    expect(cells.at(-1)).toMatchObject({ status: 'INCORRECT', isOverflow: true, char: ' ' })
+  })
+
+  it('trim 없이 원문 그대로 비교한다 — 앞뒤 공백도 문장의 일부다', () => {
+    expect(statuses(' 가나', ' 가나')).toEqual(['CORRECT', 'CORRECT', 'CORRECT'])
+    expect(statuses(' 가나', '가나')[0]).toBe('INCORRECT')
+  })
 
   it('공백도 한 글자로 판정한다', () => {
     expect(statuses('가 나', '가_')).toEqual(['CORRECT', 'INCORRECT', 'PENDING'])

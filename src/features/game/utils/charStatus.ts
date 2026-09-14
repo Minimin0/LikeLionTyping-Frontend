@@ -38,21 +38,32 @@ export function getCharCells(sentence: string, input: string, isComposing: boole
   for (let i = 0; i < input.length; i += 1) {
     const isOverflow = i >= sentence.length
     const targetChar = isOverflow ? '' : sentence[i]
+    const inputChar = input[i]
+    let displayChar = inputChar
 
     let status: CharCell['status']
     if (i === composingIndex) {
       // 조합 중인 글자는 아직 완성 전이라 통째로 비교하면 안 된다.
       // (목표가 '안'인데 'ㅇ'만 쳤다고 오타로 칠하면 정상 입력이 계속 빨갛게 깜빡인다)
       // 그래서 자모 단위로 "여기까지는 맞게 가고 있는가"만 본다.
-      status = isHangulPrefix(targetChar, input[i]) ? 'COMPOSING' : 'INCORRECT'
-    } else if (!isOverflow && input[i] === targetChar) {
+      status = isHangulPrefix(targetChar, inputChar) ? 'COMPOSING' : 'INCORRECT'
+    } else if (!isOverflow && inputChar === targetChar) {
       status = 'CORRECT'
     } else {
       // 글자가 다르거나, 문장 길이를 넘겨 친 경우
       status = 'INCORRECT'
+
+      // 목표는 글자인데 스페이스바를 잘못 눌러 공백이 들어온 경우, 공백은
+      // 글리프가 없어 배경색이 없으면 오타 자체가 안 보인다. 이때만 예외적으로
+      // 사용자가 친 공백 대신 원래 쳤어야 할 목표 글자를 보여준다.
+      // (반대로 목표가 공백인데 다른 글자를 친 경우는 그 글자가 이미 눈에
+      // 보이므로 원래대로 입력한 글자를 보여준다)
+      if (!isOverflow && inputChar === ' ' && targetChar !== ' ') {
+        displayChar = targetChar
+      }
     }
 
-    cells.push({ char: input[i], status, isOverflow })
+    cells.push({ char: displayChar, status, isOverflow })
   }
 
   // 2) 아직 입력하지 않은 구간 — 목표 문장을 회색으로 보여준다.

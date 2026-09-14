@@ -25,8 +25,9 @@ const STATUS_CLASS: Record<CharCell['status'], string> = {
   PENDING: 'text-typing-pending',
   // 정확히 입력한 글자
   CORRECT: 'text-typing-correct',
-  // 오타
-  INCORRECT: 'text-typing-typo',
+  // 오타 — 글자색만으로는 공백 오타가 안 보이므로 배경색을 함께 준다.
+  // padding 없이 배경만 칠해서 글자 간격이 밀리지 않게 한다.
+  INCORRECT: 'text-typing-typo bg-typing-typo/25 rounded-sm',
   // 조합 중이지만 자모가 목표와 맞게 가고 있는 글자 — 정타와 같은 파란색으로
   // 이어 보여야 "채워지는" 느낌이 끊기지 않는다.
   COMPOSING: 'text-typing-correct',
