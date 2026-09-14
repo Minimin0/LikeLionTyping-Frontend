@@ -24,7 +24,9 @@ export function ResultPage() {
   const result = useQuery({
     queryKey: ['game-session', id],
     queryFn: () => getGame(id),
-    initialData: location.state as GameResult | undefined,
+    // 직접 진입/F5 시 location.state는 null이다. null을 initialData로 넘기면
+    // React Query가 서버 조회를 건너뛰어 결과 화면이 비게 되므로 undefined로 바꾼다.
+    initialData: (location.state as GameResult | null) ?? undefined,
     enabled: Number.isInteger(id),
   })
 
