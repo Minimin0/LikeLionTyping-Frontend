@@ -1,4 +1,4 @@
-import { Keyboard, Trophy } from 'lucide-react'
+import { Keyboard, Shield, Trophy } from 'lucide-react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
@@ -22,8 +22,6 @@ export default function App() {
             </span>
             멋쟁이 타자처럼
           </Link>
-          {/* Admin 정책 §15: 참가자 화면에는 Admin 진입 버튼을 노출하지
-              않는다 — 운영자는 /admin 주소로 직접 접근한다. */}
           <nav aria-label="주요 메뉴" className="flex items-center gap-1">
             <Link
               className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100"
@@ -31,6 +29,13 @@ export default function App() {
               title="랭킹"
             >
               <Trophy className="size-5" />
+            </Link>
+            <Link
+              className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100"
+              to={ROUTES.ADMIN}
+              title="운영자"
+            >
+              <Shield className="size-5" />
             </Link>
           </nav>
         </div>
