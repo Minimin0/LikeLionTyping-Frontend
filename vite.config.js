@@ -79,11 +79,51 @@ function readJsonBody(req) {
  */
 function devMockApiPlugin() {
   // 참가자/게임 세션은 개발 서버 재시작 전까지만 유지되는 인메모리 상태다.
-  let nextParticipantId = 1
-  let nextGameSessionId = 1
+  let nextParticipantId = 4
+  let nextGameSessionId = 4
+  let nextPassId = 7
   const participantsByPhone = new Map()
   const gameSessions = new Map()
   const bestByParticipantCategory = new Map()
+  const adminToken = 'dev-admin-token'
+
+  const seededParticipants = [
+    { participantId: 1, nickname: '타자왕', phone: '01012345678', elapsedMs: 36120 },
+    { participantId: 2, nickname: '사자왕', phone: '01022223333', elapsedMs: 38990 },
+    { participantId: 3, nickname: '코딩사자', phone: '01033334444', elapsedMs: 43821 },
+  ]
+  seededParticipants.forEach((seed, index) => {
+    const passId = index + 1
+    participantsByPhone.set(seed.phone, {
+      participantId: seed.participantId,
+      nickname: seed.nickname,
+      phone: seed.phone,
+      availablePassCount: index === 0 ? 1 : 0,
+      passes: [
+        {
+          id: passId,
+          type: 'FREE',
+          status: 'CONSUMED',
+          createdAt: '2026-09-14T00:00:00Z',
+        },
+        ...(index === 0
+          ? [{ id: 4, type: 'PAID', status: 'AVAILABLE', createdAt: '2026-09-14T00:10:00Z' }]
+          : []),
+      ],
+    })
+    gameSessions.set(index + 1, {
+      id: index + 1,
+      participantId: seed.participantId,
+      categoryId: 1,
+      nickname: seed.nickname,
+      playPassId: passId,
+      status: 'COMPLETED',
+      elapsedMs: seed.elapsedMs,
+      startedAt: '2026-09-14T00:20:00Z',
+      completedAt: '2026-09-14T00:21:00Z',
+    })
+    bestByParticipantCategory.set(`${seed.participantId}:1`, seed.elapsedMs)
+  })
 
   const findParticipantById = (participantId) => {
     for (const participant of participantsByPhone.values()) {
@@ -152,6 +192,14 @@ function devMockApiPlugin() {
       phone,
       // 첫 참여는 무료 1회.
       availablePassCount: 1,
+      passes: [
+        {
+          id: nextPassId++,
+          type: 'FREE',
+          status: 'AVAILABLE',
+          createdAt: new Date().toISOString(),
+        },
+      ],
     }
     participantsByPhone.set(phone, participant)
     return sendJson(res, 200, {
@@ -204,6 +252,16 @@ function devMockApiPlugin() {
         '무료 참여를 이미 사용했습니다. 재도전은 운영진에게 문의해주세요.',
       )
     }
+    const pass = participant.passes.find((item) => item.status === 'AVAILABLE')
+    if (!pass) {
+      return sendError(
+        res,
+        409,
+        'NO_AVAILABLE_PASS',
+        '무료 참여를 이미 사용했습니다. 재도전은 운영진에게 문의해주세요.',
+      )
+    }
+    pass.status = 'CONSUMED'
     participant.availablePassCount -= 1
 
     const gameSessionId = nextGameSessionId++
@@ -212,8 +270,11 @@ function devMockApiPlugin() {
       participantId,
       categoryId,
       nickname: participant.nickname,
+      playPassId: pass.id,
       status: 'IN_PROGRESS',
       elapsedMs: null,
+      startedAt: new Date().toISOString(),
+      completedAt: null,
     })
 
     const sentences = SENTENCES[categoryId].map((content, index) => ({
@@ -242,6 +303,7 @@ function devMockApiPlugin() {
     }
     session.status = 'COMPLETED'
     session.elapsedMs = elapsedMs
+    session.completedAt = new Date().toISOString()
 
     const bestKey = `${session.participantId}:${session.categoryId}`
     const previousBest = bestByParticipantCategory.get(bestKey)
@@ -297,6 +359,83 @@ function devMockApiPlugin() {
     return sendJson(res, 200, rankings)
   }
 
+  const isAdmin = (req) => req.headers.authorization === `Bearer ${adminToken}`
+
+  const handleAdminLogin = (res, body) => {
+    if (body?.password !== 'admin') {
+      return sendError(res, 401, 'ADMIN_UNAUTHORIZED', '관리자 비밀번호가 올바르지 않습니다.')
+    }
+    return sendJson(res, 200, {
+      token: adminToken,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    })
+  }
+
+  const adminParticipant = (participant) => ({
+    id: participant.participantId,
+    nickname: participant.nickname,
+    phone: participant.phone,
+    passes: participant.passes,
+    gameSessions: [...gameSessions.values()]
+      .filter((session) => session.participantId === participant.participantId)
+      .map((session) => ({
+        id: session.id,
+        categoryId: session.categoryId,
+        playPassId: session.playPassId,
+        status: session.status,
+        elapsedMs: session.elapsedMs,
+        startedAt: session.startedAt,
+        completedAt: session.completedAt,
+      })),
+  })
+
+  const handleAdminSearch = (req, res, phone) => {
+    if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
+    const normalizedPhone = String(phone ?? '').replace(/[-\s]/g, '')
+    const participant = participantsByPhone.get(normalizedPhone)
+    if (!participant) return sendError(res, 404, 'PARTICIPANT_NOT_FOUND')
+    return sendJson(res, 200, adminParticipant(participant))
+  }
+
+  const handleIssuePass = (req, res, participantId) => {
+    if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
+    const participant = findParticipantById(participantId)
+    if (!participant) return sendError(res, 404, 'PARTICIPANT_NOT_FOUND')
+    const pass = {
+      id: nextPassId++,
+      type: 'PAID',
+      status: 'AVAILABLE',
+      createdAt: new Date().toISOString(),
+    }
+    participant.passes.push(pass)
+    participant.availablePassCount += 1
+    return sendJson(res, 201, pass)
+  }
+
+  const handleInvalidate = (req, res, gameSessionId, body) => {
+    if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
+    const session = gameSessions.get(gameSessionId)
+    if (!session) return sendError(res, 404, 'GAME_SESSION_NOT_FOUND')
+    if (session.status === 'INVALIDATED') {
+      return sendError(res, 409, 'INVALID_GAME_STATE', '이미 무효화된 경기입니다.')
+    }
+    session.status = 'INVALIDATED'
+    const participant = findParticipantById(session.participantId)
+    const pass = participant?.passes.find((item) => item.id === session.playPassId)
+    if (body?.restorePass && participant && pass) {
+      pass.status = 'AVAILABLE'
+      participant.availablePassCount += 1
+    } else if (pass) {
+      pass.status = 'CANCELLED'
+    }
+    return sendJson(res, 200, {
+      gameSessionId,
+      gameSessionStatus: 'INVALIDATED',
+      playPassId: session.playPassId,
+      playPassStatus: pass?.status ?? 'CANCELLED',
+    })
+  }
+
   return {
     name: 'dev-mock-api',
     apply: 'serve', // 개발 서버에서만 동작. vite build에는 이 플러그인 자체가 실행되지 않는다.
@@ -327,6 +466,25 @@ function devMockApiPlugin() {
           }
           if (method === 'GET' && pathname === '/rankings') {
             return handleRankings(res, Number(url.searchParams.get('categoryId')))
+          }
+          if (method === 'POST' && pathname === '/admin/login') {
+            return handleAdminLogin(res, await readJsonBody(req))
+          }
+          if (method === 'GET' && pathname === '/admin/participants') {
+            return handleAdminSearch(req, res, url.searchParams.get('phone'))
+          }
+          const passMatch = pathname.match(/^\/admin\/participants\/(\d+)\/passes$/)
+          if (method === 'POST' && passMatch) {
+            return handleIssuePass(req, res, Number(passMatch[1]))
+          }
+          const invalidateMatch = pathname.match(/^\/admin\/game-sessions\/(\d+)\/invalidate$/)
+          if (method === 'POST' && invalidateMatch) {
+            return handleInvalidate(
+              req,
+              res,
+              Number(invalidateMatch[1]),
+              await readJsonBody(req),
+            )
           }
 
           next()
