@@ -18,10 +18,7 @@ export default function App() {
     <div className="min-h-screen bg-[#f4f6f2]">
       <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex min-h-16 max-w-5xl items-center justify-between px-4">
-          <Link
-            to={ROUTES.LANDING}
-            className="flex items-center gap-2 font-black text-zinc-900"
-          >
+          <span className="flex items-center gap-2 font-black text-zinc-900">
             <span className="grid size-9 place-items-center overflow-hidden rounded-full bg-[#730c02] ring-1 ring-black/10">
               <img
                 src={lpRed}
@@ -31,7 +28,7 @@ export default function App() {
               />
             </span>
             멋쟁이 타자처럼
-          </Link>
+          </span>
           <nav aria-label="주요 메뉴" className="flex items-center gap-1">
             {pathname !== ROUTES.PARTICIPATE && (
               <span className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600">
