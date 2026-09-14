@@ -9,6 +9,9 @@
   font-display: swap;
 }
 
+/* 기획디자인 제공 서체. 화면 표시 전용이며 API/세션과 무관하다. */
+@font-face { font-family: 'HS Bom Baram'; src: url('../shared/brand/fonts/HS봄바람체2.0.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+
 @font-face {
   font-family: 'Maru Buri';
   src: url('../features/admin/assets/fonts/MaruBuri-SemiBold.ttf') format('truetype');
@@ -109,11 +112,43 @@
 }
 
 :root {
-  font-family: Inter, Pretendard, 'Noto Sans KR', system-ui, sans-serif;
-  color: #17201b;
-  background: #f4f6f2;
+  font-family: 'Maru Buri', Pretendard, 'Noto Sans KR', system-ui, sans-serif;
+  color: #221f1d;
+  background: #f4f5f0;
   font-synthesis: none;
 }
+
+/* ── 기획디자인의 공통 방송국 프레임 ───────────────────────────── */
+.radio-app { min-height: 100vh; background: #f4f5f0 url('../shared/brand/images/background.png') center / cover fixed; color: #221f1d; }
+.radio-header { border-bottom: 1px solid #221f1d; background: rgb(244 245 240 / 92%); }
+.radio-header-inner { min-height: 64px; max-width: 1792px; margin: auto; padding: 0 64px; display:flex; align-items:center; justify-content:space-between; }
+.radio-brand { display:flex; gap:12px; align-items:center; color:#432f2e; font-size:14px; letter-spacing:.11em; text-decoration:none; }
+.radio-brand strong { font-weight:600; }.radio-nav{display:flex;gap:20px}.radio-nav-link{display:flex;gap:6px;align-items:center;color:#221f1d;text-decoration:none;font-size:14px;font-weight:600}.radio-nav-link:hover{text-decoration:underline;text-underline-offset:4px}
+.radio-main { max-width:1792px; min-height:calc(100vh - 64px); margin:auto; padding:48px 64px; }
+.radio-panel { border:1px solid #221f1d; border-radius:8px; background:#f4f5f0; box-shadow:none; }
+.radio-button { min-height:52px; border-radius:4px; text-decoration:none; transition:filter .18s ease, background-color .18s ease; }
+.radio-button-primary { background:#730c02; color:#f4f5f0; }.radio-button-primary:hover{filter:brightness(1.12)}
+.radio-button-secondary { border:1px solid #221f1d; background:#f4f5f0; color:#221f1d; }.radio-button-secondary:hover{background:#ece3d3}
+.radio-input { min-height:52px; border:1px solid #221f1d; border-radius:4px; background:#f4f5f0; color:#221f1d; }.radio-input:focus{border:2px solid #730c02}
+.radio-eyebrow { color:#730c02; font-size:14px; font-weight:600; letter-spacing:.12em; }
+
+/* Landing: 기획팀 홈의 LP·라디오 구성을 현재 Link 동작 위에 얹는다. */
+.radio-landing { min-height:calc(100vh - 160px); display:grid; grid-template-columns:1.22fr .78fr; gap:56px; align-items:center; }
+.landing-hero{position:relative;min-height:560px;overflow:hidden;border-bottom:1px solid #221f1d;display:flex;align-items:center}.landing-copy{position:relative;z-index:1;max-width:620px}.landing-copy h1{margin:16px 0 18px;font-family:'HS Bom Baram','Maru Buri',serif;font-size:clamp(58px,6vw,104px);font-weight:400;line-height:1.02;color:#432f2e}.landing-description{font-size:19px;line-height:1.8}.landing-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}.landing-fee{margin-top:16px;font-size:14px;color:#432f2e}.landing-lp{position:absolute;right:-36px;bottom:-80px;width:min(46vw,550px);animation:brand-lp-spin 9s linear infinite}.landing-radio{position:absolute;right:-30px;top:36px;width:250px;transform:rotate(-10deg);opacity:.92}.landing-guide{border-top:4px solid #730c02;border-bottom:1px solid #221f1d;padding:28px 0}.landing-guide-head{display:flex;justify-content:space-between;align-items:center}.on-air-label{font-size:12px;color:#730c02;font-weight:600;letter-spacing:.1em}.landing-steps{margin:30px 0 0;padding:0;list-style:none}.landing-step{display:grid;grid-template-columns:56px 1fr;gap:12px;border-top:1px solid #221f1d;padding:20px 0}.step-number{color:#730c02;font-weight:600;letter-spacing:.1em}.landing-step h3{margin:0;font-size:20px}.landing-step p{margin:6px 0 0;color:#5f5651;font-size:14px;line-height:1.6}@keyframes brand-lp-spin{to{transform:rotate(360deg)}}
+
+/* 기존 화면 구조를 유지한 채, 같은 카드·색·타이포그래피 규칙을 적용한다. */
+.radio-main h1,.radio-main h2{font-family:'Maru Buri',serif}.radio-main .text-emerald-700{color:#730c02!important}.radio-main .bg-yellow-100,.radio-main .bg-yellow-300{background:#ece3d3!important}.radio-main .border-zinc-200,.radio-main .divide-zinc-200{border-color:#b7ada3!important}.radio-main .bg-zinc-50,.radio-main .bg-white{background:#f4f5f0!important}.radio-main .text-zinc-600,.radio-main .text-zinc-500{color:#5f5651!important}.radio-main .rounded-lg{border-radius:4px}.radio-main .rounded-2xl{border-radius:8px}
+
+/* 화면별 class는 데이터 조회·입력·세션을 바꾸지 않고 시각적 밀도만 맞춘다. */
+.radio-category-page{border-top:4px solid #730c02}.radio-category-page h1,.radio-participant-page h1,.radio-ranking-page h1{font-size:34px}.radio-channel-card{border:1px solid #221f1d;border-radius:4px;background:#f4f5f0;transition:border-color .18s,background-color .18s}.radio-channel-card:hover{border:2px solid #730c02;background:#ece3d3}.radio-channel-card .text-emerald-700{color:#730c02!important}
+.radio-participant-page{max-width:680px;margin:auto;border-top:4px solid #730c02}.radio-participant-page label{font-family:'Maru Buri',serif}.radio-participant-page .bg-emerald-100{background:#ece3d3!important}.radio-participant-page .text-emerald-800{color:#730c02!important}
+.radio-ranking-page{max-width:920px;margin:auto;border-top:4px solid #730c02}.radio-ranking-list{border-top:1px solid #221f1d;border-bottom:1px solid #221f1d}.radio-ranking-row{border-top:1px solid #b7ada3}.radio-ranking-row:first-child{border-top:0;color:#730c02}.radio-ranking-row:nth-child(2){color:#7b8055}.radio-ranking-row strong{font-family:'Maru Buri',serif;font-size:24px}
+.radio-game-page{border-color:#432f2e;background:#432f2e;padding:0}.radio-game-studio{min-height:580px;border:1px solid #221f1d;border-radius:7px;background:#f4f5f0!important;color:#221f1d!important}.radio-game-studio .text-ink{color:#221f1d!important}.radio-game-studio .text-ink-muted{color:#5f5651!important}.radio-game-studio .text-accent{color:#730c02!important}.radio-game-studio .text-typing-pending{color:#756a63!important}.radio-game-studio .text-typing-correct{color:#730c02!important}.radio-game-studio .text-typing-typo{color:#b42318!important}.radio-game-studio .typing-sentence-frame{font-family:'Maru Buri',serif}.radio-game-studio .typing-sentence{max-width:min(90vw,48ch)}
+.radio-on-air-asset{display:block;width:112px;height:auto;margin:0 auto 18px}.radio-result-page{max-width:820px;margin:auto;border-top:4px solid #730c02}.radio-result-page h1{font-family:'HS Bom Baram','Maru Buri',serif;font-size:44px;font-weight:400}.radio-result-page dl{border-color:#221f1d!important}.radio-result-page dd{font-family:'Maru Buri',serif;font-size:22px}.radio-result-on-air{display:block;width:108px;height:auto;margin:0 auto 14px}.radio-admin-page{font-family:'Maru Buri',serif!important}.radio-admin-page input{border-radius:4px!important;border-color:#221f1d!important;background:#f4f5f0!important}.radio-admin-page button{border-radius:4px!important}
+
+/* 1920px 행사 화면 기준. 모바일 최적화는 기획 범위 밖이지만 좁은 창에서 내용이 사라지지 않게만 한다. */
+@media (prefers-reduced-motion: reduce){.landing-lp{animation:none}}
+@media (max-width:900px){.radio-header-inner,.radio-main{padding-left:24px;padding-right:24px}.radio-landing{grid-template-columns:1fr}.landing-hero{min-height:460px}.landing-guide{padding-bottom:12px}.landing-radio{width:180px}.landing-lp{width:380px}}
 
 * {
   box-sizing: border-box;

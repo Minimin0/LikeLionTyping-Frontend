@@ -101,7 +101,8 @@ export function AdminPage() {
 
   if (!token)
     return (
-      <section className={panel}>
+      // 운영진 인증·조회 mutation은 그대로 두고 방송국 스타일 className만 더한다.
+      <section className={`${panel} radio-admin-page`}>
         <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#730c02]/10 px-3 py-1 text-xs font-bold tracking-wider text-[#730c02]">
           <span className="size-1.5 rounded-full bg-[#730c02]" />
           ON AIR · STAFF ONLY
@@ -144,7 +145,7 @@ export function AdminPage() {
 
   const actionError = issue.error ?? invalidate.error ?? search.error
   return (
-    <section className={panel}>
+    <section className={`${panel} radio-admin-page`}>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative size-9">

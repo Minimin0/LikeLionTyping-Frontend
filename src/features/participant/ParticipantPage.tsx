@@ -44,7 +44,8 @@ export function ParticipantPage() {
   })
 
   return (
-    <section className={panelClass}>
+    // 폼 검증과 참가자 식별 API는 유지하고, 시각적 className만 추가한다.
+    <section className={`${panelClass} radio-participant-page`}>
       <div className="mb-8 flex items-start gap-4">
         <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-800">
           <UserRound aria-hidden />

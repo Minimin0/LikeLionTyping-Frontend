@@ -38,7 +38,8 @@ export function RankingPage() {
     rankingRows.length === 0
 
   return (
-    <section className={panelClass}>
+    // 데이터 조회와 select 상태는 유지하고, 디자인 훅만 추가한다.
+    <section className={`${panelClass} radio-ranking-page`}>
       <div className="mb-6 flex items-center gap-3">
         <span className="grid size-11 place-items-center rounded-lg bg-yellow-300">
           <Medal />
@@ -78,11 +79,11 @@ export function RankingPage() {
         </div>
       )}
       {rankingRows.length > 0 && (
-        <ol className="mt-6 divide-y divide-zinc-200 border-y border-zinc-200">
+        <ol className="radio-ranking-list mt-6">
           {rankingRows.map((entry) => (
             <li
               key={`${entry.rank}-${entry.nickname}`}
-              className="grid grid-cols-[3rem_1fr_auto] items-center gap-3 py-4"
+              className="radio-ranking-row grid grid-cols-[3rem_1fr_auto] items-center gap-3 py-4"
             >
               <strong className="text-center text-lg">{entry.rank}</strong>
               <span className="truncate font-bold">{entry.nickname}</span>

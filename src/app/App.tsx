@@ -1,4 +1,4 @@
-import { Keyboard, Shield, Trophy } from 'lucide-react'
+import { Shield, Trophy } from 'lucide-react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
@@ -12,37 +12,33 @@ import { RouteErrorBoundary } from '../shared/ErrorBoundary'
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-[#f4f6f2]">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex min-h-16 max-w-5xl items-center justify-between px-4">
+    // 디자인 전용 레이아웃이다. 라우트, 세션, API 호출은 아래 Routes 그대로 유지한다.
+    <div className="radio-app">
+      <header className="radio-header">
+        <div className="radio-header-inner">
           <Link
             to={ROUTES.LANDING}
-            className="flex items-center gap-2 font-black text-zinc-900"
+            className="radio-brand"
           >
-            <span className="grid size-9 place-items-center rounded-lg bg-yellow-300">
-              <Keyboard className="size-5" aria-hidden />
-            </span>
-            멋쟁이 타자처럼
+            <strong>LIKELION TYPING</strong><span aria-hidden="true">/</span><span>성결대학교 축제 부스</span>
           </Link>
-          <nav aria-label="주요 메뉴" className="flex items-center gap-1">
+          <nav aria-label="주요 메뉴" className="radio-nav">
             <Link
-              className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100"
+              className="radio-nav-link"
               to={ROUTES.RANKINGS}
-              title="랭킹"
             >
-              <Trophy className="size-5" />
+              <Trophy className="size-4" /> 랭킹
             </Link>
             <Link
-              className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100"
+              className="radio-nav-link"
               to={ROUTES.ADMIN}
-              title="운영자"
             >
-              <Shield className="size-5" />
+              <Shield className="size-4" /> 운영자
             </Link>
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
+      <main className="radio-main">
         {/* 렌더 에러가 나도 헤더는 남기고 본문만 폴백으로 바꾼다. 라우터 안쪽이라 폴백에서 이동도 된다. */}
         <RouteErrorBoundary>
           <Routes>

@@ -24,7 +24,8 @@ export function CategoriesPage() {
   if (!participant) return <Navigate to={ROUTES.PARTICIPATE} replace />
 
   return (
-    <section className={panelClass}>
+    // 디자인용 className만 추가한다. 참가자 가드·조회·이동 로직은 그대로다.
+    <section className={`${panelClass} radio-category-page`}>
       <div className="mb-7 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-bold text-emerald-700">
@@ -46,7 +47,7 @@ export function CategoriesPage() {
         {rows.map((category) => (
           <button
             key={category.id}
-            className="group flex min-h-36 flex-col items-start justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-left transition hover:border-emerald-700 hover:bg-emerald-50"
+            className="radio-channel-card group flex min-h-36 flex-col items-start justify-between p-5 text-left"
             onClick={() => navigate(ROUTES.GAME(category.id))}
           >
             <Radio className="size-5 text-emerald-700" aria-hidden />

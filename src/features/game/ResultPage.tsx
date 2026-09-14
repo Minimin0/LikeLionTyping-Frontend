@@ -12,6 +12,7 @@ import {
   secondaryButtonClass,
 } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
+import onAirOff from '../../shared/brand/images/on-air-off.png'
 
 const seconds = (milliseconds: number | null) =>
   milliseconds == null ? '-' : `${(milliseconds / 1_000).toFixed(3)}초`
@@ -31,7 +32,8 @@ export function ResultPage() {
   })
 
   return (
-    <section className={panelClass}>
+    // 결과 재조회(initialData/query) 동작은 유지한다. 이 className은 디자인 전용이다.
+    <section className={`${panelClass} radio-result-page`}>
       {result.isLoading && (
         <div className="flex justify-center py-12">
           <Busy label="결과 확인 중" />
@@ -41,6 +43,8 @@ export function ResultPage() {
       {result.data?.status === 'COMPLETED' && (
         <>
           <div className="text-center">
+            {/* 결과는 방송이 끝난 상태이므로 기획 에셋의 꺼진 ON AIR만 표시한다. */}
+            <img className="radio-result-on-air" src={onAirOff} alt="방송 완료" />
             <span className="mx-auto grid size-14 place-items-center rounded-lg bg-yellow-300">
               <Trophy aria-hidden />
             </span>

@@ -2,13 +2,14 @@ import { LoaderCircle } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 export const panelClass =
-  'page-enter border border-zinc-200 bg-white p-5 shadow-sm sm:p-7 rounded-lg'
+  // 공통 UI의 색·테두리만 라디오 디자인으로 맞춘다. 동작/상태 처리는 변경하지 않는다.
+  'radio-panel page-enter p-5 sm:p-7'
 export const buttonClass =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50'
+  'radio-button radio-button-primary inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 font-bold disabled:cursor-not-allowed disabled:opacity-50'
 export const secondaryButtonClass =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 font-bold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50'
+  'radio-button radio-button-secondary inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 font-bold disabled:cursor-not-allowed disabled:opacity-50'
 export const inputClass =
-  'min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100'
+  'radio-input min-h-11 w-full px-3 py-2 outline-none'
 
 export function Busy({ label = '처리 중' }: { label?: string }) {
   return (

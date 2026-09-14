@@ -25,6 +25,8 @@ import { SentenceDisplay } from './components/SentenceDisplay'
 import { TypingInput } from './components/TypingInput'
 import { useTypingInput } from './hooks/useTypingInput'
 import { gameReducer } from './gameMachine'
+import onAirOff from '../../shared/brand/images/on-air-off.png'
+import onAirOn from '../../shared/brand/images/on-air-on.png'
 
 const now = () => performance.timeOrigin + performance.now()
 
@@ -187,8 +189,9 @@ export function GamePage() {
   const keystrokes = sentence ? countMatchedKeystrokes(sentence.content, input) : 0
 
   return (
-    <section className={panelClass}>
-      <div className="overflow-hidden rounded-2xl bg-surface p-6 text-ink sm:p-8">
+    // 게임 상태 기계·IME 입력·복구 로직은 그대로 두고 방송 화면 프레임만 적용한다.
+    <section className={`${panelClass} radio-game-page`}>
+      <div className="radio-game-studio overflow-hidden p-6 text-ink sm:p-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-bold text-accent">{game.category.code}</p>
@@ -198,6 +201,12 @@ export function GamePage() {
             {progress}
           </span>
         </div>
+        {/* 표시 전용: 기존 게임 phase를 읽어서 ON AIR 이미지 상태만 보여준다. */}
+        <img
+          className="radio-on-air-asset"
+          src={state.phase === 'PLAYING' ? onAirOn : onAirOff}
+          alt={state.phase === 'PLAYING' ? 'ON AIR 방송 중' : '방송 대기 중'}
+        />
         <div className="mb-7">
           <ProgressBar current={game.currentIndex + 1} total={game.sentences.length} />
         </div>
