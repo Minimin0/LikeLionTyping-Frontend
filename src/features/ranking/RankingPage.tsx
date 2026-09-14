@@ -21,12 +21,21 @@ export function RankingPage() {
     queryKey: ['categories'],
     queryFn: getCategories,
   })
-  const selectedCategoryId = categoryId || categories.data?.[0]?.id || 0
+  // 응답이 배열이 아닐 수 있다. 그대로 map을 돌리면 화면 전체가 죽는다.
+  const categoryRows = Array.isArray(categories.data) ? categories.data : []
+  const selectedCategoryId = categoryId || categoryRows[0]?.id || 0
   const ranking = useQuery({
     queryKey: ['ranking', selectedCategoryId],
     queryFn: () => getRankings(selectedCategoryId),
     enabled: selectedCategoryId > 0,
   })
+  const rankingRows = Array.isArray(ranking.data) ? ranking.data : []
+  // 조회가 끝났고 에러도 없는데 결과가 비었을 때만 "기록 없음"이다. 로딩 중에 뜨면 안 된다.
+  const isRankingEmpty =
+    ranking.data !== undefined &&
+    !ranking.isLoading &&
+    !ranking.error &&
+    rankingRows.length === 0
 
   return (
     <section className={panelClass}>
@@ -46,7 +55,7 @@ export function RankingPage() {
           value={selectedCategoryId}
           onChange={(event) => setCategoryId(Number(event.target.value))}
         >
-          {categories.data?.map((category) => (
+          {categoryRows.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name} ({category.code})
             </option>
@@ -63,14 +72,14 @@ export function RankingPage() {
           <Alert>{errorMessage(ranking.error ?? categories.error)}</Alert>
         </div>
       )}
-      {ranking.data && ranking.data.length === 0 && (
+      {isRankingEmpty && (
         <div className="mt-6">
-          <Empty>아직 등록된 기록이 없습니다.</Empty>
+          <Empty>아직 기록이 없습니다</Empty>
         </div>
       )}
-      {ranking.data && ranking.data.length > 0 && (
+      {rankingRows.length > 0 && (
         <ol className="mt-6 divide-y divide-zinc-200 border-y border-zinc-200">
-          {ranking.data.map((entry) => (
+          {rankingRows.map((entry) => (
             <li
               key={`${entry.rank}-${entry.nickname}`}
               className="grid grid-cols-[3rem_1fr_auto] items-center gap-3 py-4"

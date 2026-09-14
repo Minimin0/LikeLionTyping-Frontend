@@ -23,7 +23,9 @@ export const startGame = (participantId: number, categoryId: number) =>
   apiClient
     .post<GameStart>('/game-sessions', { participantId, categoryId })
     .then(({ data }) => {
-      if (data.sentences.length !== 5)
+      // Backend 계약상 모든 카테고리는 정확히 5개 문장을 반환한다.
+      // 잘못된 콘텐츠로 이용권이 소비된 채 게임이 시작되는 일을 막는다.
+      if (!Array.isArray(data.sentences) || data.sentences.length !== 5)
         throw new ApiError('SENTENCE_CONTENT_INVALID', 409)
       return data
     })
