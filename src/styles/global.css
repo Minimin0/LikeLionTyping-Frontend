@@ -38,6 +38,7 @@
   --color-accent-soft: #2a4a86;
   --color-onair: #ff3b5c;
   --animate-pulse-air: pulse-air 1.4s ease-in-out infinite;
+  --animate-spin-slow: spin-slow 6s linear infinite;
 }
 
 @keyframes pulse-air {
@@ -50,9 +51,16 @@
   }
 }
 
-/* 모션을 줄이도록 설정한 사용자에게는 ON AIR 깜빡임을 끈다. */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 모션을 줄이도록 설정한 사용자에게는 ON AIR 깜빡임/LP 회전을 끈다. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse-air {
+  .animate-pulse-air,
+  .animate-spin-slow {
     animation: none;
   }
 }
