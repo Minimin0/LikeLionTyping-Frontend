@@ -4,6 +4,7 @@ import { AdminPage } from '../features/admin/AdminPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
 import { GamePage } from '../features/game/GamePage'
 import { ResultPage } from '../features/game/ResultPage'
+import { LandingPage } from '../features/participant/LandingPage'
 import { ParticipantPage } from '../features/participant/ParticipantPage'
 import { RankingPage } from '../features/ranking/RankingPage'
 import { ROUTE_PATTERNS, ROUTES } from '../shared/constants/routes'
@@ -45,14 +46,7 @@ export default function App() {
         {/* 렌더 에러가 나도 헤더는 남기고 본문만 폴백으로 바꾼다. 라우터 안쪽이라 폴백에서 이동도 된다. */}
         <RouteErrorBoundary>
           <Routes>
-            {/* 당분간 / 와 /participate 가 같은 화면을 가리킨다.
-              가드가 /participate 로 보내는데 그곳이 빈 화면이면 참가자 정보 없이 보호 화면에
-              접근한 사람이 아무것도 못 하고 갇힌다.
-              Landing이 준비되면 / 만 Landing으로 교체하면 되므로, 이 구조가 인수인계도 쉽다. */}
-            <Route
-              path={ROUTE_PATTERNS.LANDING}
-              element={<ParticipantPage />}
-            />
+            <Route path={ROUTE_PATTERNS.LANDING} element={<LandingPage />} />
             <Route
               path={ROUTE_PATTERNS.PARTICIPATE}
               element={<ParticipantPage />}
