@@ -8,9 +8,9 @@ import { defineConfig, loadEnv } from 'vite'
  * null 가능 여부까지 실제 DTO 기준으로 맞춘다.
  */
 const CATEGORIES = [
-  { id: 1, code: 'CH01', name: 'CH.01 성결 멋사 ON AIR' },
-  { id: 2, code: 'CH02', name: 'CH.02 캠퍼스 주파수' },
-  { id: 3, code: 'CH03', name: 'CH.03 페스티벌 라디오' },
+  { id: 1, code: 'CH01', name: '성결대 멋사' },
+  { id: 2, code: 'CH02', name: '멋쟁이사자처럼' },
+  { id: 3, code: 'CH03', name: '페스티벌 라디오' },
 ]
 
 // 띄어쓰기·쉼표·마침표·느낌표를 실제 운영 확정 문장 그대로 둔다. 통일하지 않는다.
@@ -92,16 +92,38 @@ function devMockApiPlugin() {
     return null
   }
 
-  const computeRank = (categoryId, elapsedMs) => {
-    const completedElapsed = [...gameSessions.values()]
-      .filter((session) => session.categoryId === categoryId && session.status === 'COMPLETED')
-      .map((session) => session.elapsedMs)
-    return completedElapsed.filter((ms) => ms < elapsedMs).length + 1
+  const rankingRows = (categoryId) => {
+    const bestByParticipant = new Map()
+    for (const session of gameSessions.values()) {
+      if (session.categoryId !== categoryId || session.status !== 'COMPLETED') continue
+      const previous = bestByParticipant.get(session.participantId)
+      if (!previous || session.elapsedMs < previous.elapsedMs) {
+        bestByParticipant.set(session.participantId, session)
+      }
+    }
+
+    const rows = [...bestByParticipant.values()].sort(
+      (left, right) => left.elapsedMs - right.elapsedMs,
+    )
+    let previousElapsed = null
+    let rank = 0
+    return rows.map((session, index) => {
+      if (session.elapsedMs !== previousElapsed) rank = index + 1
+      previousElapsed = session.elapsedMs
+      return { ...session, rank }
+    })
+  }
+
+  const computeRank = (categoryId, participantId) => {
+    const row = rankingRows(categoryId).find(
+      (entry) => entry.participantId === participantId,
+    )
+    return row?.rank ?? null
   }
 
   const handleIdentify = (res, body) => {
     const nickname = String(body?.nickname ?? '').trim()
-    const phone = String(body?.phone ?? '').trim()
+    const phone = String(body?.phone ?? '').replace(/[-\s]/g, '')
     if (!nickname || !phone) {
       return sendError(res, 400, 'VALIDATION_ERROR', '닉네임과 전화번호가 필요합니다.')
     }
@@ -148,6 +170,32 @@ function devMockApiPlugin() {
 
     const participant = findParticipantById(participantId)
     if (!participant) return sendError(res, 404, 'PARTICIPANT_NOT_FOUND', '참가자를 찾을 수 없습니다.')
+
+    const activeGame = [...gameSessions.values()].find(
+      (session) =>
+        session.participantId === participantId &&
+        session.status === 'IN_PROGRESS',
+    )
+    if (activeGame) {
+      if (activeGame.categoryId !== categoryId) {
+        return sendError(
+          res,
+          409,
+          'ACTIVE_GAME_EXISTS',
+          '다른 카테고리의 게임이 이미 진행 중입니다.',
+        )
+      }
+      const sentences = SENTENCES[categoryId].map((content, index) => ({
+        sequence: index + 1,
+        content,
+      }))
+      return sendJson(res, 200, {
+        gameSessionId: activeGame.id,
+        category,
+        sentences,
+      })
+    }
+
     if (participant.availablePassCount <= 0) {
       return sendError(
         res,
@@ -179,11 +227,19 @@ function devMockApiPlugin() {
   const handleComplete = (res, gameSessionId, body) => {
     const session = gameSessions.get(gameSessionId)
     if (!session) return sendError(res, 404, 'GAME_SESSION_NOT_FOUND', '게임 세션을 찾을 수 없습니다.')
-    if (session.status === 'COMPLETED') {
+    if (session.status !== 'IN_PROGRESS') {
       return sendError(res, 409, 'INVALID_GAME_STATE', '이미 처리된 경기입니다.')
     }
 
-    const elapsedMs = Math.max(1, Math.round(Number(body?.elapsedMs) || 0))
+    const elapsedMs = Math.round(Number(body?.elapsedMs) || 0)
+    if (elapsedMs <= 0) {
+      return sendError(
+        res,
+        400,
+        'INVALID_ELAPSED_TIME',
+        '게임 시간은 0보다 커야 합니다.',
+      )
+    }
     session.status = 'COMPLETED'
     session.elapsedMs = elapsedMs
 
@@ -199,7 +255,7 @@ function devMockApiPlugin() {
       elapsedMs,
       personalBestMs,
       personalBest,
-      rank: computeRank(session.categoryId, elapsedMs),
+      rank: computeRank(session.categoryId, session.participantId),
     })
   }
 
@@ -226,17 +282,15 @@ function devMockApiPlugin() {
       elapsedMs: session.elapsedMs,
       personalBestMs,
       personalBest: personalBestMs === session.elapsedMs,
-      rank: computeRank(session.categoryId, session.elapsedMs),
+      rank: computeRank(session.categoryId, session.participantId),
     })
   }
 
   const handleRankings = (res, categoryId) => {
-    const rankings = [...gameSessions.values()]
-      .filter((session) => session.categoryId === categoryId && session.status === 'COMPLETED')
-      .sort((a, b) => a.elapsedMs - b.elapsedMs)
+    const rankings = rankingRows(categoryId)
       .slice(0, 20)
-      .map((session, index) => ({
-        rank: index + 1,
+      .map((session) => ({
+        rank: session.rank,
         nickname: session.nickname,
         elapsedMs: session.elapsedMs,
       }))
