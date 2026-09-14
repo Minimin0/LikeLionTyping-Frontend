@@ -14,6 +14,12 @@ export function CategoriesPage() {
     queryKey: ['categories'],
     queryFn: getCategories,
   })
+  // 응답이 배열이 아닐 수 있다. 그대로 map을 돌리면 화면 전체가 죽는다.
+  const rows = Array.isArray(categories.data) ? categories.data : []
+  // 로딩도 에러도 아닌데 보여줄 게 없을 때만 "불러오지 못함"으로 안내한다.
+  const isEmpty =
+    !categories.isLoading && !categories.error && rows.length === 0
+
   // 참가자 정보가 없으면 참가자 확인 화면으로 보낸다. (팀 확정: 목적지만 /participate)
   if (!participant) return <Navigate to={ROUTES.PARTICIPATE} replace />
 
@@ -37,7 +43,7 @@ export function CategoriesPage() {
       )}
       {categories.error && <Alert>{errorMessage(categories.error)}</Alert>}
       <div className="grid gap-3 sm:grid-cols-3">
-        {categories.data?.map((category) => (
+        {rows.map((category) => (
           <button
             key={category.id}
             className="group flex min-h-36 flex-col items-start justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-left transition hover:border-emerald-700 hover:bg-emerald-50"
@@ -54,10 +60,17 @@ export function CategoriesPage() {
           </button>
         ))}
       </div>
-      {!categories.isLoading && categories.data?.length === 0 && (
-        <p className="py-10 text-center text-zinc-500">
-          준비된 카테고리가 없습니다.
-        </p>
+      {isEmpty && (
+        <div className="py-10 text-center text-zinc-500">
+          <p>카테고리를 불러오지 못했습니다</p>
+          <button
+            type="button"
+            className={`${buttonClass} mt-4`}
+            onClick={() => categories.refetch()}
+          >
+            다시 시도
+          </button>
+        </div>
       )}
       <button
         className={`${buttonClass} mt-7 w-full`}
