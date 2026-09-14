@@ -8,6 +8,7 @@ import { LandingPage } from '../features/participant/LandingPage'
 import { ParticipantPage } from '../features/participant/ParticipantPage'
 import { RankingPage } from '../features/ranking/RankingPage'
 import { ROUTE_PATTERNS, ROUTES } from '../shared/constants/routes'
+import { RouteErrorBoundary } from '../shared/ErrorBoundary'
 
 export default function App() {
   return (
@@ -42,25 +43,31 @@ export default function App() {
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-        <Routes>
-          <Route path={ROUTE_PATTERNS.LANDING} element={<LandingPage />} />
-          <Route
-            path={ROUTE_PATTERNS.PARTICIPATE}
-            element={<ParticipantPage />}
-          />
+        {/* 렌더 에러가 나도 헤더는 남기고 본문만 폴백으로 바꾼다. 라우터 안쪽이라 폴백에서 이동도 된다. */}
+        <RouteErrorBoundary>
+          <Routes>
+            <Route path={ROUTE_PATTERNS.LANDING} element={<LandingPage />} />
+            <Route
+              path={ROUTE_PATTERNS.PARTICIPATE}
+              element={<ParticipantPage />}
+            />
 
-          <Route
-            path={ROUTE_PATTERNS.CATEGORIES}
-            element={<CategoriesPage />}
-          />
-          <Route path={ROUTE_PATTERNS.GAME} element={<GamePage />} />
-          <Route path={ROUTE_PATTERNS.RESULT} element={<ResultPage />} />
-          <Route path={ROUTE_PATTERNS.RANKINGS} element={<RankingPage />} />
-          <Route path={ROUTE_PATTERNS.ADMIN} element={<AdminPage />} />
+            <Route
+              path={ROUTE_PATTERNS.CATEGORIES}
+              element={<CategoriesPage />}
+            />
+            <Route path={ROUTE_PATTERNS.GAME} element={<GamePage />} />
+            <Route path={ROUTE_PATTERNS.RESULT} element={<ResultPage />} />
+            <Route path={ROUTE_PATTERNS.RANKINGS} element={<RankingPage />} />
+            <Route path={ROUTE_PATTERNS.ADMIN} element={<AdminPage />} />
 
-          {/* 정의되지 않은 경로는 전부 메인으로 보낸다. 부스 화면에 404가 뜨면 안 된다. */}
-          <Route path="*" element={<Navigate to={ROUTES.LANDING} replace />} />
-        </Routes>
+            {/* 정의되지 않은 경로는 전부 메인으로 보낸다. 부스 화면에 404가 뜨면 안 된다. */}
+            <Route
+              path="*"
+              element={<Navigate to={ROUTES.LANDING} replace />}
+            />
+          </Routes>
+        </RouteErrorBoundary>
       </main>
     </div>
   )

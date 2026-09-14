@@ -1,5 +1,96 @@
 @import 'tailwindcss';
 
+/*
+ * 게임 화면(타이핑 부스) 전용 디자인 토큰.
+ * 참가자 확인/카테고리 등 나머지 화면은 기존 라이트 테마를 그대로 쓰고,
+ * 이 토큰은 GamePage의 어두운 부스 패널 안에서만 쓴다.
+ */
+@theme {
+  --color-surface: #0b1020;
+  --color-surface-soft: #131a2e;
+  --color-surface-card: #182136;
+  --color-line: #2a3654;
+  --color-line-strong: #3c4b73;
+  --color-ink: #e8edf7;
+  --color-ink-muted: #9aa7c2;
+  --color-ink-dim: #6b7896;
+  --color-typing-pending: #6b7896;
+  --color-typing-correct: #4f8dff;
+  --color-typing-typo: #ff5c6b;
+  --color-accent: #4f8dff;
+  --color-accent-soft: #2a4a86;
+  --color-onair: #ff3b5c;
+  --animate-pulse-air: pulse-air 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-air {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* 모션을 줄이도록 설정한 사용자에게는 ON AIR 깜빡임을 끈다. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-air {
+    animation: none;
+  }
+}
+
+/*
+ * 타이핑 문장 프레임.
+ * - 글자 크기는 clamp로 화면 폭에 따라 자동 축소된다.
+ * - 최소 높이를 가장 긴 문장이 두 줄이 되는 기준으로 잡고 세로 가운데 정렬해서,
+ *   1줄과 2줄 문장을 오갈 때 화면이 위아래로 튀지 않는다.
+ * - overflow: hidden은 여기에도, 부모에도 걸지 않는다. 잘림의 직접 원인이다.
+ */
+.typing-sentence-frame {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 1rem;
+  font-size: clamp(1.5rem, 3vw, 2.75rem);
+  min-height: calc(1.5em * 2);
+}
+
+@media (min-width: 640px) {
+  .typing-sentence-frame {
+    padding-inline: 2rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .typing-sentence-frame {
+    /* 좁은 화면에서는 가장 긴 문장이 세 줄이 되므로 그 기준으로 높이를 확보한다. */
+    min-height: calc(1.5em * 3);
+  }
+}
+
+/*
+ * 타이핑 문장 본문.
+ * - pre-wrap: 공백은 그대로 보존하되 줄바꿈은 허용한다. (nowrap/pre 금지)
+ * - break-keep(keep-all): 한국어를 어절 단위로 끊는다.
+ * - overflow-wrap: anywhere — 띄어쓰기 없는 아주 긴 덩어리가 와도 최후의 보루로 줄바꿈된다.
+ * - text-wrap: balance — 두 줄로 나뉠 때 줄 길이가 고르게 분배된다. 미지원 브라우저에서는 무시된다.
+ * - max-width: 화면이 아무리 넓어도 한 줄이 너무 길어지지 않는다.
+ */
+.typing-sentence {
+  margin-inline: auto;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  text-align: center;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  max-width: min(90vw, 60ch);
+}
+
 :root {
   font-family: Inter, Pretendard, 'Noto Sans KR', system-ui, sans-serif;
   color: #17201b;

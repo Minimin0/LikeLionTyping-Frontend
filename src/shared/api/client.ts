@@ -37,6 +37,26 @@ apiClient.interceptors.response.use(
   },
 )
 
+// 서버가 꺼져 있거나 프록시가 잘못되면 JSON 대신 HTML(index.html)이 200으로 돌아온다.
+// 그대로 통과시키면 화면에서 data.map()이 터져 앱 전체가 흰 화면이 되므로 여기서 에러로 바꾼다.
+// 위의 에러 인터셉터 뒤에 붙여야 한다. 앞에 두면 이 reject가 AxiosError로 오인돼 NETWORK_ERROR로 바뀐다.
+apiClient.interceptors.response.use((response) => {
+  // 본문이 없는 응답(204 등)은 content-type이 없어도 정상이다.
+  if (response.status === 204) return response
+
+  const contentType = String(response.headers['content-type'] ?? '')
+  if (!contentType.includes('application/json')) {
+    return Promise.reject(
+      new ApiError(
+        'INVALID_RESPONSE',
+        response.status,
+        '서버 응답 형식이 올바르지 않습니다',
+      ),
+    )
+  }
+  return response
+})
+
 export const errorMessage = (error: unknown) => {
   const code = error instanceof ApiError ? error.code : 'UNKNOWN_ERROR'
   return (
@@ -54,6 +74,8 @@ export const errorMessage = (error: unknown) => {
       NETWORK_ERROR: '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.',
       COMPLETE_UNCERTAIN:
         '기록 저장 상태를 확인할 수 없습니다. 새 경기를 시작하지 말고 다시 확인해주세요.',
+      INVALID_RESPONSE:
+        '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해주세요.',
     }[code] ?? '요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.'
   )
 }
