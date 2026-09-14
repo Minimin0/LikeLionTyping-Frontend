@@ -78,7 +78,7 @@ export function RouteErrorBoundary({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary
       key={location.pathname}
-      onHome={() => navigate(ROUTES.LANDING, { replace: true })}
+      onHome={() => navigate(ROUTES.ADMIN, { replace: true })}
     >
       {children}
     </ErrorBoundary>

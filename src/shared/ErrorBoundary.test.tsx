@@ -23,7 +23,7 @@ function renderApp(path: string) {
       <Link to="/ok">다른 화면으로</Link>
       <RouteErrorBoundary>
         <Routes>
-          <Route path="/" element={<p>홈 화면</p>} />
+          <Route path="/admin" element={<p>홈 화면</p>} />
           <Route path="/boom" element={<FaultyPage />} />
           <Route path="/ok" element={<p>정상 화면</p>} />
         </Routes>

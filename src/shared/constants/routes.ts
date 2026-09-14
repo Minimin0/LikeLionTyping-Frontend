@@ -3,11 +3,6 @@
 // 경로가 바뀔 때 전부 찾아 고쳐야 하므로 반드시 이 상수를 사용한다.
 
 export const ROUTES = {
-  LANDING: '/',
-  PARTICIPATE: '/participate',
-  CATEGORIES: '/categories',
-  GAME: (categoryId: number | string) => `/game/${categoryId}`,
-  RESULT: (gameSessionId: number | string) => `/result/${gameSessionId}`,
   RANKINGS: '/rankings',
   ADMIN: '/admin',
 } as const
@@ -15,11 +10,6 @@ export const ROUTES = {
 // <Route path=""> 에 쓰는 패턴 문자열.
 // 실제 이동 경로(ROUTES)와 라우트 정의 패턴을 구분해서 관리한다.
 export const ROUTE_PATTERNS = {
-  LANDING: '/',
-  PARTICIPATE: '/participate',
-  CATEGORIES: '/categories',
-  GAME: '/game/:categoryId',
-  RESULT: '/result/:gameSessionId',
   RANKINGS: '/rankings',
   ADMIN: '/admin',
 } as const
