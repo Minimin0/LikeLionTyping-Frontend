@@ -116,6 +116,18 @@
   color: #221f1d;
   background: #f4f5f0;
   font-synthesis: none;
+
+  /*
+   * 게임 화면(준비 카드·카운트다운) 전용 크기 값.
+   * 컴포넌트에 숫자를 직접 박지 않고 여기 한곳에서만 관리한다.
+   */
+  --game-card-side: min(520px, 90vw, 85vh);
+  --game-countdown-size: clamp(6rem, 18vw, 14rem);
+}
+
+/* 숫자가 빠르게 바뀌는 영역(스톱워치·타수·카운트다운)의 자릿수 폭을 고정한다. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── 기획디자인의 공통 방송국 프레임 ───────────────────────────── */
@@ -143,7 +155,25 @@
 .radio-category-page{border-top:4px solid #730c02}.radio-category-page h1,.radio-participant-page h1,.radio-ranking-page h1{font-size:34px}.radio-channel-card{border:1px solid #221f1d;border-radius:4px;background:#f4f5f0;transition:border-color .18s,background-color .18s}.radio-channel-card:hover{border:2px solid #730c02;background:#ece3d3}.radio-channel-card .text-emerald-700{color:#730c02!important}
 .radio-participant-page{max-width:680px;margin:auto;border-top:4px solid #730c02}.radio-participant-page label{font-family:'Maru Buri',serif}.radio-participant-page .bg-emerald-100{background:#ece3d3!important}.radio-participant-page .text-emerald-800{color:#730c02!important}
 .radio-ranking-page{max-width:920px;margin:auto;border-top:4px solid #730c02}.radio-ranking-list{border-top:1px solid #221f1d;border-bottom:1px solid #221f1d}.radio-ranking-row{border-top:1px solid #b7ada3}.radio-ranking-row:first-child{border-top:0;color:#730c02}.radio-ranking-row:nth-child(2){color:#7b8055}.radio-ranking-row strong{font-family:'Maru Buri',serif;font-size:24px}
-.radio-game-page{border-color:#432f2e;background:#432f2e;padding:0}.radio-game-studio{min-height:580px;border:1px solid #221f1d;border-radius:7px;background:#f4f5f0!important;color:#221f1d!important}.radio-game-studio .text-ink{color:#221f1d!important}.radio-game-studio .text-ink-muted{color:#5f5651!important}.radio-game-studio .text-accent{color:#730c02!important}.radio-game-studio .text-typing-pending{color:#756a63!important}.radio-game-studio .text-typing-correct{color:#730c02!important}.radio-game-studio .text-typing-typo{color:#b42318!important}.radio-game-studio .typing-sentence-frame{font-family:'Maru Buri',serif}.radio-game-studio .typing-sentence{max-width:min(90vw,48ch)}
+.radio-game-page{border-color:#432f2e;background:#432f2e;padding:0;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 64px - 96px)}.radio-game-studio{min-height:580px;border:1px solid #221f1d;border-radius:7px;background:#f4f5f0!important;color:#221f1d!important}.radio-game-studio .text-ink{color:#221f1d!important}.radio-game-studio .text-ink-muted{color:#5f5651!important}.radio-game-studio .text-accent{color:#730c02!important}.radio-game-studio .text-typing-pending{color:#756a63!important}.radio-game-studio .text-typing-correct{color:#730c02!important}.radio-game-studio .text-typing-typo{color:#b42318!important}.radio-game-studio .typing-sentence-frame{font-family:'Maru Buri',serif}.radio-game-studio .typing-sentence{max-width:min(90vw,48ch)}
+
+/*
+ * 「게임 준비」 카드와 카운트다운은 같은 정사각형 카드를 공유한다.
+ * 타이핑 화면(넓은 카드)으로 넘어가면 이 클래스가 빠지고 기존 폭으로 돌아간다.
+ */
+.radio-game-studio--compact{width:var(--game-card-side);aspect-ratio:1/1;min-height:0;display:flex;flex-direction:column;padding:2rem}
+
+/* 준비/카운트다운 내용은 카드의 남은 세로 공간 안에서 정중앙에 놓인다. */
+.game-ready,.game-countdown{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center}
+
+.game-ready-button{padding-inline:2.5rem;min-height:3.5rem;border-radius:7px}
+
+.game-countdown-number{font-size:var(--game-countdown-size);font-weight:800;line-height:1;animation:countdown-pop .28s ease-out}
+.game-countdown-caption{font-size:.95rem}
+@keyframes countdown-pop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.game-countdown-number{animation:none}}
+
+@media (max-width:639px){.radio-game-studio--compact{padding:1.5rem}}
 .radio-on-air-asset{display:block;width:112px;height:auto;margin:0 auto 18px}.radio-result-page{max-width:820px;margin:auto;border-top:4px solid #730c02}.radio-result-page h1{font-family:'HS Bom Baram','Maru Buri',serif;font-size:44px;font-weight:400}.radio-result-page dl{border-color:#221f1d!important}.radio-result-page dd{font-family:'Maru Buri',serif;font-size:22px}.radio-result-on-air{display:block;width:108px;height:auto;margin:0 auto 14px}.radio-admin-page{font-family:'Maru Buri',serif!important}.radio-admin-page input{border-radius:4px!important;border-color:#221f1d!important;background:#f4f5f0!important}.radio-admin-page button{border-radius:4px!important}
 
 /* 1920px 행사 화면 기준. 모바일 최적화는 기획 범위 밖이지만 좁은 창에서 내용이 사라지지 않게만 한다. */

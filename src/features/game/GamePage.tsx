@@ -156,30 +156,31 @@ export function GamePage() {
 
   if (!game)
     return (
-      <section className={panelClass}>
-        <Link
-          className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-zinc-600"
-          to={ROUTES.CATEGORIES}
-        >
-          <ArrowLeft className="size-4" />
-          카테고리
-        </Link>
-        <h1 className="text-2xl font-black">게임 준비</h1>
-        <p className="mt-2 text-zinc-600">
-          시작하면 이용권 1장이 사용되고 서버에서 5개 문장을 불러옵니다.
-        </p>
-        {start.error && (
-          <div className="mt-5">
-            <Alert>{errorMessage(start.error)}</Alert>
+      // 게임 시작 전 대기 카드. 이후 카운트다운도 같은 정사각형 카드를 그대로 쓴다.
+      <section className={`${panelClass} radio-game-page`}>
+        <div className="radio-game-studio radio-game-studio--compact overflow-hidden text-ink">
+          <Link
+            className="inline-flex items-center gap-1 text-sm font-bold text-ink-muted"
+            to={ROUTES.CATEGORIES}
+          >
+            <ArrowLeft className="size-4" />
+            카테고리
+          </Link>
+          <div className="game-ready">
+            <h1 className="text-2xl font-black text-ink">게임 준비</h1>
+            <p className="text-ink-muted">
+              시작하면 이용권 1장이 사용되고 서버에서 문장을 불러옵니다.
+            </p>
+            {start.error && <Alert>{errorMessage(start.error)}</Alert>}
+            <button
+              className={`${buttonClass} game-ready-button`}
+              disabled={start.isPending}
+              onClick={() => start.mutate()}
+            >
+              {start.isPending ? <Busy label="경기 생성 중" /> : '게임 시작'}
+            </button>
           </div>
-        )}
-        <button
-          className={`${buttonClass} mt-7 w-full`}
-          disabled={start.isPending}
-          onClick={() => start.mutate()}
-        >
-          {start.isPending ? <Busy label="경기 생성 중" /> : '게임 시작'}
-        </button>
+        </div>
       </section>
     )
 
@@ -187,11 +188,18 @@ export function GamePage() {
   // 정확히 입력된 구간의 누적 타건 수. GameMeters의 실시간 타수 계산에만 쓰이는
   // 표시 전용 값이라 별도 state 없이 렌더마다 다시 계산한다.
   const keystrokes = sentence ? countMatchedKeystrokes(sentence.content, input) : 0
+  // 타이핑 시작 전(READY·COUNTDOWN)에는 「게임 준비」와 같은 정사각형 카드를 쓰고,
+  // 문장이 나오는 순간(PLAYING·SUBMITTING) 원래 폭으로 돌아간다.
+  const isPrepPhase = state.phase === 'READY' || state.phase === 'COUNTDOWN'
 
   return (
     // 게임 상태 기계·IME 입력·복구 로직은 그대로 두고 방송 화면 프레임만 적용한다.
     <section className={`${panelClass} radio-game-page`}>
-      <div className="radio-game-studio overflow-hidden p-6 text-ink sm:p-8">
+      <div
+        className={`radio-game-studio overflow-hidden text-ink ${
+          isPrepPhase ? 'radio-game-studio--compact' : 'p-6 sm:p-8'
+        }`}
+      >
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-bold text-accent">{game.category.code}</p>
@@ -212,10 +220,10 @@ export function GamePage() {
         </div>
 
         {state.phase === 'READY' && (
-          <div className="py-12 text-center">
-            <Keyboard className="mx-auto mb-4 size-10 text-accent" />
+          <div className="game-ready">
+            <Keyboard className="size-10 text-accent" />
             <button
-              className={buttonClass}
+              className={`${buttonClass} game-ready-button`}
               onClick={() => dispatch({ type: 'COUNTDOWN' })}
             >
               3초 카운트다운 시작

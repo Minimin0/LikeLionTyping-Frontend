@@ -1,6 +1,9 @@
 /**
- * 게임 시작 전 3초 카운트다운 오버레이.
+ * 게임 시작 전 3초 카운트다운.
  * 카운트가 0이 되는 순간 onComplete가 호출되고, 그 시점이 곧 기록 측정 시작점이다.
+ *
+ * 「게임 준비」 카드와 같은 정사각형 카드 안에서 일어난다 — 전체화면으로 덮지 않는다.
+ * 배경도 종이 질감 그대로, 상단 헤더도 그대로 남겨서 다른 화면처럼 느껴지지 않게 한다.
  */
 import { useEffect, useRef, useState } from 'react'
 
@@ -32,17 +35,19 @@ export function CountdownOverlay({ onComplete }: CountdownOverlayProps) {
   }, [count])
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-surface/95 backdrop-blur-sm">
-      <span className="flex items-center gap-2 rounded-full bg-onair/15 px-4 py-1.5 text-sm font-semibold tracking-widest text-onair">
-        <span className="h-2 w-2 animate-pulse-air rounded-full bg-onair" />
-        ON AIR
-      </span>
-
-      <span key={count} className="tabular text-8xl font-bold text-ink sm:text-9xl">
+    <div className="game-countdown">
+      {/*
+        key={count}로 매번 새 span을 마운트해 countdown-pop 애니메이션이
+        숫자가 바뀔 때마다 다시 실행되게 한다. (타이밍 로직은 위 effect 그대로다)
+      */}
+      <span
+        key={count}
+        className="game-countdown-number tabular text-accent"
+        aria-live="assertive"
+      >
         {count > 0 ? count : 'GO'}
       </span>
-
-      <p className="text-ink-muted">잠시 후 첫 문장이 공개됩니다</p>
+      <p className="game-countdown-caption text-ink-muted">잠시 후 첫 문장이 공개됩니다</p>
     </div>
   )
 }
