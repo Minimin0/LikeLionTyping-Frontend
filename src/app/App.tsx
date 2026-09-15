@@ -1,5 +1,5 @@
-import { Shield, Trophy } from 'lucide-react'
-import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { Shield, Trophy, UserRound } from 'lucide-react'
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
 import { GamePage } from '../features/game/GamePage'
@@ -11,6 +11,8 @@ import { ROUTE_PATTERNS, ROUTES } from '../shared/constants/routes'
 import { RouteErrorBoundary } from '../shared/ErrorBoundary'
 
 export default function App() {
+  const { pathname } = useLocation()
+
   return (
     // 디자인 전용 레이아웃이다. 라우트, 세션, API 호출은 아래 Routes 그대로 유지한다.
     <div className="radio-app">
@@ -23,18 +25,31 @@ export default function App() {
             <strong>LIKELION TYPING</strong><span aria-hidden="true">/</span><span>성결대학교 축제 부스</span>
           </Link>
           <nav aria-label="주요 메뉴" className="radio-nav">
-            <Link
-              className="radio-nav-link"
-              to={ROUTES.RANKINGS}
-            >
-              <Trophy className="size-4" /> 랭킹
-            </Link>
-            <Link
-              className="radio-nav-link"
-              to={ROUTES.ADMIN}
-            >
-              <Shield className="size-4" /> 운영자
-            </Link>
+            {/* 현재 화면으로 가는 링크는 숨긴다. 운영자 화면에서는 참가자 화면으로 갈 수 있어야 한다. */}
+            {pathname !== ROUTES.LANDING && (
+              <Link
+                className="radio-nav-link"
+                to={ROUTES.LANDING}
+              >
+                <UserRound className="size-4" /> 참가자 화면
+              </Link>
+            )}
+            {pathname !== ROUTES.RANKINGS && (
+              <Link
+                className="radio-nav-link"
+                to={ROUTES.RANKINGS}
+              >
+                <Trophy className="size-4" /> 랭킹
+              </Link>
+            )}
+            {pathname !== ROUTES.ADMIN && (
+              <Link
+                className="radio-nav-link"
+                to={ROUTES.ADMIN}
+              >
+                <Shield className="size-4" /> 운영자
+              </Link>
+            )}
           </nav>
         </div>
       </header>
