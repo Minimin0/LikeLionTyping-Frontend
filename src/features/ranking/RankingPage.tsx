@@ -4,13 +4,11 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { errorMessage } from '../../shared/api/client'
 import { getCategories, getRankings } from '../../shared/api/endpoints'
-import {
-  Alert,
-  Busy,
-  Empty,
-  inputClass,
-  panelClass,
-} from '../../shared/components'
+import { Alert, Busy, Empty } from '../../shared/components'
+import rankingAirmail from '../../shared/brand/images/ranking-airmail.png'
+import cassetteRed from '../../shared/brand/images/cassette-red.png'
+import cassetteOlive from '../../shared/brand/images/cassette-olive.png'
+import cassetteOrange from '../../shared/brand/images/cassette-orange.png'
 
 export function RankingPage() {
   const [search] = useSearchParams()
@@ -38,61 +36,68 @@ export function RankingPage() {
     rankingRows.length === 0
 
   return (
-    // 데이터 조회와 select 상태는 유지하고, 디자인 훅만 추가한다.
-    <section className={`${panelClass} radio-ranking-page`}>
-      <div className="mb-6 flex items-center gap-3">
-        <span className="grid size-11 place-items-center rounded-lg bg-yellow-300">
-          <Medal />
-        </span>
+    // 조회 상태는 유지하고, 카테고리 선택만 select에서 탭으로 바꾼다.
+    <section className="ranking-studio-stage">
+      <div className="ranking-cassette-background" aria-hidden>
+        <img className="ranking-cassette-red" src={cassetteRed} alt="" />
+        <img className="ranking-cassette-olive" src={cassetteOlive} alt="" />
+        <img className="ranking-cassette-orange" src={cassetteOrange} alt="" />
+      </div>
+      <div className="ranking-studio-heading">
+        <span className="ranking-studio-medal"><Medal aria-hidden /></span>
         <div>
-          <p className="text-sm font-bold text-emerald-700">공식 기록</p>
-          <h1 className="text-2xl font-black">카테고리 랭킹</h1>
+          <p>OFFICIAL RECORDS</p>
+          <h1>카테고리 랭킹</h1>
         </div>
       </div>
-      <label className="block text-sm font-bold">
-        카테고리
-        <select
-          className={`${inputClass} mt-2`}
-          value={selectedCategoryId}
-          onChange={(event) => setCategoryId(Number(event.target.value))}
-        >
-          {categoryRows.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name} ({category.code})
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="ranking-category-tabs" role="tablist" aria-label="카테고리 선택">
+        {categoryRows.map((category) => {
+          const active = category.id === selectedCategoryId
+          return (
+            <button
+              key={category.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              className={`ranking-category-tab ${active ? 'is-active' : ''}`}
+              onClick={() => setCategoryId(category.id)}
+            >
+              <small>{category.code}</small>
+              <span>{category.name}</span>
+            </button>
+          )
+        })}
+      </div>
       {ranking.isLoading && (
-        <div className="flex justify-center py-12">
+        <div className="ranking-studio-feedback">
           <Busy label="랭킹 확인 중" />
         </div>
       )}
       {(ranking.error || categories.error) && (
-        <div className="mt-5">
+        <div className="ranking-studio-feedback">
           <Alert>{errorMessage(ranking.error ?? categories.error)}</Alert>
         </div>
       )}
       {isRankingEmpty && (
-        <div className="mt-6">
+        <div className="ranking-studio-feedback">
           <Empty>아직 기록이 없습니다</Empty>
         </div>
       )}
       {rankingRows.length > 0 && (
-        <ol className="radio-ranking-list mt-6">
-          {rankingRows.map((entry) => (
-            <li
-              key={`${entry.rank}-${entry.nickname}`}
-              className="radio-ranking-row grid grid-cols-[3rem_1fr_auto] items-center gap-3 py-4"
-            >
-              <strong className="text-center text-lg">{entry.rank}</strong>
-              <span className="truncate font-bold">{entry.nickname}</span>
-              <span className="font-mono text-sm">
-                {(entry.elapsedMs / 1_000).toFixed(3)}초
-              </span>
-            </li>
-          ))}
-        </ol>
+        <div className="ranking-airmail-board">
+          <img src={rankingAirmail} alt="" aria-hidden />
+          <ol className="ranking-airmail-list">
+            {rankingRows.map((entry) => (
+              <li key={`${entry.rank}-${entry.nickname}`}>
+                <strong>{entry.rank}</strong>
+                <span className="ranking-nickname">{entry.nickname}</span>
+                <span className="ranking-time">
+                  {(entry.elapsedMs / 1_000).toFixed(3)}초
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </section>
   )

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { ArrowRight, UserRound } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
@@ -8,6 +8,8 @@ import { useSession } from '../../app/session'
 import { errorMessage } from '../../shared/api/client'
 import { identifyParticipant } from '../../shared/api/endpoints'
 import { ROUTES } from '../../shared/constants/routes'
+import lpGreen from '../../shared/brand/images/LP_green.png'
+import participantRadioCutout from '../../shared/brand/images/participant-radio-cutout.png'
 import {
   Alert,
   Busy,
@@ -44,12 +46,14 @@ export function ParticipantPage() {
   })
 
   return (
-    // 폼 검증과 참가자 식별 API는 유지하고, 시각적 className만 추가한다.
-    <section className={`${panelClass} radio-participant-page`}>
+    // 폼 검증과 참가자 식별 API는 유지하고, 중앙 정렬·배경 장식만 추가한다.
+    <section className="radio-participant-stage">
+      {/* 사용자가 제공한 카세트·헤드폰 사진에서 배경을 제거한 장식 이미지다. */}
+      <img className="participant-studio-asset" src={participantRadioCutout} alt="" aria-hidden />
+      <div className={`${panelClass} radio-participant-page`}>
       <div className="mb-8 flex items-start gap-4">
-        <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-800">
-          <UserRound aria-hidden />
-        </span>
+        {/* 참가자 확인 카드의 장식 아이콘. 홈 화면과 같은 초록 LP를 사용한다. */}
+        <img className="participant-lp-icon" src={lpGreen} alt="" aria-hidden />
         <div>
           <h1 className="text-2xl font-black">참가자 확인</h1>
           <p className="mt-1 text-zinc-600">
@@ -106,6 +110,7 @@ export function ParticipantPage() {
           )}
         </button>
       </form>
+      </div>
     </section>
   )
 }
