@@ -16,7 +16,7 @@ React, Vite, TypeScript 기반 멋쟁이 타자처럼 Frontend입니다.
 
 상세 기준: [docs/FINAL_RELEASE_FRONTEND_2026-09-13.md](docs/FINAL_RELEASE_FRONTEND_2026-09-13.md)
 
-> 아래 Current Routes는 현재 `develop`에 실제 구현된 상태입니다. 최종 통합에서는 `/` Landing + `/participate` 참가자 식별 구조로 정리하는 것이 확정되어 있습니다.
+> 아래 Current Routes는 `main` / `develop`에 실제 구현되어 배포된 최종 상태입니다.
 
 ## Run
 
@@ -43,24 +43,15 @@ API E2E는 실행 중인 Backend와 테스트 데이터가 필요합니다. Prod
 
 ## Current Routes
 
-- `/`: 참가자 식별
-- `/categories`: 카테고리 선택
-- `/game/:categoryId`: 게임 시작, 카운트다운, 타이핑, 완료
-- `/result/:gameSessionId`: 완료 또는 recovery 결과
-- `/rankings`: 카테고리 랭킹
-- `/admin`: 관리자 로그인, 참가자 검색, PAID 발급, 무효화/복구
-
-## Target Routes for 9/15 Release
-
 - `/`: Landing
 - `/participate`: 참가자 식별
 - `/categories`: 카테고리 선택
-- `/game/:categoryId`: 게임
-- `/result/:gameSessionId`: 결과 / completion recovery
+- `/game/:categoryId`: 게임 시작, 카운트다운, 타이핑, 완료
+- `/result/:gameSessionId`: 완료 또는 recovery 결과
 - `/rankings`: 카테고리 탭형 공개 랭킹
-- `/admin`: 관리자
+- `/admin`: 관리자 로그인, 참가자 검색, PAID 발급, 무효화/복구
 
-참가자 화면에서는 Admin 진입 버튼을 제거하고 운영자는 `/admin`으로 직접 접근합니다.
+참가자 화면에서는 Admin 진입 버튼을 제거하고 운영자는 `/admin`으로 직접 접근합니다. UI는 라디오/카세트테이프 콘셉트(ON AIR 방송 부스)로 통일되어 있습니다.
 
 ## Release Scope
 
