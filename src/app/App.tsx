@@ -1,4 +1,4 @@
-import { Shield, Trophy, UserRound } from 'lucide-react'
+import { Trophy, UserRound } from 'lucide-react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
@@ -25,7 +25,7 @@ export default function App() {
             <strong>LIKELION TYPING</strong><span aria-hidden="true">/</span><span>성결대학교 축제 부스</span>
           </Link>
           <nav aria-label="주요 메뉴" className="radio-nav">
-            {/* 현재 화면으로 가는 링크는 숨긴다. 운영자 화면에서는 참가자 화면으로 갈 수 있어야 한다. */}
+            {/* 참가자 화면에는 운영자 진입 링크를 노출하지 않는다. 운영자는 /admin으로 직접 접근한다. */}
             {pathname !== ROUTES.LANDING && (
               <Link
                 className="radio-nav-link"
@@ -40,14 +40,6 @@ export default function App() {
                 to={ROUTES.RANKINGS}
               >
                 <Trophy className="size-4" /> 랭킹
-              </Link>
-            )}
-            {pathname !== ROUTES.ADMIN && (
-              <Link
-                className="radio-nav-link"
-                to={ROUTES.ADMIN}
-              >
-                <Shield className="size-4" /> 운영자
               </Link>
             )}
           </nav>
