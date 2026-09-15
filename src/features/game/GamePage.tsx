@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Check, Keyboard } from 'lucide-react'
 import { useCallback, useReducer, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
@@ -6,6 +6,7 @@ import { useSession } from '../../app/session'
 import { ApiError, errorMessage } from '../../shared/api/client'
 import {
   completeGameWithRecovery,
+  getCategories,
   getGame,
   startGame,
 } from '../../shared/api/endpoints'
@@ -36,6 +37,18 @@ export function GamePage() {
   const navigate = useNavigate()
   const { participant, activeGame, setActiveGame } = useSession()
   const game = activeGame?.category.id === categoryId ? activeGame : null
+  const categories = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+  })
+  const categoryRows = Array.isArray(categories.data) ? categories.data : []
+  const selectedCategory = categoryRows.find(
+    (category) => category.id === categoryId,
+  )
+  const selectedCategoryIndex = Math.max(
+    0,
+    categoryRows.findIndex((category) => category.id === categoryId),
+  )
   const [state, dispatch] = useReducer(gameReducer, {
     phase: game?.startedAtMs ? 'PLAYING' : 'READY',
     error: null,
@@ -156,30 +169,33 @@ export function GamePage() {
 
   if (!game)
     return (
-      // 게임 시작 전 대기 카드. 이후 카운트다운도 같은 정사각형 카드를 그대로 쓴다.
-      <section className={`${panelClass} radio-game-page`}>
-        <div className="radio-game-studio radio-game-studio--compact overflow-hidden text-ink">
-          <Link
-            className="inline-flex items-center gap-1 text-sm font-bold text-ink-muted"
-            to={ROUTES.CATEGORIES}
-          >
-            <ArrowLeft className="size-4" />
-            카테고리
+      <section className={`game-ready-stage game-ready-theme-${selectedCategoryIndex}`}>
+        <div className="game-ready-card">
+          <Link className="game-ready-category-link" to={ROUTES.CATEGORIES}>
+            <ArrowLeft aria-hidden />
+            카테고리 다시 고르기
           </Link>
-          <div className="game-ready">
-            <h1 className="text-2xl font-black text-ink">게임 준비</h1>
-            <p className="text-ink-muted">
-              시작하면 이용권 1장이 사용되고 서버에서 문장을 불러옵니다.
-            </p>
-            {start.error && <Alert>{errorMessage(start.error)}</Alert>}
-            <button
-              className={`${buttonClass} game-ready-button`}
-              disabled={start.isPending}
-              onClick={() => start.mutate()}
-            >
-              {start.isPending ? <Busy label="경기 생성 중" /> : '게임 시작'}
-            </button>
-          </div>
+          <p className="game-ready-channel">
+            {selectedCategory
+              ? `${selectedCategory.code} · ${selectedCategory.name}`
+              : '선택한 채널'}
+          </p>
+          <h1>게임 준비</h1>
+          <p className="game-ready-description">
+            시작하면 이용권 1장이 사용되고 서버에서 5개 문장을 불러옵니다.
+          </p>
+          {start.error && (
+            <div className="mt-5">
+              <Alert>{errorMessage(start.error)}</Alert>
+            </div>
+          )}
+          <button
+            className="game-ready-start"
+            disabled={start.isPending}
+            onClick={() => start.mutate()}
+          >
+            {start.isPending ? <Busy label="경기 생성 중" /> : '게임 시작'}
+          </button>
         </div>
       </section>
     )
