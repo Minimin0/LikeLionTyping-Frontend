@@ -495,6 +495,34 @@
   border-radius: 7px;
   background: #f4f5f0 !important;
   color: #221f1d !important;
+  display: flex;
+  flex-direction: column;
+}
+.radio-game-studio--compact {
+  padding: 2rem;
+}
+@media (max-width: 639px) {
+  .radio-game-studio--compact {
+    padding: 1.5rem;
+  }
+}
+.game-ready {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+}
+.game-countdown {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-align: center;
 }
 .radio-game-studio .text-ink {
   color: #221f1d !important;

@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Check, Keyboard } from 'lucide-react'
+import { ArrowLeft, Check } from 'lucide-react'
 import { useCallback, useReducer, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../../app/session'
@@ -245,7 +245,6 @@ export function GamePage() {
 
         {state.phase === 'READY' && (
           <div className="game-ready">
-            <Keyboard className="size-10 text-accent" />
             <button
               className={`${buttonClass} game-ready-button`}
               onClick={() => dispatch({ type: 'COUNTDOWN' })}
