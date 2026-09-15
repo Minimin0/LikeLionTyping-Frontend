@@ -17,7 +17,7 @@ import {
   secondaryButtonClass,
 } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
-import { countMatchedKeystrokes } from '../../shared/utils/typingCount'
+import { countKeystrokesOfText, countMatchedKeystrokes } from '../../shared/utils/typingCount'
 import { CountdownOverlay } from './components/CountdownOverlay'
 import { GameMeters } from './components/GameMeters'
 import { ProgressBar } from './components/ProgressBar'
@@ -185,9 +185,17 @@ export function GamePage() {
     )
 
   const progress = `${game.currentIndex + 1} / ${game.sentences.length}`
-  // 정확히 입력된 구간의 누적 타건 수. GameMeters의 실시간 타수 계산에만 쓰이는
-  // 표시 전용 값이라 별도 state 없이 렌더마다 다시 계산한다.
-  const keystrokes = sentence ? countMatchedKeystrokes(sentence.content, input) : 0
+  // GameMeters에 넘기는 elapsedMs는 카운트다운이 끝난 뒤로 누적되는 "게임 전체"
+  // 경과 시간이다(공식 기록 기준과 동일). 타수 분자도 같은 기준으로 맞춰야 해서,
+  // 이미 끝낸 문장들의 타건 수(game.sentences/game.currentIndex — 새로고침 복구
+  // 시에도 그대로 남아있는 값)에 현재 문장의 매칭 타건 수를 더한다. 문장이 넘어갈
+  // 때마다 0으로 리셋되는 값을 누적 경과 시간과 그대로 나누면 타수가 실제보다
+  // 훨씬 낮게 나온다.
+  const completedKeystrokes = game.sentences
+    .slice(0, game.currentIndex)
+    .reduce((sum, s) => sum + countKeystrokesOfText(s.content), 0)
+  const keystrokes =
+    completedKeystrokes + (sentence ? countMatchedKeystrokes(sentence.content, input) : 0)
   // 타이핑 시작 전(READY·COUNTDOWN)에는 「게임 준비」와 같은 정사각형 카드를 쓰고,
   // 문장이 나오는 순간(PLAYING·SUBMITTING) 원래 폭으로 돌아간다.
   const isPrepPhase = state.phase === 'READY' || state.phase === 'COUNTDOWN'
