@@ -26,12 +26,6 @@ jobs:
           --health-retries=10
     env:
       E2E_ADMIN_PASSWORD: test-admin-password
-      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/likelion_typing_test?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_DATASOURCE_USERNAME: likelion
-      SPRING_DATASOURCE_PASSWORD: testpass
-      ADMIN_PASSWORD_HASH: $2y$10$fjQFGDB1ZaES0wfHccvPreMX.qfcwLA7Gdh9jMN/uQ3NJrNDQRwSm
-      ADMIN_TOKEN_SECRET: ci-token-secret-at-least-32-characters
-      ALLOWED_ORIGINS: http://localhost:5173
     steps:
       - name: Checkout frontend
         uses: actions/checkout@v4
@@ -59,6 +53,13 @@ jobs:
           ./gradlew build
       - name: Start backend
         working-directory: backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/likelion_typing_test?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+          SPRING_DATASOURCE_USERNAME: likelion
+          SPRING_DATASOURCE_PASSWORD: testpass
+          ADMIN_PASSWORD_HASH: $2y$10$fjQFGDB1ZaES0wfHccvPreMX.qfcwLA7Gdh9jMN/uQ3NJrNDQRwSm
+          ADMIN_TOKEN_SECRET: ci-token-secret-at-least-32-characters
+          ALLOWED_ORIGINS: http://localhost:5173
         run: |
           ./gradlew bootRun > backend.log 2>&1 &
           echo $! > backend.pid
@@ -82,6 +83,13 @@ jobs:
         run: E2E_STATE_FILE=e2e-state.json npm run e2e:api
       - name: Restart backend against same MySQL
         working-directory: backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/likelion_typing_test?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+          SPRING_DATASOURCE_USERNAME: likelion
+          SPRING_DATASOURCE_PASSWORD: testpass
+          ADMIN_PASSWORD_HASH: $2y$10$fjQFGDB1ZaES0wfHccvPreMX.qfcwLA7Gdh9jMN/uQ3NJrNDQRwSm
+          ADMIN_TOKEN_SECRET: ci-token-secret-at-least-32-characters
+          ALLOWED_ORIGINS: http://localhost:5173
         run: |
           kill "$(cat backend.pid)"
           ./gradlew bootRun > backend-restart.log 2>&1 &
