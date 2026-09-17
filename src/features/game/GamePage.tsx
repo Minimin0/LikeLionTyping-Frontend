@@ -26,8 +26,6 @@ import { TypingInput } from './components/TypingInput'
 import { TypewriterKeyOverlay } from './components/TypewriterKeyOverlay'
 import { useTypingInput } from './hooks/useTypingInput'
 import { gameReducer } from './gameMachine'
-import onAirOff from '../../shared/brand/images/on-air-off.png'
-import onAirOn from '../../shared/brand/images/on-air-on.png'
 import writerMain from '../../shared/brand/images/writer_main.png'
 import { calculateCpm } from './utils/typingSpeed'
 import { formatElapsedMs } from '../../shared/utils/formatTime'
@@ -266,12 +264,9 @@ export function GamePage() {
             </span>
           </div>
         )}
-        {/* 표시 전용: 기존 게임 phase를 읽어서 ON AIR 이미지 상태만 보여준다. */}
-        <img
-          className="radio-on-air-asset"
-          src={state.phase === 'PLAYING' ? onAirOn : onAirOff}
-          alt={state.phase === 'PLAYING' ? 'ON AIR 방송 중' : '방송 대기 중'}
-        />
+        {state.phase !== 'PLAYING' && (
+          <div className="radio-off-air-sign" role="img" aria-label="OFF 방송 대기 중">OFF</div>
+        )}
         {state.phase !== 'PLAYING' && (
           <div className="mb-7">
             <ProgressBar current={game.currentIndex + 1} total={game.sentences.length} />
@@ -294,6 +289,9 @@ export function GamePage() {
         {state.phase === 'PLAYING' && sentence && (
           // 화면 아무 곳이나 눌러도 숨겨진 입력창으로 포커스가 돌아온다.
           <div className="typewriter-game-stage" onClick={focusInput}>
+            <div className="typewriter-on-air-sign" role="img" aria-label="ON AIR 방송 중">ON AIR</div>
+            <p className="typewriter-wall-note typewriter-wall-note-left">GOOD<br />WORDS<br />BETTER<br />TOMORROW</p>
+            <p className="typewriter-wall-note typewriter-wall-note-right">Keep<br />Typing.<br />Keep Going.</p>
             <div className="typewriter-left-meters">
               <MetricCard label="채널" value={`${game.category.code} ${game.category.name}`} />
               <MetricCard label="경과 시간" value={formatElapsedMs(liveElapsedMs)} />

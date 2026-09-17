@@ -12,7 +12,6 @@ import {
   secondaryButtonClass,
 } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
-import onAirOff from '../../shared/brand/images/on-air-off.png'
 
 const seconds = (milliseconds: number | null) =>
   milliseconds == null ? '-' : `${(milliseconds / 1_000).toFixed(3)}초`
@@ -43,8 +42,7 @@ export function ResultPage() {
       {result.data?.status === 'COMPLETED' && (
         <>
           <div className="text-center">
-            {/* 결과는 방송이 끝난 상태이므로 기획 에셋의 꺼진 ON AIR만 표시한다. */}
-            <img className="radio-result-on-air" src={onAirOff} alt="방송 완료" />
+            <div className="radio-off-air-sign radio-result-off" role="img" aria-label="OFF 방송 완료">OFF</div>
             <span className="mx-auto grid size-14 place-items-center rounded-lg bg-yellow-300">
               <Trophy aria-hidden />
             </span>

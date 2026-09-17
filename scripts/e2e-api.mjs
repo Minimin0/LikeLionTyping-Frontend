@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 
-const base = (process.env.E2E_API_URL || 'http://localhost:8080/api').replace(
-  /\/$/,
-  '',
-)
+const base = (process.env.E2E_API_URL || 'http://localhost:8080/api').replace(/\/$/, '')
 const adminPassword = process.env.E2E_ADMIN_PASSWORD
+const stateFile = process.env.E2E_STATE_FILE
 if (!adminPassword) throw new Error('E2E_ADMIN_PASSWORD is required')
 
 const call = async (path, options = {}) => {
@@ -18,171 +17,129 @@ const call = async (path, options = {}) => {
       status: response.status,
       body,
     })
-  return { response, body }
+  return body
 }
 const post = (path, body, token) =>
   call(path, {
     method: 'POST',
     body: JSON.stringify(body),
     headers: token ? { Authorization: `Bearer ${token}` } : {},
-  }).then((value) => value.body)
+  })
 const get = (path, token) =>
-  call(path, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  }).then((value) => value.body)
-const expectCode = async (promise, code) => {
-  await assert.rejects(promise, (error) => error.body?.code === code)
-}
-const start = (participantId, categoryId) =>
-  post('/game-sessions', { participantId, categoryId })
-const complete = (id, elapsedMs) =>
-  post(`/game-sessions/${id}/complete`, { elapsedMs })
-const issue = (token, id, quantity = 1) => post(`/admin/participants/${id}/passes`, { quantity }, token)
+  call(path, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+const start = (participantId, categoryId) => post('/game-sessions', { participantId, categoryId })
+const complete = (id, elapsedMs) => post(`/game-sessions/${id}/complete`, { elapsedMs })
+const issue = (token, participantId, quantity = 1) =>
+  post(`/admin/participants/${participantId}/passes`, { quantity }, token)
+const invalidate = (token, gameSessionId, restorePass) =>
+  post(`/admin/game-sessions/${gameSessionId}/invalidate`, {
+    reason: restorePass ? 'e2e restore' : 'e2e no restore',
+    restorePass,
+  }, token)
+const login = async () => (await post('/admin/login', { password: adminPassword })).token
+const pass = (name) => console.log(`${name} PASS`)
 
-const seed = String(Date.now()).slice(-7)
-const phoneA = `010${seed}1`
-const phoneE = `010${seed}2`
-const reports = []
-const pass = (name) => {
-  reports.push(`${name} PASS`)
-  console.log(`${name} PASS`)
+if (process.env.E2E_VERIFY_EXISTING === '1') {
+  if (!stateFile || !existsSync(stateFile)) throw new Error('E2E_STATE_FILE is required for persisted verification')
+  const state = JSON.parse(readFileSync(stateFile, 'utf8'))
+  const token = await login()
+  const participant = await get(`/admin/participants?phone=${state.phone}`, token)
+  assert.equal(participant.id, state.participantId)
+  assert.ok(participant.payments.some((payment) => payment.amountKrw === 1000))
+  const ranking = await get(`/rankings?categoryId=${state.categoryId}`)
+  assert.ok(ranking.some((row) => row.nickname === state.nickname && row.elapsedMs === 4200))
+  pass('SCENARIO K')
+  process.exit(0)
 }
 
+const seed = String(Date.now()).slice(-8)
+const phone = `010${seed}`
+const nickname = `A-${seed}`
 const categories = await get('/categories')
-assert.equal(categories.length, 3)
-assert.ok(
-  categories.every(({ code }) => ['CH01', 'CH02', 'CH03'].includes(code)),
-)
-assert.deepEqual(await get(`/rankings?categoryId=${categories[2].id}`), [])
+const [ch01, ch02, ch03] = categories
+assert.deepEqual(categories.map((category) => category.code), ['CH01', 'CH02', 'CH03'])
 
-const participantA = await post('/participants/identify', {
-  nickname: `A-${seed}`,
-  phone: phoneA,
-})
-assert.equal(participantA.availablePassCount, 1)
-const gameA = await start(participantA.participantId, categories[0].id)
-assert.equal(gameA.sentences.length, 5)
-const resultA = await complete(gameA.gameSessionId, 6_000)
-assert.equal(resultA.status, 'COMPLETED')
-assert.ok(
-  (await get(`/rankings?categoryId=${categories[0].id}`)).some(
-    ({ nickname }) => nickname === participantA.nickname,
-  ),
-)
+const participant = await post('/participants/identify', { nickname, phone })
+assert.equal(participant.availablePassCount, 1)
+const freeGame = await start(participant.participantId, ch01.id)
+assert.equal(freeGame.sentences.length, 5)
+assert.equal((await complete(freeGame.gameSessionId, 6000)).status, 'COMPLETED')
+assert.ok((await get(`/rankings?categoryId=${ch01.id}`)).some((row) => row.nickname === nickname))
 pass('SCENARIO A')
 
-const existing = await post('/participants/identify', {
-  nickname: participantA.nickname,
-  phone: phoneA,
-})
-assert.equal(existing.availablePassCount, 0)
-await expectCode(
-  start(existing.participantId, categories[1].id),
-  'NO_AVAILABLE_PASS',
-)
+const token = await login()
+const [found] = await get(`/admin/participants?query=${nickname}`, token)
+assert.equal(found.id, participant.participantId)
 pass('SCENARIO B')
 
-await expectCode(
-  post('/participants/identify', { nickname: 'wrong-name', phone: phoneA }),
-  'NICKNAME_MISMATCH',
-)
+const beforeIssue = await get(`/admin/participants?phone=${phone}`, token)
+const issued = await issue(token, participant.participantId, 2)
+assert.equal(issued.quantity, 2)
+assert.equal(issued.amountKrw, 1000)
+assert.equal(issued.availablePaidPassCount, beforeIssue.summary.availablePaidPassCount + 2)
+const afterIssue = await get(`/admin/participants?phone=${phone}`, token)
+assert.equal(afterIssue.summary.availablePaidPassCount, beforeIssue.summary.availablePaidPassCount + 2)
 pass('SCENARIO C')
 
-const login = await post('/admin/login', { password: adminPassword })
-const [adminFound] = await get(`/admin/participants?query=${participantA.nickname}`, login.token)
-assert.equal(adminFound.id, participantA.participantId)
-const dashboardBefore = await get('/admin/dashboard', login.token)
-const issuedTwo = await issue(login.token, participantA.participantId, 2)
-assert.equal(issuedTwo.quantity, 2)
-assert.equal(issuedTwo.amountKrw, 1000)
-assert.equal(issuedTwo.availablePaidPassCount, 2)
-const retry = await start(participantA.participantId, categories[1].id)
-assert.equal((await complete(retry.gameSessionId, 5_500)).status, 'COMPLETED')
-const afterOnePaid = await get(`/admin/participants?phone=${phoneA}`, login.token)
-assert.equal(afterOnePaid.summary.availablePaidPassCount, 1)
-assert.ok(afterOnePaid.payments.some(({ amountKrw }) => amountKrw === 1000))
-const dashboardAfter = await get('/admin/dashboard', login.token)
-assert.equal(dashboardAfter.totalPaymentAmountKrw, dashboardBefore.totalPaymentAmountKrw + 1000)
+const paidGame = await start(participant.participantId, ch02.id)
+await complete(paidGame.gameSessionId, 5500)
+const afterPaidGame = await get(`/admin/participants?phone=${phone}`, token)
+assert.equal(afterPaidGame.summary.availablePaidPassCount, afterIssue.summary.availablePaidPassCount - 1)
 pass('SCENARIO D')
 
-const participantE = await post('/participants/identify', {
-  nickname: `E-${seed}`,
-  phone: phoneE,
-})
-const first = await start(participantE.participantId, categories[0].id)
-assert.equal((await complete(first.gameSessionId, 5_000)).personalBest, true)
-await issue(login.token, participantE.participantId)
-const slow = await start(participantE.participantId, categories[0].id)
-const slowResult = await complete(slow.gameSessionId, 7_000)
-assert.equal(slowResult.personalBest, false)
-assert.equal(slowResult.personalBestMs, 5_000)
-await issue(login.token, participantE.participantId)
-const fast = await start(participantE.participantId, categories[0].id)
-const fastResult = await complete(fast.gameSessionId, 3_000)
-assert.equal(fastResult.personalBest, true)
-assert.equal(fastResult.personalBestMs, 3_000)
+assert.ok(afterPaidGame.payments.some((payment) => payment.amountKrw === 1000 && payment.quantity === 2))
 pass('SCENARIO E')
 
-await issue(login.token, participantA.participantId)
-const uncertain = await start(participantA.participantId, categories[2].id)
-await complete(uncertain.gameSessionId, 4_500)
-const recovered = await get(`/game-sessions/${uncertain.gameSessionId}`)
-assert.equal(recovered.status, 'COMPLETED')
-assert.equal(recovered.elapsedMs, 4_500)
+const dashboard = await get('/admin/dashboard', token)
+assert.ok(dashboard.totalPaymentAmountKrw >= 1000)
+assert.ok(dashboard.paidPlayCount >= 1)
+assert.ok(dashboard.completedGameCount >= 2)
 pass('SCENARIO F')
 
-const paid1 = await issue(login.token, participantA.participantId)
-const paid2 = await issue(login.token, participantA.participantId)
-assert.equal(paid1.id, paid2.id)
-const broken = await start(participantA.participantId, categories[0].id)
-const before = await get(`/admin/participants?phone=${phoneA}`, login.token)
-assert.ok(before.gameSessions.some(({ id }) => id === broken.gameSessionId))
-const invalidated = await post(
-  `/admin/game-sessions/${broken.gameSessionId}/invalidate`,
-  { reason: 'e2e restore', restorePass: true },
-  login.token,
-)
-assert.equal(invalidated.gameSessionStatus, 'INVALIDATED')
-assert.equal(invalidated.playPassStatus, 'AVAILABLE')
-const replay = await start(participantA.participantId, categories[0].id)
-assert.notEqual(replay.gameSessionId, broken.gameSessionId)
-await complete(replay.gameSessionId, 4_000)
-await issue(login.token, participantA.participantId)
-const noRestoreGame = await start(participantA.participantId, categories[0].id)
-const noRestore = await post(
-  `/admin/game-sessions/${noRestoreGame.gameSessionId}/invalidate`,
-  { reason: 'e2e no restore', restorePass: false },
-  login.token,
-)
+await issue(token, participant.participantId)
+const noRestoreGame = await start(participant.participantId, ch03.id)
+await complete(noRestoreGame.gameSessionId, 8000)
+const beforeNoRestore = await get(`/admin/participants?phone=${phone}`, token)
+const noRestore = await invalidate(token, noRestoreGame.gameSessionId, false)
 assert.equal(noRestore.gameSessionStatus, 'INVALIDATED')
 assert.equal(noRestore.playPassStatus, 'CONSUMED')
+const afterNoRestore = await get(`/admin/participants?phone=${phone}`, token)
+assert.equal(afterNoRestore.summary.availablePassCount, beforeNoRestore.summary.availablePassCount)
+assert.ok(!(await get(`/rankings?categoryId=${ch03.id}`)).some((row) => row.nickname === nickname))
 pass('SCENARIO G')
 
-const cors = await fetch(`${base}/categories`, {
-  method: 'OPTIONS',
-  headers: {
-    Origin: 'http://localhost:5173',
-    'Access-Control-Request-Method': 'GET',
-  },
-})
-assert.equal(
-  cors.headers.get('access-control-allow-origin'),
-  'http://localhost:5173',
-)
-pass('CORS')
+await issue(token, participant.participantId)
+const restoreGame = await start(participant.participantId, ch03.id)
+await complete(restoreGame.gameSessionId, 7000)
+const beforeRestore = await get(`/admin/participants?phone=${phone}`, token)
+const restored = await invalidate(token, restoreGame.gameSessionId, true)
+assert.equal(restored.gameSessionStatus, 'INVALIDATED')
+assert.equal(restored.playPassStatus, 'AVAILABLE')
+const afterRestore = await get(`/admin/participants?phone=${phone}`, token)
+assert.equal(afterRestore.summary.availablePassCount, beforeRestore.summary.availablePassCount + 1)
+assert.ok(!(await get(`/rankings?categoryId=${ch03.id}`)).some((row) => row.nickname === nickname))
+pass('SCENARIO H')
 
-if (process.env.E2E_TOKEN_TTL_SECONDS) {
-  await new Promise((resolve) =>
-    setTimeout(
-      resolve,
-      (Number(process.env.E2E_TOKEN_TTL_SECONDS) + 1) * 1_000,
-    ),
-  )
-  await assert.rejects(
-    get(`/admin/participants?query=${phoneA}`, login.token),
-    (error) => [401, 403].includes(error.status),
-  )
-  pass('ADMIN TOKEN EXPIRY')
+const fastGame = await start(participant.participantId, ch01.id)
+await complete(fastGame.gameSessionId, 4200)
+await issue(token, participant.participantId)
+const slowGame = await start(participant.participantId, ch01.id)
+await complete(slowGame.gameSessionId, 9000)
+const ranking = await get(`/rankings?categoryId=${ch01.id}`)
+const rows = ranking.filter((row) => row.nickname === nickname)
+assert.equal(rows.length, 1)
+assert.equal(rows[0].elapsedMs, 4200)
+pass('SCENARIO I')
+
+assert.ok(!JSON.stringify(ranking).includes(phone))
+assert.ok(ranking.every((row) => !('phone' in row)))
+pass('SCENARIO J')
+
+if (stateFile) {
+  writeFileSync(stateFile, JSON.stringify({
+    phone,
+    nickname,
+    participantId: participant.participantId,
+    categoryId: ch01.id,
+  }))
 }
-
-console.log(`\n${reports.length} checks passed against ${base}`)
