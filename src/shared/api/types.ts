@@ -34,6 +34,12 @@ export type PlayPass = {
   status: 'AVAILABLE' | 'CONSUMED' | 'CANCELLED'
   createdAt: string
 }
+export type AdminPayment = {
+  id: number
+  quantity: number
+  amountKrw: number
+  createdAt: string
+}
 export type AdminSession = {
   id: number
   categoryId: number
@@ -42,6 +48,18 @@ export type AdminSession = {
   elapsedMs: number | null
   startedAt: string
   completedAt: string | null
+  invalidationReason: string | null
+}
+export type AdminCategoryBest = { categoryCode: string; elapsedMs: number | null }
+export type AdminParticipantSummary = {
+  freeParticipationUsed: boolean
+  availablePassCount: number
+  availablePaidPassCount: number
+  totalPlayCount: number
+  completedGameCount: number
+  invalidatedGameCount: number
+  totalPaymentAmountKrw: number
+  bestRecords: AdminCategoryBest[]
 }
 export type AdminParticipant = {
   id: number
@@ -49,6 +67,29 @@ export type AdminParticipant = {
   phone: string
   passes: PlayPass[]
   gameSessions: AdminSession[]
+  payments: AdminPayment[]
+  summary: AdminParticipantSummary
+}
+export type AdminParticipantSearchResult = AdminParticipant
+export type AdminDashboard = {
+  totalParticipants: number
+  totalPlayCount: number
+  freePlayCount: number
+  paidPlayCount: number
+  totalPaymentAmountKrw: number
+  availablePaidPassCount: number
+  ch01PlayCount: number
+  ch02PlayCount: number
+  ch03PlayCount: number
+  completedGameCount: number
+  invalidatedGameCount: number
+}
+export type IssuePassResult = {
+  quantity: number
+  amountKrw: number
+  availablePaidPassCount: number
+  payment: AdminPayment
+  passes: PlayPass[]
 }
 export type InvalidateResult = {
   gameSessionId: number
