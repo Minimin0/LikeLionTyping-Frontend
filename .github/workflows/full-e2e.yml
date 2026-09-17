@@ -92,6 +92,12 @@ jobs:
           ALLOWED_ORIGINS: http://localhost:5173
         run: |
           kill "$(cat backend.pid)"
+          for i in {1..30}; do
+            if ! curl -fsS http://127.0.0.1:8080/api/categories >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
           ./gradlew bootRun > backend-restart.log 2>&1 &
           echo $! > backend.pid
           for i in {1..60}; do
