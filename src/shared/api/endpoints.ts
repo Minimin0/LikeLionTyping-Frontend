@@ -1,14 +1,15 @@
 import { ApiError, apiClient } from './client'
 import type {
   AdminLogin,
+  AdminDashboard,
   AdminParticipant,
   AdminParticipantSearchResult,
   Category,
   GameResult,
   GameStart,
   InvalidateResult,
+  IssuePassResult,
   Participant,
-  PlayPass,
   Ranking,
 } from './types'
 
@@ -84,6 +85,11 @@ const auth = (token: string) => ({
   headers: { Authorization: `Bearer ${token}` },
 })
 
+export const getAdminDashboard = (token: string) =>
+  apiClient
+    .get<AdminDashboard>('/admin/dashboard', auth(token))
+    .then(({ data }) => data)
+
 export const findAdminParticipant = (token: string, phone: string) =>
   apiClient
     .get<AdminParticipant>('/admin/participants', {
@@ -100,11 +106,11 @@ export const searchAdminParticipants = (token: string, query: string) =>
     })
     .then(({ data }) => data)
 
-export const issuePaidPass = (token: string, participantId: number) =>
+export const issuePaidPass = (token: string, participantId: number, quantity = 1) =>
   apiClient
-    .post<PlayPass>(
+    .post<IssuePassResult>(
       `/admin/participants/${participantId}/passes`,
-      undefined,
+      { quantity },
       auth(token),
     )
     .then(({ data }) => data)
@@ -113,11 +119,12 @@ export const invalidateGame = (
   token: string,
   gameSessionId: number,
   restorePass: boolean,
+  reason = '',
 ) =>
   apiClient
     .post<InvalidateResult>(
       `/admin/game-sessions/${gameSessionId}/invalidate`,
-      { restorePass },
+      { restorePass, reason },
       auth(token),
     )
     .then(({ data }) => data)
