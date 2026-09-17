@@ -24,6 +24,9 @@ const schema = z.object({
     .string()
     .trim()
     .regex(/^01\d[- ]?\d{3,4}[- ]?\d{4}$/, '휴대전화 번호를 확인해주세요.'),
+  privacyConsent: z.literal(true, {
+    message: '개인정보 수집 안내에 동의해주세요.',
+  }),
 })
 type Form = z.infer<typeof schema>
 
@@ -69,7 +72,9 @@ export function ParticipantPage() {
       )}
       <form
         className="space-y-5"
-        onSubmit={handleSubmit((values) => identify.mutate(values))}
+        onSubmit={handleSubmit(({ nickname, phone }) =>
+          identify.mutate({ nickname, phone, privacyConsent: true }),
+        )}
       >
         <label className="block font-bold">
           닉네임
@@ -96,6 +101,16 @@ export function ParticipantPage() {
           <p className="text-sm text-red-700">{errors.phone.message}</p>
         )}
         {identify.error && <Alert>{errorMessage(identify.error)}</Alert>}
+        <label className="participant-privacy-consent">
+          <input type="checkbox" {...register('privacyConsent')} />
+          <span>
+            전화번호는 무료 참여 여부 확인, 게임 기록 관리, 본인 확인 및
+            수상자 연락을 위해 수집합니다. 랭킹에는 공개되지 않습니다.
+          </span>
+        </label>
+        {errors.privacyConsent && (
+          <p className="text-sm text-red-700">{errors.privacyConsent.message}</p>
+        )}
         <button
           className={`${buttonClass} w-full`}
           disabled={identify.isPending}
