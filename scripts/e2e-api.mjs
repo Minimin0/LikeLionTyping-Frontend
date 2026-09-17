@@ -89,7 +89,7 @@ await expectCode(
 pass('SCENARIO C')
 
 const login = await post('/admin/login', { password: adminPassword })
-const adminFound = await get(`/admin/participants?phone=${phoneA}`, login.token)
+const [adminFound] = await get(`/admin/participants?query=${participantA.nickname}`, login.token)
 assert.equal(adminFound.id, participantA.participantId)
 await issue(login.token, participantA.participantId)
 const retry = await start(participantA.participantId, categories[1].id)
@@ -161,7 +161,7 @@ if (process.env.E2E_TOKEN_TTL_SECONDS) {
     ),
   )
   await assert.rejects(
-    get(`/admin/participants?phone=${phoneA}`, login.token),
+    get(`/admin/participants?query=${phoneA}`, login.token),
     (error) => [401, 403].includes(error.status),
   )
   pass('ADMIN TOKEN EXPIRY')

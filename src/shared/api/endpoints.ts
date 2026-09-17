@@ -2,6 +2,7 @@ import { ApiError, apiClient } from './client'
 import type {
   AdminLogin,
   AdminParticipant,
+  AdminParticipantSearchResult,
   Category,
   GameResult,
   GameStart,
@@ -88,6 +89,14 @@ export const findAdminParticipant = (token: string, phone: string) =>
     .get<AdminParticipant>('/admin/participants', {
       ...auth(token),
       params: { phone },
+    })
+    .then(({ data }) => data)
+
+export const searchAdminParticipants = (token: string, query: string) =>
+  apiClient
+    .get<AdminParticipantSearchResult[]>('/admin/participants', {
+      ...auth(token),
+      params: { query },
     })
     .then(({ data }) => data)
 

@@ -50,6 +50,7 @@ export type AdminParticipant = {
   passes: PlayPass[]
   gameSessions: AdminSession[]
 }
+export type AdminParticipantSearchResult = AdminParticipant
 export type InvalidateResult = {
   gameSessionId: number
   gameSessionStatus: 'INVALIDATED'

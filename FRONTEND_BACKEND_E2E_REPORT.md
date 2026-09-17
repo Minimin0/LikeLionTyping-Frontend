@@ -20,7 +20,7 @@
 | GET    | `/api/game-sessions/{id}`                  | 없음                          | `GameResult`                                                                     | `GAME_SESSION_NOT_FOUND`                                                                                             | Public |
 | GET    | `/api/rankings?categoryId={id}`            | `categoryId`                  | `rank`, `nickname`, `elapsedMs`                                                  | `CATEGORY_NOT_FOUND`                                                                                                 | Public |
 | POST   | `/api/admin/login`                         | `password`                    | `token`, `expiresAt`                                                             | `ADMIN_UNAUTHORIZED`                                                                                                 | Public |
-| GET    | `/api/admin/participants?phone=...`        | `phone`                       | participant, pass, session details                                               | `PARTICIPANT_NOT_FOUND`, 401/403                                                                                     | Bearer |
+| GET    | `/api/admin/participants?query=...`        | `query`                       | participant search results with pass/session details                             | 401/403                                                                                                             | Bearer |
 | POST   | `/api/admin/participants/{id}/passes`      | 없음                          | PAID `PlayPass`                                                                  | `PARTICIPANT_NOT_FOUND`, 401/403                                                                                     | Bearer |
 | POST   | `/api/admin/game-sessions/{id}/invalidate` | `restorePass`                 | invalidated session/pass state                                                   | `GAME_SESSION_NOT_FOUND`, `INVALID_GAME_STATE`, 401/403                                                              | Bearer |
 
@@ -35,7 +35,7 @@
 | Result / uncertain completion | complete response, then `GET /api/game-sessions/{id}` recovery           |
 | Ranking                       | `GET /api/rankings?categoryId={id}`                                      |
 | Admin Login                   | `POST /api/admin/login`                                                  |
-| Admin Search                  | `GET /api/admin/participants?phone=...`                                  |
+| Admin Search                  | `GET /api/admin/participants?query=...`                                  |
 | Paid Retry                    | `POST /api/admin/participants/{id}/passes`                               |
 | Equipment Error Recovery      | `POST /api/admin/game-sessions/{id}/invalidate` with `restorePass: true` |
 
