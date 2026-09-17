@@ -2993,3 +2993,19 @@ a {
 .ranking-nickname { overflow: hidden; font-family: 'Maru Buri',serif; font-size: 20px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .ranking-time { font-family: ui-monospace, monospace; font-size: 14px; }
 @media (max-width: 640px) { .ranking-studio-stage { padding: 44px 20px; } .ranking-category-tabs { gap: 6px; } .ranking-category-tab { min-height: 60px; padding: 9px; } .ranking-category-tab span { font-size: 13px; } .ranking-airmail-board { height: 500px; } .ranking-airmail-list { width: min(100% - 40px, 560px); padding: 38px 0; } .ranking-airmail-list li { grid-template-columns: 42px minmax(0,1fr) auto; gap: 8px; } .ranking-nickname { font-size: 17px; } }
+
+/* Final design-sync overrides: keep these last. */
+.home-bottom-grid { grid-template-columns: minmax(0, 1fr) 300px 360px; gap: 24px; }
+.home-ranking-panel, .home-participation-panel { min-height: 430px; background: rgb(244 245 240 / 82%); box-shadow: none; }
+.home-ranking-panel { position: relative; padding: 24px; border-top: 4px solid #730c02; border-right: 0; border-bottom: 1px solid #221f1d; border-left: 0; border-radius: 0; }
+.home-ranking-note { position: static; margin-top: 18px; }
+.home-channel-label h3 { white-space: normal; }
+.participant-privacy-consent { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 12px; align-items: start; padding: 16px; border: 1px solid #221f1d; border-radius: 4px; background: rgb(244 245 240 / 78%); color: #221f1d; font-size: 14px; font-weight: 400; line-height: 1.6; }
+.participant-privacy-consent input { width: 18px; height: 18px; margin-top: 3px; accent-color: #730c02; }
+.game-ready-rules { display: grid; gap: 12px; margin: 24px 0 0; padding: 0; list-style: none; font-size: 18px; line-height: 1.6; }
+.game-ready-rules li { padding-top: 12px; border-top: 1px solid #221f1d; }
+.typewriter-current .typing-sentence-frame { font-size: 32px; line-height: 1.6; }
+.typewriter-current .typing-sentence { line-height: 1.6; }
+.typewriter-previous { white-space: normal; text-overflow: clip; }
+.radio-result-page h1 { font-family: 'Maru Buri', serif; font-size: 56px; font-weight: 600; }
+@media (max-width: 1200px) { .home-bottom-grid { grid-template-columns: 1fr; } }

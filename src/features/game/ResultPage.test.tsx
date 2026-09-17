@@ -36,7 +36,7 @@ describe('ResultPage', () => {
       </QueryClientProvider>,
     )
 
-    expect(await screen.findByText('경기 완료')).toBeInTheDocument()
+    expect(await screen.findByText('방송 완료')).toBeInTheDocument()
     expect(screen.getAllByText('42.000초')).toHaveLength(2)
   })
 })
