@@ -133,7 +133,7 @@ describe('groupCellsByWord — 어절 단위 묶기', () => {
   })
 
   it('원본 인덱스가 0부터 빠짐없이 순서대로 붙는다 — 색상 판정이 이 값을 쓴다', () => {
-    const sentence = '프론트엔드, 백엔드, 기획디자인 세 개의 부서가 있습니다'
+    const sentence = '프론트엔드 백엔드 기획디자인 세 부서가 한 팀이 됩니다'
     const chunks = groupCellsByWord(getCharCells(sentence, '', false))
     const indices = chunks.flatMap((chunk) => chunk.cells.map((cell) => cell.index))
 

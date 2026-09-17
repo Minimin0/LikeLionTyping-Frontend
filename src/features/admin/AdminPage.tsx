@@ -7,11 +7,11 @@ import { z } from 'zod'
 import { ApiError, errorMessage } from '../../shared/api/client'
 import {
   adminLogin,
-  findAdminParticipant,
   invalidateGame,
   issuePaidPass,
+  searchAdminParticipants,
 } from '../../shared/api/endpoints'
-import type { AdminParticipant, GameStatus, PlayPass } from '../../shared/api/types'
+import type { AdminParticipant, AdminParticipantSearchResult, GameStatus, PlayPass } from '../../shared/api/types'
 import { Busy } from '../../shared/components'
 import lpRed from './assets/images/LP_red.png'
 
@@ -50,19 +50,20 @@ function formatElapsedMs(ms: number | null) {
 const passwordSchema = z.object({
   password: z.string().min(1, '비밀번호를 입력해주세요.'),
 })
-const phoneSchema = z.object({
-  phone: z.string().trim().min(1, '전화번호를 입력해주세요.'),
+const searchSchema = z.object({
+  query: z.string().trim().min(1, '전화번호 또는 닉네임을 입력해주세요.'),
 })
 
 export function AdminPage() {
   const [token, setToken] = useState<string | null>(null)
   const [participant, setParticipant] = useState<AdminParticipant | null>(null)
+  const [results, setResults] = useState<AdminParticipantSearchResult[]>([])
   const [notice, setNotice] = useState('')
   const loginForm = useForm<z.infer<typeof passwordSchema>>({
     resolver: zodResolver(passwordSchema),
   })
-  const searchForm = useForm<z.infer<typeof phoneSchema>>({
-    resolver: zodResolver(phoneSchema),
+  const searchForm = useForm<z.infer<typeof searchSchema>>({
+    resolver: zodResolver(searchSchema),
   })
 
   const authFailure = (error: unknown) => {
@@ -81,16 +82,19 @@ export function AdminPage() {
     },
   })
   const search = useMutation({
-    mutationFn: ({ phone }: z.infer<typeof phoneSchema>) =>
-      findAdminParticipant(token!, phone),
-    onSuccess: setParticipant,
+    mutationFn: ({ query }: z.infer<typeof searchSchema>) =>
+      searchAdminParticipants(token!, query),
+    onSuccess: (matches) => {
+      setResults(matches)
+      setParticipant(matches.length === 1 ? matches[0] : null)
+    },
     onError: authFailure,
   })
   const issue = useMutation({
     mutationFn: () => issuePaidPass(token!, participant!.id),
     onSuccess: () => {
       setNotice('PAID 이용권을 확인했습니다.')
-      search.mutate(searchForm.getValues())
+      search.mutate({ query: participant!.phone })
     },
     onError: authFailure,
   })
@@ -98,7 +102,7 @@ export function AdminPage() {
     mutationFn: (sessionId: number) => invalidateGame(token!, sessionId, true),
     onSuccess: () => {
       setNotice('경기를 무효화하고 이용권을 복구했습니다.')
-      search.mutate(searchForm.getValues())
+      search.mutate({ query: participant!.phone })
     },
     onError: authFailure,
   })
@@ -179,6 +183,7 @@ export function AdminPage() {
           onClick={() => {
             setToken(null)
             setParticipant(null)
+            setResults([])
           }}
         >
           <LogOut className="size-5" />
@@ -188,22 +193,23 @@ export function AdminPage() {
         className="flex gap-2"
         onSubmit={searchForm.handleSubmit((values) => {
           setNotice('')
+          setParticipant(null)
+          setResults([])
           search.mutate(values)
         })}
       >
         <input
           className={fieldInput}
-          inputMode="tel"
-          placeholder="휴대전화 번호"
-          {...searchForm.register('phone')}
+          placeholder="전화번호 또는 닉네임"
+          {...searchForm.register('query')}
         />
         <button className={primaryButton} disabled={search.isPending} title="검색">
           {search.isPending ? <Busy label="" /> : <Search className="size-5" />}
         </button>
       </form>
-      {searchForm.formState.errors.phone && (
+      {searchForm.formState.errors.query && (
         <p className="mt-2 text-sm text-[#b5301f]">
-          {searchForm.formState.errors.phone.message}
+          {searchForm.formState.errors.query.message}
         </p>
       )}
       {Boolean(actionError) && (
@@ -220,6 +226,32 @@ export function AdminPage() {
         >
           {notice}
         </p>
+      )}
+      {search.isSuccess && results.length === 0 && (
+        <p className="mt-5 rounded-lg bg-[#ece3d3]/70 px-4 py-3 text-sm font-medium text-[#7a675c]">
+          검색 결과가 없습니다.
+        </p>
+      )}
+      {results.length > 1 && !participant && (
+        <div className="mt-5 space-y-2">
+          {results.map((result) => (
+            <button
+              key={result.id}
+              type="button"
+              className="flex w-full items-center justify-between gap-3 rounded-lg bg-[#ece3d3]/60 p-3 text-left transition hover:bg-[#ece3d3]"
+              onClick={() => setParticipant(result)}
+            >
+              <span className="font-['Maru_Buri'] font-semibold text-[#221f1d]">
+                {result.nickname}
+              </span>
+              <span className="text-sm text-[#7a675c]">
+                {result.phone} · 이용권{' '}
+                {result.passes.filter((pass) => pass.status === 'AVAILABLE').length}
+                장
+              </span>
+            </button>
+          ))}
+        </div>
       )}
       {participant && (
         <div className="mt-7 space-y-7">

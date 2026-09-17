@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, apiClient } from './client'
-import { completeGameWithRecovery, startGame } from './endpoints'
+import { completeGameWithRecovery, searchAdminParticipants, startGame } from './endpoints'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -35,6 +35,16 @@ describe('API integration guards', () => {
     await expect(completeGameWithRecovery(3, 1234)).resolves.toMatchObject({
       status: 'COMPLETED',
       elapsedMs: 1234,
+    })
+  })
+
+  it('searches admin participants with the unified query parameter', async () => {
+    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({ data: [] })
+
+    await expect(searchAdminParticipants('token', '사자')).resolves.toEqual([])
+    expect(get).toHaveBeenCalledWith('/admin/participants', {
+      headers: { Authorization: 'Bearer token' },
+      params: { query: '사자' },
     })
   })
 })
