@@ -20,7 +20,7 @@ const channelDetails = [
   {
     description: '성결대학교 · 멋쟁이사자처럼 · 캠퍼스 스토리',
     exampleLines: ['오늘의 성결대학교 축제 방송을', '시작합니다.'],
-    color: '#850e04',
+    color: '#730C02',
     lp: lpRed,
     icon: micRed,
   },
@@ -34,7 +34,7 @@ const channelDetails = [
   {
     description: 'Festival · Music · Radio · Night',
     exampleLines: ['음악이 흐르는 축제의 밤을', '함께 기록 해 보세요.'],
-    color: '#ef7940',
+    color: '#E77B49',
     lp: lpOrange,
     icon: radioGreen,
   },

@@ -210,6 +210,11 @@ export function GamePage() {
           <p className="game-ready-description">
             시작하면 이용권 1장이 사용되고 서버에서 5개 문장을 불러옵니다.
           </p>
+          <ul className="game-ready-rules">
+            <li>한 번에 한 문장씩 정확히 입력합니다.</li>
+            <li>오타를 모두 고친 뒤 Enter를 누르면 다음 문장으로 넘어갑니다.</li>
+            <li>마지막 5번째 문장을 완료하는 순간 공식 기록이 결정됩니다.</li>
+          </ul>
           {start.error && (
             <div className="mt-5">
               <Alert>{errorMessage(start.error)}</Alert>

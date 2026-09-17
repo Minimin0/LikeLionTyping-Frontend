@@ -46,7 +46,7 @@ export function ResultPage() {
             <span className="mx-auto grid size-14 place-items-center rounded-lg bg-yellow-300">
               <Trophy aria-hidden />
             </span>
-            <h1 className="mt-4 text-2xl font-black">경기 완료</h1>
+            <h1 className="mt-4 text-2xl font-black">방송 완료</h1>
             {result.data.personalBest && (
               <p className="mt-2 font-bold text-emerald-700">
                 새로운 개인 최고 기록입니다.
@@ -80,7 +80,7 @@ export function ResultPage() {
             </Link>
             <Link className={secondaryButtonClass} to={ROUTES.LANDING}>
               <RotateCcw className="size-4" />
-              다시 참가하기
+              500원으로 재도전
             </Link>
           </div>
         </>
