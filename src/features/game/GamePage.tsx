@@ -36,7 +36,7 @@ export function GamePage() {
   const { categoryId: categoryParam } = useParams()
   const categoryId = Number(categoryParam)
   const navigate = useNavigate()
-  const { participant, activeGame, setActiveGame } = useSession()
+  const { participant, activeGame, setParticipant, setActiveGame } = useSession()
   const game = activeGame?.category.id === categoryId ? activeGame : null
   const categories = useQuery({
     queryKey: ['categories'],
@@ -59,6 +59,7 @@ export function GamePage() {
   const [activeCodes, setActiveCodes] = useState<Set<string>>(new Set())
   const [liveElapsedMs, setLiveElapsedMs] = useState(0)
   const submitLock = useRef(false)
+  const passDeductedSessionIds = useRef(new Set<number>())
 
   const complete = useMutation({
     mutationFn: ({ id, elapsedMs }: { id: number; elapsedMs: number }) =>
@@ -104,8 +105,16 @@ export function GamePage() {
 
   const start = useMutation({
     mutationFn: () => startGame(participant!.participantId, categoryId),
-    onSuccess: (data) =>
-      setActiveGame({ ...data, currentIndex: 0, startedAtMs: null }),
+    onSuccess: (data) => {
+      setActiveGame({ ...data, currentIndex: 0, startedAtMs: null })
+      if (!passDeductedSessionIds.current.has(data.gameSessionId)) {
+        passDeductedSessionIds.current.add(data.gameSessionId)
+        setParticipant({
+          ...participant!,
+          availablePassCount: Math.max(0, participant!.availablePassCount - 1),
+        })
+      }
+    },
   })
 
   // 카운트다운이 0이 되는 순간(CountdownOverlay의 onComplete) 호출된다.

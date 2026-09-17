@@ -1,4 +1,4 @@
-import { Trophy, UserRound } from 'lucide-react'
+import { Ticket, Trophy, UserRound } from 'lucide-react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
@@ -6,12 +6,15 @@ import { GamePage } from '../features/game/GamePage'
 import { ResultPage } from '../features/game/ResultPage'
 import { LandingPage } from '../features/participant/LandingPage'
 import { ParticipantPage } from '../features/participant/ParticipantPage'
+import { useSession } from './session'
 import { RankingPage } from '../features/ranking/RankingPage'
 import { ROUTE_PATTERNS, ROUTES } from '../shared/constants/routes'
 import { RouteErrorBoundary } from '../shared/ErrorBoundary'
 
 export default function App() {
   const { pathname } = useLocation()
+  const { participant } = useSession()
+  const showParticipantStatus = pathname === ROUTES.LANDING && participant
 
   return (
     // 디자인 전용 레이아웃이다. 라우트, 세션, API 호출은 아래 Routes 그대로 유지한다.
@@ -25,6 +28,18 @@ export default function App() {
             <strong>LIKELION TYPING</strong><span aria-hidden="true">/</span><span>성결대학교 축제 부스</span>
           </Link>
           <nav aria-label="주요 메뉴" className="radio-nav">
+            {showParticipantStatus && (
+              <div className="radio-participant-status" aria-label="현재 참가자">
+                <span>
+                  <UserRound className="size-4" aria-hidden />
+                  {participant.nickname} 님
+                </span>
+                <span>
+                  <Ticket className="size-4" aria-hidden />
+                  남은 이용권 {participant.availablePassCount}장
+                </span>
+              </div>
+            )}
             {/* 참가자 화면에는 운영자 진입 링크를 노출하지 않는다. 운영자는 /admin으로 직접 접근한다. */}
             {pathname !== ROUTES.LANDING && (
               <Link
