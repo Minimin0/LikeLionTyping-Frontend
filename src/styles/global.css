@@ -181,6 +181,7 @@
 .radio-nav {
   display: flex;
   gap: 20px;
+  align-items: center;
 }
 .radio-nav-link {
   display: flex;
@@ -194,6 +195,23 @@
 .radio-nav-link:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+.radio-participant-status {
+  display: grid;
+  gap: 3px;
+  padding: 7px 12px;
+  border: 1px solid rgb(34 31 29 / 38%);
+  background: #f4f5f0;
+  color: #221f1d;
+  font-family: 'Maru Buri', serif;
+  font-size: 13px;
+  line-height: 1.25;
+}
+.radio-participant-status span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 .radio-main {
   max-width: 1792px;
