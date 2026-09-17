@@ -82,9 +82,11 @@ function devMockApiPlugin() {
   let nextParticipantId = 4
   let nextGameSessionId = 4
   let nextPassId = 7
+  let nextPaymentId = 1
   const participantsByPhone = new Map()
   const gameSessions = new Map()
   const bestByParticipantCategory = new Map()
+  const payments = []
   const adminToken = 'dev-admin-token'
 
   const seededParticipants = [
@@ -120,8 +122,9 @@ function devMockApiPlugin() {
       status: 'COMPLETED',
       elapsedMs: seed.elapsedMs,
       startedAt: '2026-09-14T00:20:00Z',
-      completedAt: '2026-09-14T00:21:00Z',
-    })
+        completedAt: '2026-09-14T00:21:00Z',
+        invalidationReason: null,
+      })
     bestByParticipantCategory.set(`${seed.participantId}:1`, seed.elapsedMs)
   })
 
@@ -371,6 +374,31 @@ function devMockApiPlugin() {
     })
   }
 
+  const dashboard = () => {
+    const sessions = [...gameSessions.values()]
+    const categoryCount = (id) => sessions.filter((session) => session.categoryId === id).length
+    return {
+      totalParticipants: participantsByPhone.size,
+      totalPlayCount: sessions.length,
+      freePlayCount: sessions.filter((session) => {
+        const participant = findParticipantById(session.participantId)
+        return participant?.passes.find((pass) => pass.id === session.playPassId)?.type === 'FREE'
+      }).length,
+      paidPlayCount: sessions.filter((session) => {
+        const participant = findParticipantById(session.participantId)
+        return participant?.passes.find((pass) => pass.id === session.playPassId)?.type === 'PAID'
+      }).length,
+      totalPaymentAmountKrw: payments.reduce((sum, payment) => sum + payment.amountKrw, 0),
+      availablePaidPassCount: [...participantsByPhone.values()].flatMap((participant) => participant.passes)
+        .filter((pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE').length,
+      ch01PlayCount: categoryCount(1),
+      ch02PlayCount: categoryCount(2),
+      ch03PlayCount: categoryCount(3),
+      completedGameCount: sessions.filter((session) => session.status === 'COMPLETED').length,
+      invalidatedGameCount: sessions.filter((session) => session.status === 'INVALIDATED').length,
+    }
+  }
+
   const adminParticipant = (participant) => ({
     id: participant.participantId,
     nickname: participant.nickname,
@@ -386,7 +414,26 @@ function devMockApiPlugin() {
         elapsedMs: session.elapsedMs,
         startedAt: session.startedAt,
         completedAt: session.completedAt,
+        invalidationReason: session.invalidationReason ?? null,
       })),
+    payments: payments
+      .filter((payment) => payment.participantId === participant.participantId)
+      .sort((a, b) => b.id - a.id),
+    summary: {
+      freeParticipationUsed: participant.passes.some((pass) => pass.type === 'FREE' && pass.status === 'CONSUMED'),
+      availablePassCount: participant.passes.filter((pass) => pass.status === 'AVAILABLE').length,
+      availablePaidPassCount: participant.passes.filter((pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE').length,
+      totalPlayCount: [...gameSessions.values()].filter((session) => session.participantId === participant.participantId).length,
+      completedGameCount: [...gameSessions.values()].filter((session) => session.participantId === participant.participantId && session.status === 'COMPLETED').length,
+      invalidatedGameCount: [...gameSessions.values()].filter((session) => session.participantId === participant.participantId && session.status === 'INVALIDATED').length,
+      totalPaymentAmountKrw: payments
+        .filter((payment) => payment.participantId === participant.participantId)
+        .reduce((sum, payment) => sum + payment.amountKrw, 0),
+      bestRecords: CATEGORIES.map((category) => ({
+        categoryCode: category.code,
+        elapsedMs: bestByParticipantCategory.get(`${participant.participantId}:${category.id}`) ?? null,
+      })),
+    },
   })
 
   const handleAdminSearch = (req, res, searchValue, legacyPhone = false) => {
@@ -403,19 +450,38 @@ function devMockApiPlugin() {
     return sendJson(res, 200, matches.map(adminParticipant))
   }
 
-  const handleIssuePass = (req, res, participantId) => {
+  const handleIssuePass = (req, res, participantId, body) => {
     if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
     const participant = findParticipantById(participantId)
     if (!participant) return sendError(res, 404, 'PARTICIPANT_NOT_FOUND')
-    const pass = {
-      id: nextPassId++,
-      type: 'PAID',
-      status: 'AVAILABLE',
+    const quantity = Number(body?.quantity ?? 1)
+    if (!Number.isInteger(quantity) || quantity <= 0) return sendError(res, 400, 'VALIDATION_ERROR')
+    const payment = {
+      id: nextPaymentId++,
+      participantId,
+      quantity,
+      amountKrw: quantity * 500,
       createdAt: new Date().toISOString(),
     }
-    participant.passes.push(pass)
-    participant.availablePassCount += 1
-    return sendJson(res, 201, pass)
+    payments.push(payment)
+    const issued = Array.from({ length: quantity }, () => {
+      const pass = {
+        id: nextPassId++,
+        type: 'PAID',
+        status: 'AVAILABLE',
+        createdAt: new Date().toISOString(),
+      }
+      participant.passes.push(pass)
+      participant.availablePassCount += 1
+      return pass
+    })
+    return sendJson(res, 201, {
+      quantity,
+      amountKrw: payment.amountKrw,
+      availablePaidPassCount: participant.passes.filter((pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE').length,
+      payment,
+      passes: issued,
+    })
   }
 
   const handleInvalidate = (req, res, gameSessionId, body) => {
@@ -426,6 +492,7 @@ function devMockApiPlugin() {
       return sendError(res, 409, 'INVALID_GAME_STATE', '이미 무효화된 경기입니다.')
     }
     session.status = 'INVALIDATED'
+    session.invalidationReason = body?.reason ?? ''
     const participant = findParticipantById(session.participantId)
     const pass = participant?.passes.find((item) => item.id === session.playPassId)
     if (body?.restorePass && participant && pass) {
@@ -476,6 +543,10 @@ function devMockApiPlugin() {
           if (method === 'POST' && pathname === '/admin/login') {
             return handleAdminLogin(res, await readJsonBody(req))
           }
+          if (method === 'GET' && pathname === '/admin/dashboard') {
+            if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
+            return sendJson(res, 200, dashboard())
+          }
           if (method === 'GET' && pathname === '/admin/participants') {
             const query = url.searchParams.get('query')
             if (query != null) return handleAdminSearch(req, res, query)
@@ -483,7 +554,7 @@ function devMockApiPlugin() {
           }
           const passMatch = pathname.match(/^\/admin\/participants\/(\d+)\/passes$/)
           if (method === 'POST' && passMatch) {
-            return handleIssuePass(req, res, Number(passMatch[1]))
+            return handleIssuePass(req, res, Number(passMatch[1]), await readJsonBody(req))
           }
           const invalidateMatch = pathname.match(/^\/admin\/game-sessions\/(\d+)\/invalidate$/)
           if (method === 'POST' && invalidateMatch) {

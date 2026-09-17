@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Check } from 'lucide-react'
-import { useCallback, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../../app/session'
 import { ApiError, errorMessage } from '../../shared/api/client'
@@ -20,14 +20,17 @@ import {
 import { ROUTES } from '../../shared/constants/routes'
 import { countKeystrokesOfText, countMatchedKeystrokes } from '../../shared/utils/typingCount'
 import { CountdownOverlay } from './components/CountdownOverlay'
-import { GameMeters } from './components/GameMeters'
 import { ProgressBar } from './components/ProgressBar'
 import { SentenceDisplay } from './components/SentenceDisplay'
 import { TypingInput } from './components/TypingInput'
+import { TypewriterKeyOverlay } from './components/TypewriterKeyOverlay'
 import { useTypingInput } from './hooks/useTypingInput'
 import { gameReducer } from './gameMachine'
 import onAirOff from '../../shared/brand/images/on-air-off.png'
 import onAirOn from '../../shared/brand/images/on-air-on.png'
+import writerMain from '../../shared/brand/images/writer_main.png'
+import { calculateCpm } from './utils/typingSpeed'
+import { formatElapsedMs } from '../../shared/utils/formatTime'
 
 const now = () => performance.timeOrigin + performance.now()
 
@@ -55,6 +58,8 @@ export function GamePage() {
   })
   const [input, setInput] = useState('')
   const [isComposing, setIsComposing] = useState(false)
+  const [activeCodes, setActiveCodes] = useState<Set<string>>(new Set())
+  const [liveElapsedMs, setLiveElapsedMs] = useState(0)
   const submitLock = useRef(false)
 
   const complete = useMutation({
@@ -149,6 +154,29 @@ export function GamePage() {
     onSubmitSentence: handleSubmitSentence,
   })
 
+  useEffect(() => {
+    if (state.phase !== 'PLAYING') return
+    const tick = window.setInterval(() => setLiveElapsedMs(getElapsedMs()), 100)
+    const down = (event: KeyboardEvent) =>
+      setActiveCodes((current) => new Set(current).add(event.code))
+    const up = (event: KeyboardEvent) =>
+      setActiveCodes((current) => {
+        const next = new Set(current)
+        next.delete(event.code)
+        return next
+      })
+    const clear = () => setActiveCodes(new Set())
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    window.addEventListener('blur', clear)
+    return () => {
+      window.clearInterval(tick)
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+      window.removeEventListener('blur', clear)
+    }
+  }, [getElapsedMs, state.phase])
+
   // 참가자 정보가 없으면 참가자 확인 화면으로 보낸다. (팀 확정: 목적지만 /participate)
   if (!participant) return <Navigate to={ROUTES.PARTICIPATE} replace />
   if (!Number.isInteger(categoryId))
@@ -212,6 +240,9 @@ export function GamePage() {
     .reduce((sum, s) => sum + countKeystrokesOfText(s.content), 0)
   const keystrokes =
     completedKeystrokes + (sentence ? countMatchedKeystrokes(sentence.content, input) : 0)
+  const cpm = calculateCpm(keystrokes, liveElapsedMs)
+  const progressPercent = Math.round(((game.currentIndex + 1) / game.sentences.length) * 100)
+  const previousSentence = game.currentIndex > 0 ? game.sentences[game.currentIndex - 1]?.content : ''
   // 타이핑 시작 전(READY·COUNTDOWN)에는 「게임 준비」와 같은 정사각형 카드를 쓰고,
   // 문장이 나오는 순간(PLAYING·SUBMITTING) 원래 폭으로 돌아간다.
   const isPrepPhase = state.phase === 'READY' || state.phase === 'COUNTDOWN'
@@ -224,24 +255,28 @@ export function GamePage() {
           isPrepPhase ? 'radio-game-studio--compact' : 'p-6 sm:p-8'
         }`}
       >
-        <div className="mb-6 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-bold text-accent">{game.category.code}</p>
-            <h1 className="text-xl font-black text-ink">{game.category.name}</h1>
+        {state.phase !== 'PLAYING' && (
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-accent">{game.category.code}</p>
+              <h1 className="text-xl font-black text-ink">{game.category.name}</h1>
+            </div>
+            <span className="font-mono text-sm font-bold text-ink-muted">
+              {progress}
+            </span>
           </div>
-          <span className="font-mono text-sm font-bold text-ink-muted">
-            {progress}
-          </span>
-        </div>
+        )}
         {/* 표시 전용: 기존 게임 phase를 읽어서 ON AIR 이미지 상태만 보여준다. */}
         <img
           className="radio-on-air-asset"
           src={state.phase === 'PLAYING' ? onAirOn : onAirOff}
           alt={state.phase === 'PLAYING' ? 'ON AIR 방송 중' : '방송 대기 중'}
         />
-        <div className="mb-7">
-          <ProgressBar current={game.currentIndex + 1} total={game.sentences.length} />
-        </div>
+        {state.phase !== 'PLAYING' && (
+          <div className="mb-7">
+            <ProgressBar current={game.currentIndex + 1} total={game.sentences.length} />
+          </div>
+        )}
 
         {state.phase === 'READY' && (
           <div className="game-ready">
@@ -258,25 +293,42 @@ export function GamePage() {
         )}
         {state.phase === 'PLAYING' && sentence && (
           // 화면 아무 곳이나 눌러도 숨겨진 입력창으로 포커스가 돌아온다.
-          <div onClick={focusInput}>
-            <SentenceDisplay
-              sentence={sentence.content}
-              input={input}
-              isComposing={isComposing}
-            />
+          <div className="typewriter-game-stage" onClick={focusInput}>
+            <div className="typewriter-left-meters">
+              <MetricCard label="채널" value={`${game.category.code} ${game.category.name}`} />
+              <MetricCard label="경과 시간" value={formatElapsedMs(liveElapsedMs)} />
+              <MetricCard label="CPM" value={cpm} />
+            </div>
+            <div className="typewriter-hero" aria-label="타자 게임 진행 화면">
+              <img src={writerMain} alt="" aria-hidden />
+              <div className="typewriter-paper-copy">
+                <p className="typewriter-previous">{previousSentence}</p>
+                <div className="typewriter-current" key={game.currentIndex}>
+                  <SentenceDisplay
+                    sentence={sentence.content}
+                    input={input}
+                    isComposing={isComposing}
+                  />
+                </div>
+              </div>
+              <TypewriterKeyOverlay activeCodes={activeCodes} />
+            </div>
+            <div className="typewriter-right-meters">
+              <MetricCard label="문장" value={progress} />
+              <div className="typewriter-progress-card">
+                <span>진행률</span>
+                <strong>{progressPercent}%</strong>
+                <div>
+                  <i style={{ width: `${progressPercent}%` }} />
+                </div>
+              </div>
+            </div>
             <TypingInput
               value={input}
               disabled={state.phase !== 'PLAYING'}
               inputRef={inputRef}
               inputProps={inputProps}
             />
-            <div className="mt-6 flex justify-end">
-              <GameMeters
-                running={state.phase === 'PLAYING'}
-                getElapsedMs={getElapsedMs}
-                keystrokes={keystrokes}
-              />
-            </div>
           </div>
         )}
         {state.phase === 'SUBMITTING' && (
@@ -310,5 +362,14 @@ export function GamePage() {
         </div>
       )}
     </section>
+  )
+}
+
+function MetricCard({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="typewriter-metric-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   )
 }

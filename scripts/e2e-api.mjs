@@ -37,7 +37,7 @@ const start = (participantId, categoryId) =>
   post('/game-sessions', { participantId, categoryId })
 const complete = (id, elapsedMs) =>
   post(`/game-sessions/${id}/complete`, { elapsedMs })
-const issue = (token, id) => post(`/admin/participants/${id}/passes`, {}, token)
+const issue = (token, id, quantity = 1) => post(`/admin/participants/${id}/passes`, { quantity }, token)
 
 const seed = String(Date.now()).slice(-7)
 const phoneA = `010${seed}1`
@@ -91,9 +91,18 @@ pass('SCENARIO C')
 const login = await post('/admin/login', { password: adminPassword })
 const [adminFound] = await get(`/admin/participants?query=${participantA.nickname}`, login.token)
 assert.equal(adminFound.id, participantA.participantId)
-await issue(login.token, participantA.participantId)
+const dashboardBefore = await get('/admin/dashboard', login.token)
+const issuedTwo = await issue(login.token, participantA.participantId, 2)
+assert.equal(issuedTwo.quantity, 2)
+assert.equal(issuedTwo.amountKrw, 1000)
+assert.equal(issuedTwo.availablePaidPassCount, 2)
 const retry = await start(participantA.participantId, categories[1].id)
 assert.equal((await complete(retry.gameSessionId, 5_500)).status, 'COMPLETED')
+const afterOnePaid = await get(`/admin/participants?phone=${phoneA}`, login.token)
+assert.equal(afterOnePaid.summary.availablePaidPassCount, 1)
+assert.ok(afterOnePaid.payments.some(({ amountKrw }) => amountKrw === 1000))
+const dashboardAfter = await get('/admin/dashboard', login.token)
+assert.equal(dashboardAfter.totalPaymentAmountKrw, dashboardBefore.totalPaymentAmountKrw + 1000)
 pass('SCENARIO D')
 
 const participantE = await post('/participants/identify', {
@@ -130,7 +139,7 @@ const before = await get(`/admin/participants?phone=${phoneA}`, login.token)
 assert.ok(before.gameSessions.some(({ id }) => id === broken.gameSessionId))
 const invalidated = await post(
   `/admin/game-sessions/${broken.gameSessionId}/invalidate`,
-  { restorePass: true },
+  { reason: 'e2e restore', restorePass: true },
   login.token,
 )
 assert.equal(invalidated.gameSessionStatus, 'INVALIDATED')
@@ -138,6 +147,15 @@ assert.equal(invalidated.playPassStatus, 'AVAILABLE')
 const replay = await start(participantA.participantId, categories[0].id)
 assert.notEqual(replay.gameSessionId, broken.gameSessionId)
 await complete(replay.gameSessionId, 4_000)
+await issue(login.token, participantA.participantId)
+const noRestoreGame = await start(participantA.participantId, categories[0].id)
+const noRestore = await post(
+  `/admin/game-sessions/${noRestoreGame.gameSessionId}/invalidate`,
+  { reason: 'e2e no restore', restorePass: false },
+  login.token,
+)
+assert.equal(noRestore.gameSessionStatus, 'INVALIDATED')
+assert.equal(noRestore.playPassStatus, 'CONSUMED')
 pass('SCENARIO G')
 
 const cors = await fetch(`${base}/categories`, {
