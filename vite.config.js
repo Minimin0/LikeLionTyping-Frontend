@@ -244,6 +244,9 @@ function devMockApiPlugin() {
         gameSessionId: activeGame.id,
         category,
         sentences,
+        resumedExisting: true,
+        passConsumed: false,
+        availablePassCount: participant.availablePassCount,
       })
     }
 
@@ -285,7 +288,30 @@ function devMockApiPlugin() {
       content,
     }))
 
-    return sendJson(res, 200, { gameSessionId, category, sentences })
+    return sendJson(res, 200, {
+      gameSessionId,
+      category,
+      sentences,
+      resumedExisting: false,
+      passConsumed: true,
+      availablePassCount: participant.availablePassCount,
+    })
+  }
+
+  const handlePlayState = (res, participantId) => {
+    const participant = findParticipantById(participantId)
+    if (!participant) return sendError(res, 404, 'PARTICIPANT_NOT_FOUND', '참가자를 찾을 수 없습니다.')
+    const activeGame = [...gameSessions.values()].find(
+      (session) =>
+        session.participantId === participantId &&
+        session.status === 'IN_PROGRESS',
+    )
+    return sendJson(res, 200, {
+      availablePassCount: participant.availablePassCount,
+      activeGame: activeGame
+        ? { gameSessionId: activeGame.id, categoryId: activeGame.categoryId }
+        : null,
+    })
   }
 
   const handleComplete = (res, gameSessionId, body) => {
@@ -522,6 +548,10 @@ function devMockApiPlugin() {
 
           if (method === 'POST' && pathname === '/participants/identify') {
             return handleIdentify(res, await readJsonBody(req))
+          }
+          const playStateMatch = pathname.match(/^\/participants\/(\d+)\/play-state$/)
+          if (method === 'GET' && playStateMatch) {
+            return handlePlayState(res, Number(playStateMatch[1]))
           }
           if (method === 'GET' && pathname === '/categories') {
             return sendJson(res, 200, CATEGORIES)

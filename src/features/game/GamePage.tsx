@@ -8,6 +8,7 @@ import {
   completeGameWithRecovery,
   getCategories,
   getGame,
+  getParticipantPlayState,
   startGame,
 } from '../../shared/api/endpoints'
 import {
@@ -59,7 +60,22 @@ export function GamePage() {
   const [activeCodes, setActiveCodes] = useState<Set<string>>(new Set())
   const [liveElapsedMs, setLiveElapsedMs] = useState(0)
   const submitLock = useRef(false)
-  const passDeductedSessionIds = useRef(new Set<number>())
+  const playState = useQuery({
+    queryKey: ['participant', 'play-state', participant?.participantId],
+    queryFn: () => getParticipantPlayState(participant!.participantId),
+    enabled: Boolean(participant && !game),
+    refetchOnWindowFocus: true,
+  })
+
+  useEffect(() => {
+    if (!participant || game || !playState.data) return
+    if (participant.availablePassCount === playState.data.availablePassCount)
+      return
+    setParticipant({
+      ...participant,
+      availablePassCount: playState.data.availablePassCount,
+    })
+  }, [game, participant, playState.data, setParticipant])
 
   const complete = useMutation({
     mutationFn: ({ id, elapsedMs }: { id: number; elapsedMs: number }) =>
@@ -107,12 +123,15 @@ export function GamePage() {
     mutationFn: () => startGame(participant!.participantId, categoryId),
     onSuccess: (data) => {
       setActiveGame({ ...data, currentIndex: 0, startedAtMs: null })
-      if (!passDeductedSessionIds.current.has(data.gameSessionId)) {
-        passDeductedSessionIds.current.add(data.gameSessionId)
-        setParticipant({
-          ...participant!,
-          availablePassCount: Math.max(0, participant!.availablePassCount - 1),
-        })
+      setParticipant({
+        ...participant!,
+        availablePassCount: data.availablePassCount,
+      })
+    },
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === 'NO_AVAILABLE_PASS') {
+        setParticipant({ ...participant!, availablePassCount: 0 })
+        playState.refetch()
       }
     },
   })
@@ -202,6 +221,67 @@ export function GamePage() {
       </section>
     )
 
+  if (!game && playState.isLoading)
+    return (
+      <section className={panelClass}>
+        <Busy label="이용권 확인 중" />
+      </section>
+    )
+
+  if (!game && playState.error)
+    return (
+      <section className={panelClass}>
+        <Alert>{errorMessage(playState.error)}</Alert>
+        <button
+          className={`${buttonClass} mt-5 w-full`}
+          onClick={() => playState.refetch()}
+        >
+          이용권 다시 확인
+        </button>
+      </section>
+    )
+
+  if (!game && playState.data?.activeGame)
+    return (
+      <section className={panelClass}>
+        <Alert>
+          진행 중인 경기가 있습니다. 이 경기는 이미 이용권이 사용되었습니다.
+        </Alert>
+        <button
+          className={`${buttonClass} mt-5 w-full`}
+          disabled={start.isPending}
+          onClick={() =>
+            playState.data.activeGame!.categoryId === categoryId
+              ? start.mutate()
+              : navigate(ROUTES.GAME(playState.data.activeGame!.categoryId))
+          }
+        >
+          {start.isPending ? <Busy label="경기 불러오는 중" /> : '진행 중 경기 계속하기'}
+        </button>
+        {start.error && (
+          <div className="mt-5">
+            <Alert>{errorMessage(start.error)}</Alert>
+          </div>
+        )}
+      </section>
+    )
+
+  if (!game && (playState.data?.availablePassCount ?? 0) === 0)
+    return (
+      <section className={panelClass}>
+        <Alert>
+          사용 가능한 이용권이 없습니다. 재도전하려면 운영자에게 이용권을 발급받아 주세요.
+        </Alert>
+        <button
+          className={`${buttonClass} mt-5 w-full`}
+          disabled={playState.isFetching}
+          onClick={() => playState.refetch()}
+        >
+          {playState.isFetching ? <Busy label="확인 중" /> : '이용권 다시 확인'}
+        </button>
+      </section>
+    )
+
   if (!game)
     return (
       <section className={`game-ready-stage game-ready-theme-${selectedCategoryIndex}`}>
@@ -218,6 +298,9 @@ export function GamePage() {
           <h1>게임 준비</h1>
           <p className="game-ready-description">
             시작하면 이용권 1장이 사용되고 서버에서 5개 문장을 불러옵니다.
+          </p>
+          <p className="game-ready-description">
+            남은 이용권 {playState.data?.availablePassCount ?? participant.availablePassCount}장
           </p>
           <ul className="game-ready-rules">
             <li>한 번에 한 문장씩 정확히 입력합니다.</li>
