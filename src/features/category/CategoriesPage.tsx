@@ -14,6 +14,7 @@ import radioGreen from '../../shared/brand/images/radio_green.png'
 import selectionArrow from '../../shared/brand/images/selection-arrow.png'
 import { Alert, Busy, buttonClass } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
+import { ParticipantStatus } from '../../shared/ParticipantStatus'
 import { displayCategoryName } from '../../shared/utils/categoryDisplay'
 
 // API가 주는 카테고리 이름은 그대로 사용하고, 화면 설명만 채널 순서에 맞게 보완한다.
@@ -102,6 +103,11 @@ export function CategoriesPage() {
         </Link>
         <span>/</span>
         <span>성결대학교 축제 부스</span>
+        <ParticipantStatus
+          className="category-participant-status"
+          nickname={participant.nickname}
+          availablePassCount={availablePassCount}
+        />
         <strong>02 / 03</strong>
       </header>
       <div className="category-studio-title">

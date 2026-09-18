@@ -213,6 +213,18 @@
   gap: 6px;
   white-space: nowrap;
 }
+.category-participant-status {
+  margin-left: auto;
+  border-color: rgb(34 31 29 / 28%);
+  background: rgb(244 245 240 / 64%);
+  letter-spacing: 0;
+}
+.game-ready-participant-status {
+  width: fit-content;
+  margin-top: 18px;
+  border-color: rgb(34 31 29 / 28%);
+  background: rgb(244 245 240 / 72%);
+}
 .radio-main {
   max-width: 1792px;
   min-height: calc(100vh - 64px);
@@ -2715,7 +2727,7 @@ a {
   text-underline-offset: 4px;
 }
 .category-studio-header strong {
-  margin-left: auto;
+  margin-left: 8px;
   font-weight: 500;
   color: #730c02;
 }
