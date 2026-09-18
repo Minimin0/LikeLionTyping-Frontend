@@ -12,9 +12,9 @@ describe('TypewriterKeyOverlay', () => {
 
     expect(hotspot).toBeInTheDocument()
     expect(hotspot).toHaveStyle({
-      left: '85.2%',
-      top: '57.7%',
-      width: '5.7%',
+      left: '79%',
+      top: '57.8%',
+      width: '5.2%',
     })
   })
 })
