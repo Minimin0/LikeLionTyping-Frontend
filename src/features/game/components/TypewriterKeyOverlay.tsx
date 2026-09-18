@@ -12,7 +12,7 @@ const KEY_POINTS: Record<string, { x: number; y: number; w?: number; h?: number 
   Digit0: { x: 70.0, y: 58.0 },
   Minus: { x: 74.4, y: 58.0 },
   Equal: { x: 78.9, y: 58.0 },
-  Backspace: { x: 85.2, y: 57.7, w: 5.7, h: 5.3 },
+  Backspace: { x: 79.0, y: 57.8, w: 5.2, h: 5.1 },
   Tab: { x: 23.4, y: 65.6, w: 7.0, h: 5.4 },
   KeyQ: { x: 29.2, y: 65.6 },
   KeyW: { x: 33.4, y: 65.6 },
