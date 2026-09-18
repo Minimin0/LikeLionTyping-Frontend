@@ -1,4 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import { Ticket, Trophy, UserRound } from 'lucide-react'
+import { useEffect } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
@@ -8,13 +10,30 @@ import { LandingPage } from '../features/participant/LandingPage'
 import { ParticipantPage } from '../features/participant/ParticipantPage'
 import { useSession } from './session'
 import { RankingPage } from '../features/ranking/RankingPage'
+import { getParticipantPlayState } from '../shared/api/endpoints'
 import { ROUTE_PATTERNS, ROUTES } from '../shared/constants/routes'
 import { RouteErrorBoundary } from '../shared/ErrorBoundary'
 
 export default function App() {
   const { pathname } = useLocation()
-  const { participant } = useSession()
+  const { participant, setParticipant } = useSession()
   const showParticipantStatus = pathname === ROUTES.LANDING && participant
+  const playState = useQuery({
+    queryKey: ['participant', 'play-state', participant?.participantId],
+    queryFn: () => getParticipantPlayState(participant!.participantId),
+    enabled: Boolean(showParticipantStatus),
+    refetchOnWindowFocus: true,
+  })
+
+  useEffect(() => {
+    if (!participant || !playState.data) return
+    if (participant.availablePassCount === playState.data.availablePassCount)
+      return
+    setParticipant({
+      ...participant,
+      availablePassCount: playState.data.availablePassCount,
+    })
+  }, [participant, playState.data, setParticipant])
 
   return (
     // 디자인 전용 레이아웃이다. 라우트, 세션, API 호출은 아래 Routes 그대로 유지한다.

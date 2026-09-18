@@ -10,6 +10,7 @@ import type {
   InvalidateResult,
   IssuePassResult,
   Participant,
+  ParticipantPlayState,
   Ranking,
 } from './types'
 
@@ -20,6 +21,11 @@ export const identifyParticipant = (nickname: string, phone: string) =>
 
 export const getCategories = () =>
   apiClient.get<Category[]>('/categories').then(({ data }) => data)
+
+export const getParticipantPlayState = (participantId: number) =>
+  apiClient
+    .get<ParticipantPlayState>(`/participants/${participantId}/play-state`)
+    .then(({ data }) => data)
 
 export const startGame = (participantId: number, categoryId: number) =>
   apiClient
