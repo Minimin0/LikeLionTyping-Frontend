@@ -19,6 +19,7 @@ import {
   secondaryButtonClass,
 } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
+import { displayCategoryName } from '../../shared/utils/categoryDisplay'
 import { countKeystrokesOfText, countMatchedKeystrokes } from '../../shared/utils/typingCount'
 import { CountdownOverlay } from './components/CountdownOverlay'
 import { ProgressBar } from './components/ProgressBar'
@@ -59,6 +60,7 @@ export function GamePage() {
   const [isComposing, setIsComposing] = useState(false)
   const [activeCodes, setActiveCodes] = useState<Set<string>>(new Set())
   const [liveElapsedMs, setLiveElapsedMs] = useState(0)
+  const [exitOpen, setExitOpen] = useState(false)
   const submitLock = useRef(false)
   const playState = useQuery({
     queryKey: ['participant', 'play-state', participant?.participantId],
@@ -142,7 +144,7 @@ export function GamePage() {
     const startedAtMs = now()
     setActiveGame({ ...game!, startedAtMs })
     dispatch({ type: 'PLAY' })
-  }, [game, setActiveGame])
+  }, [game, setActiveGame, dispatch])
 
   // early return보다 먼저 선언해야 하는 훅들이라 game/sentence가 아직 없을 수 있다.
   // (Rules of Hooks: 아래 !participant / !game 가드보다 위에서 항상 같은 순서로 호출)
@@ -170,7 +172,7 @@ export function GamePage() {
       id: game.gameSessionId,
       elapsedMs: Math.max(1, Math.round(now() - game.startedAtMs!)),
     })
-  }, [complete, game, sentence, setActiveGame, state.phase])
+  }, [complete, game, sentence, setActiveGame, state.phase, dispatch])
 
   const { inputRef, inputProps, focusInput } = useTypingInput({
     target: sentence?.content ?? '',
@@ -292,7 +294,7 @@ export function GamePage() {
           </Link>
           <p className="game-ready-channel">
             {selectedCategory
-              ? `${selectedCategory.code} · ${selectedCategory.name}`
+              ? `${selectedCategory.code} · ${displayCategoryName(selectedCategory)}`
               : '선택한 채널'}
           </p>
           <h1>게임 준비</h1>
@@ -338,6 +340,7 @@ export function GamePage() {
   const cpm = calculateCpm(keystrokes, liveElapsedMs)
   const progressPercent = Math.round(((game.currentIndex + 1) / game.sentences.length) * 100)
   const previousSentence = game.currentIndex > 0 ? game.sentences[game.currentIndex - 1]?.content : ''
+  const showExit = state.phase === 'READY' || state.phase === 'COUNTDOWN' || state.phase === 'PLAYING'
   // 타이핑 시작 전(READY·COUNTDOWN)에는 「게임 준비」와 같은 정사각형 카드를 쓰고,
   // 문장이 나오는 순간(PLAYING·SUBMITTING) 원래 폭으로 돌아간다.
   const isPrepPhase = state.phase === 'READY' || state.phase === 'COUNTDOWN'
@@ -350,11 +353,20 @@ export function GamePage() {
           isPrepPhase ? 'radio-game-studio--compact' : 'p-6 sm:p-8'
         }`}
       >
+        {showExit && (
+          <button
+            type="button"
+            className="game-exit-button"
+            onClick={() => setExitOpen(true)}
+          >
+            게임 종료
+          </button>
+        )}
         {state.phase !== 'PLAYING' && (
           <div className="mb-6 flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-bold text-accent">{game.category.code}</p>
-              <h1 className="text-xl font-black text-ink">{game.category.name}</h1>
+              <h1 className="text-xl font-black text-ink">{displayCategoryName(game.category)}</h1>
             </div>
             <span className="font-mono text-sm font-bold text-ink-muted">
               {progress}
@@ -368,6 +380,9 @@ export function GamePage() {
           <div className="mb-7">
             <ProgressBar current={game.currentIndex + 1} total={game.sentences.length} />
           </div>
+        )}
+        {state.phase !== 'PLAYING' && (
+          <BroadcastProgress current={-1} total={game.sentences.length} />
         )}
 
         {state.phase === 'READY' && (
@@ -390,7 +405,7 @@ export function GamePage() {
             <p className="typewriter-wall-note typewriter-wall-note-left">GOOD<br />WORDS<br />BETTER<br />TOMORROW</p>
             <p className="typewriter-wall-note typewriter-wall-note-right">Keep<br />Typing.<br />Keep Going.</p>
             <div className="typewriter-left-meters">
-              <MetricCard label="채널" value={`${game.category.code} ${game.category.name}`} />
+              <MetricCard label="채널" value={`${game.category.code} ${displayCategoryName(game.category)}`} />
               <MetricCard label="경과 시간" value={formatElapsedMs(liveElapsedMs)} />
               <MetricCard label="CPM" value={cpm} />
             </div>
@@ -413,6 +428,7 @@ export function GamePage() {
               <div className="typewriter-progress-card">
                 <span>진행률</span>
                 <strong>{progressPercent}%</strong>
+                <BroadcastProgress current={game.currentIndex} total={game.sentences.length} />
                 <div>
                   <i style={{ width: `${progressPercent}%` }} />
                 </div>
@@ -437,6 +453,27 @@ export function GamePage() {
           </div>
         )}
       </div>
+      {exitOpen && (
+        <div className="game-exit-modal-backdrop" role="presentation">
+          <div
+            className="game-exit-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="game-exit-title"
+          >
+            <h2 id="game-exit-title">게임을 종료할까요?</h2>
+            <p>지금 나가면 진행 중인 화면에서 벗어납니다. 계속하시겠습니까?</p>
+            <div>
+              <button type="button" onClick={() => setExitOpen(false)}>
+                계속하기
+              </button>
+              <button type="button" onClick={() => navigate(ROUTES.CATEGORIES)}>
+                종료하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {state.error && (
         <div className="mt-5 space-y-3">
           <Alert>{state.error}</Alert>
@@ -466,5 +503,25 @@ function MetricCard({ label, value }: { label: string; value: number | string })
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
+  )
+}
+
+function BroadcastProgress({ current, total }: { current: number; total: number }) {
+  return (
+    <ol className="broadcast-progress" aria-label="문장 진행 단계">
+      {Array.from({ length: total }, (_, index) => {
+        const active = index === current
+        const done = index < current
+        return (
+          <li
+            key={index}
+            className={`${done ? 'is-done' : ''} ${active ? 'is-active' : ''}`}
+            aria-current={active ? 'step' : undefined}
+          >
+            <span>{index + 1}</span>
+          </li>
+        )
+      })}
+    </ol>
   )
 }

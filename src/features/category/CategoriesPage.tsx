@@ -14,6 +14,7 @@ import radioGreen from '../../shared/brand/images/radio_green.png'
 import selectionArrow from '../../shared/brand/images/selection-arrow.png'
 import { Alert, Busy, buttonClass } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
+import { displayCategoryName } from '../../shared/utils/categoryDisplay'
 
 // API가 주는 카테고리 이름은 그대로 사용하고, 화면 설명만 채널 순서에 맞게 보완한다.
 const channelDetails = [
@@ -127,7 +128,7 @@ export function CategoriesPage() {
             <p className="category-selected-code">
               {displayCode(selected.code)} <span>/ 선택됨</span>
             </p>
-            <h2>{selected.name}</h2>
+            <h2>{displayCategoryName(selected)}</h2>
             <p className="category-selected-description">
               {selectedDetail.description}
             </p>
@@ -186,7 +187,7 @@ export function CategoriesPage() {
                       {active && <em>✓ 선택됨</em>}
                     </span>
                     <strong>
-                      {category.name}
+                      {displayCategoryName(category)}
                       <img
                         className="category-choice-icon"
                         src={detail.icon}
