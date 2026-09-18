@@ -23,7 +23,10 @@ const schema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(/^01\d[- ]?\d{3,4}[- ]?\d{4}$/, '휴대전화 번호를 확인해주세요.'),
+    .regex(
+      /^010[- ]?\d{4}[- ]?\d{4}$/,
+      '010으로 시작하는 11자리 휴대전화 번호를 입력해주세요.',
+    ),
   privacyConsent: z.literal(true, {
     message: '개인정보 수집 안내에 동의해주세요.',
   }),
