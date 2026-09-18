@@ -52,6 +52,7 @@ function renderPage() {
           <Routes>
             <Route path="/game/:categoryId" element={<GamePage />} />
             <Route path="/participate" element={<div>참가자 확인</div>} />
+            <Route path="/categories" element={<div>카테고리 선택</div>} />
           </Routes>
         </SessionProvider>
       </MemoryRouter>
@@ -164,6 +165,46 @@ describe('GamePage pass count', () => {
     expect(sessionStorage.getItem('activeGame')).toBeNull()
     expect(JSON.parse(sessionStorage.getItem('participant') ?? '{}')).toMatchObject({
       availablePassCount: 0,
+    })
+  })
+
+  it('confirms before exiting an uncompleted game', async () => {
+    mockGet(5)
+    vi.spyOn(apiClient, 'post').mockResolvedValue({
+      data: { ...gameStart, availablePassCount: 1 },
+    })
+    sessionStorage.setItem('participant', JSON.stringify(participant(5)))
+
+    renderPage()
+    await userEvent.click(await screen.findByRole('button', { name: '게임 시작' }))
+    await userEvent.click(await screen.findByRole('button', { name: '게임 종료' }))
+
+    expect(screen.getByRole('dialog', { name: '게임을 종료할까요?' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '계속하기' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: '게임 종료' }))
+    await userEvent.click(screen.getByRole('button', { name: '종료하기' }))
+    expect(await screen.findByText('카테고리 선택')).toBeInTheDocument()
+  })
+
+  it('moves the broadcast progress only after a sentence is completed', async () => {
+    mockGet(1)
+    sessionStorage.setItem('participant', JSON.stringify(participant(1)))
+    sessionStorage.setItem(
+      'activeGame',
+      JSON.stringify({ ...gameStart, currentIndex: 0, startedAtMs: performance.timeOrigin }),
+    )
+
+    const { container } = renderPage()
+
+    const progress = await screen.findByLabelText('문장 진행 단계')
+    expect(progress.querySelector('.is-active span')).toHaveTextContent('1')
+
+    await userEvent.type(screen.getByLabelText('타이핑 입력창'), '하나{Enter}')
+
+    await waitFor(() => {
+      expect(container.querySelector('.broadcast-progress .is-active span')).toHaveTextContent('2')
     })
   })
 })

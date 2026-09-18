@@ -508,6 +508,7 @@
 .game-ready-theme-2 .game-ready-start { background: #ef7940; }
 @media (max-width: 640px) { .game-ready-stage { min-height: auto; padding: 32px 0; } .game-ready-card { padding: 30px 24px; } }
 .radio-game-studio {
+  position: relative;
   min-height: 580px;
   border: 1px solid #221f1d;
   border-radius: 7px;
@@ -598,9 +599,8 @@
   min-height: 620px;
   border-radius: 8px;
   background:
-    radial-gradient(circle at 6% 6%, rgb(255 238 184 / 42%), transparent 13%),
-    linear-gradient(180deg, rgb(132 100 76 / 74%), rgb(91 63 43 / 82%)),
-    url('../shared/brand/images/background.png') center / cover;
+    linear-gradient(180deg, rgb(42 24 14 / 4%), rgb(42 24 14 / 16%)),
+    url('../shared/brand/images/game-background.png') center / cover;
   box-shadow:
     inset 0 0 0 1px rgb(34 31 29 / 24%),
     inset 0 -190px 120px rgb(54 31 19 / 38%);
@@ -738,6 +738,62 @@
   background: #730c02;
   transition: width .22s ease;
 }
+.broadcast-progress {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.broadcast-progress li {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.broadcast-progress li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  translate: 0 -50%;
+  background: #d8c8ad;
+}
+.broadcast-progress li:first-child::before {
+  left: 50%;
+}
+.broadcast-progress li:last-child::before {
+  right: 50%;
+}
+.broadcast-progress span {
+  position: relative;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 2px solid #cbb89a;
+  border-radius: 999px;
+  background: #fff8eb;
+  color: #6d5d4c;
+  font-size: 13px;
+  font-weight: 900;
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease,
+    background-color .2s ease,
+    color .2s ease;
+}
+.broadcast-progress .is-done span,
+.broadcast-progress .is-active span {
+  border-color: #67b7f7;
+  background: #eaf7ff;
+  color: #17324c;
+  box-shadow:
+    0 0 0 3px rgb(234 247 255 / 52%),
+    0 0 16px rgb(74 157 223 / 52%);
+}
 .typewriter-hero {
   position: absolute;
   left: 50%;
@@ -825,13 +881,75 @@
 .typewriter-key-hotspot {
   position: absolute;
   translate: -50% -50%;
-  border: 2px solid #eff7fd;
+  border: 2px solid #eaf7ff;
   border-radius: 999px;
-  background: rgb(239 247 253 / 20%);
+  background: radial-gradient(circle, rgb(234 247 255 / 82%) 0 22%, rgb(103 183 247 / 36%) 48%, rgb(74 157 223 / 18%) 72%);
   box-shadow:
-    inset 0 0 8px rgb(255 255 255 / 36%),
-    0 0 8px #eff7fd,
-    0 0 18px rgb(239 247 253 / 72%);
+    inset 0 0 10px rgb(234 247 255 / 82%),
+    0 0 0 2px rgb(103 183 247 / 58%),
+    0 0 14px #67b7f7,
+    0 0 34px rgb(74 157 223 / 88%);
+}
+.game-exit-button {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 8;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgb(34 31 29 / 42%);
+  border-radius: 999px;
+  background: rgb(255 249 235 / 92%);
+  color: #221f1d;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgb(35 20 12 / 16%);
+}
+.game-exit-button:hover {
+  background: #fffdf6;
+}
+.game-exit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(14 10 8 / 58%);
+}
+.game-exit-modal {
+  width: min(100%, 440px);
+  padding: 28px;
+  border: 1px solid #221f1d;
+  border-radius: 8px;
+  background: #fff8eb;
+  color: #221f1d;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 32%);
+}
+.game-exit-modal h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+}
+.game-exit-modal p {
+  margin: 12px 0 24px;
+  line-height: 1.6;
+}
+.game-exit-modal div {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.game-exit-modal button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #221f1d;
+  border-radius: 6px;
+  font-weight: 900;
+}
+.game-exit-modal button:last-child {
+  border-color: #730c02;
+  background: #730c02;
+  color: #fff8eb;
 }
 @keyframes paper-line-in {
   from { opacity: .15; transform: translateY(8px); }

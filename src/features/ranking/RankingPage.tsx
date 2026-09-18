@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom'
 import { errorMessage } from '../../shared/api/client'
 import { getCategories, getRankings } from '../../shared/api/endpoints'
 import { Alert, Busy, Empty } from '../../shared/components'
+import { displayCategoryName } from '../../shared/utils/categoryDisplay'
 import rankingAirmail from '../../shared/brand/images/ranking-airmail.png'
 import cassetteRed from '../../shared/brand/images/cassette-red.png'
 import cassetteOlive from '../../shared/brand/images/cassette-olive.png'
@@ -63,7 +64,7 @@ export function RankingPage() {
               onClick={() => setCategoryId(category.id)}
             >
               <small>{category.code}</small>
-              <span>{category.name}</span>
+              <span>{displayCategoryName(category)}</span>
             </button>
           )
         })}
