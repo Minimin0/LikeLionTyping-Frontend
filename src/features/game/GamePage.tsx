@@ -19,6 +19,7 @@ import {
   secondaryButtonClass,
 } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
+import { ParticipantStatus } from '../../shared/ParticipantStatus'
 import { displayCategoryName } from '../../shared/utils/categoryDisplay'
 import { countKeystrokesOfText, countMatchedKeystrokes } from '../../shared/utils/typingCount'
 import { CountdownOverlay } from './components/CountdownOverlay'
@@ -301,9 +302,13 @@ export function GamePage() {
           <p className="game-ready-description">
             시작하면 이용권 1장이 사용되고 서버에서 5개 문장을 불러옵니다.
           </p>
-          <p className="game-ready-description">
-            남은 이용권 {playState.data?.availablePassCount ?? participant.availablePassCount}장
-          </p>
+          <ParticipantStatus
+            className="game-ready-participant-status"
+            nickname={participant.nickname}
+            availablePassCount={
+              playState.data?.availablePassCount ?? participant.availablePassCount
+            }
+          />
           <ul className="game-ready-rules">
             <li>한 번에 한 문장씩 정확히 입력합니다.</li>
             <li>오타를 모두 고친 뒤 Enter를 누르면 다음 문장으로 넘어갑니다.</li>
