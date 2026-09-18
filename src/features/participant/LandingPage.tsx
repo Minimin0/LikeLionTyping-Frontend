@@ -22,7 +22,7 @@ const channels = [
   },
   {
     code: 'CH.02',
-    title: '캠퍼스 주파수',
+    title: '멋쟁이사자처럼',
     color: '#7b8055',
     cassette: cassetteOlive,
   },
