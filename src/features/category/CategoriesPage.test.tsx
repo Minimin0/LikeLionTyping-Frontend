@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -89,6 +89,50 @@ describe('CategoriesPage — 응답 형태 방어', () => {
     ).toBeInTheDocument()
   })
 
+  it('shows participant nickname and authoritative remaining passes in the category header', async () => {
+    sessionStorage.setItem(
+      'participant',
+      JSON.stringify({
+        participantId: 1,
+        nickname: '노태경',
+        isNewParticipant: false,
+        availablePassCount: 1,
+      }),
+    )
+    mockGets([{ id: 1, code: 'CH01', name: '성결대 멋사' }], {
+      availablePassCount: 2,
+      activeGame: null,
+    })
+    renderPage()
+
+    const status = await screen.findByLabelText('현재 참가자')
+    expect(status).toHaveTextContent('노태경 님')
+    await waitFor(() => expect(status).toHaveTextContent('남은 이용권 2장'))
+    expect(status).not.toHaveTextContent('010')
+  })
+
+  it('server play-state count overrides a stale session count', async () => {
+    mockGets([{ id: 1, code: 'CH01', name: '성결대 멋사' }], {
+      availablePassCount: 3,
+      activeGame: null,
+    })
+    renderPage()
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('현재 참가자')).toHaveTextContent(
+        '남은 이용권 3장',
+      ),
+    )
+  })
+
+  it('anonymous users are redirected to participant identify flow', () => {
+    sessionStorage.clear()
+    mockGets()
+    renderPage()
+
+    expect(screen.queryByLabelText('현재 참가자')).not.toBeInTheDocument()
+  })
+
   it('0 passes and no active game disables normal start', async () => {
     mockGets([{ id: 1, code: 'CH01', name: '성결대 멋사' }], {
       availablePassCount: 0,
@@ -97,6 +141,7 @@ describe('CategoriesPage — 응답 형태 방어', () => {
     renderPage()
 
     expect(await screen.findByText(/사용 가능한 이용권이 없습니다/)).toBeInTheDocument()
+    expect(screen.getByLabelText('현재 참가자')).toHaveTextContent('남은 이용권 0장')
     expect(screen.queryByRole('button', { name: /이 테마로 시작/ })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '이용권 다시 확인' })).toBeInTheDocument()
   })

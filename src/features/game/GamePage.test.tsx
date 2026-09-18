@@ -84,6 +84,18 @@ describe('GamePage pass count', () => {
     })
   })
 
+  it('shows participant nickname and authoritative remaining passes before starting a game', async () => {
+    mockGet(2)
+    sessionStorage.setItem('participant', JSON.stringify(participant(5)))
+
+    renderPage()
+
+    const status = await screen.findByLabelText('현재 참가자')
+    expect(status).toHaveTextContent('노태경 님')
+    expect(status).toHaveTextContent('남은 이용권 2장')
+    expect(status).not.toHaveTextContent('010')
+  })
+
   it('keeps the participant pass count when game start fails', async () => {
     mockGet(2)
     vi.spyOn(apiClient, 'post').mockRejectedValue(new Error('start failed'))

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Ticket, Trophy, UserRound } from 'lucide-react'
+import { Trophy, UserRound } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
@@ -13,6 +13,7 @@ import { RankingPage } from '../features/ranking/RankingPage'
 import { getParticipantPlayState } from '../shared/api/endpoints'
 import { ROUTE_PATTERNS, ROUTES } from '../shared/constants/routes'
 import { RouteErrorBoundary } from '../shared/ErrorBoundary'
+import { ParticipantStatus } from '../shared/ParticipantStatus'
 
 export default function App() {
   const { pathname } = useLocation()
@@ -48,16 +49,10 @@ export default function App() {
           </Link>
           <nav aria-label="주요 메뉴" className="radio-nav">
             {showParticipantStatus && (
-              <div className="radio-participant-status" aria-label="현재 참가자">
-                <span>
-                  <UserRound className="size-4" aria-hidden />
-                  {participant.nickname} 님
-                </span>
-                <span>
-                  <Ticket className="size-4" aria-hidden />
-                  남은 이용권 {participant.availablePassCount}장
-                </span>
-              </div>
+              <ParticipantStatus
+                nickname={participant.nickname}
+                availablePassCount={participant.availablePassCount}
+              />
             )}
             {/* 참가자 화면에는 운영자 진입 링크를 노출하지 않는다. 운영자는 /admin으로 직접 접근한다. */}
             {pathname !== ROUTES.LANDING && (
