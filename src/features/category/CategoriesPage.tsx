@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useSession } from '../../app/session'
 import { errorMessage } from '../../shared/api/client'
-import { getCategories } from '../../shared/api/endpoints'
+import { getCategories, getParticipantPlayState } from '../../shared/api/endpoints'
 import lpRed from '../../shared/brand/images/LP_red_hq.png'
 import lpGreen from '../../shared/brand/images/LP_green_hq.png'
 import lpOrange from '../../shared/brand/images/LP_orange_hq.png'
@@ -45,11 +45,17 @@ const displayCode = (code: string) => code.replace(/^CH\.?(\d+)$/i, 'CH.$1')
 
 export function CategoriesPage() {
   const navigate = useNavigate()
-  const { participant } = useSession()
+  const { participant, setParticipant } = useSession()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const categories = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
+  })
+  const playState = useQuery({
+    queryKey: ['participant', 'play-state', participant?.participantId],
+    queryFn: () => getParticipantPlayState(participant!.participantId),
+    enabled: Boolean(participant),
+    refetchOnWindowFocus: true,
   })
 
   // 응답이 배열이 아닐 수 있다. 그대로 map을 돌리면 화면 전체가 죽는다.
@@ -64,6 +70,19 @@ export function CategoriesPage() {
   const selectedDetail = channelDetails[selectedIndex] ?? channelDetails[0]
   const isEmpty =
     !categories.isLoading && !categories.error && rows.length === 0
+  const activeGame = playState.data?.activeGame ?? null
+  const availablePassCount =
+    playState.data?.availablePassCount ?? participant?.availablePassCount ?? 0
+
+  useEffect(() => {
+    if (!participant || !playState.data) return
+    if (participant.availablePassCount === playState.data.availablePassCount)
+      return
+    setParticipant({
+      ...participant,
+      availablePassCount: playState.data.availablePassCount,
+    })
+  }, [participant, playState.data, setParticipant])
 
   // 참가자 정보가 없으면 참가자 확인 화면으로 보낸다. (팀 확정: 목적지만 /participate)
   if (!participant) return <Navigate to={ROUTES.PARTICIPATE} replace />
@@ -187,13 +206,41 @@ export function CategoriesPage() {
               >
                 이전
               </button>
-              <button
-                type="button"
-                onClick={() => navigate(ROUTES.GAME(selected.id))}
-              >
-                이 테마로 시작 <ArrowRight aria-hidden />
-              </button>
+              {activeGame ? (
+                <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.GAME(activeGame.categoryId))}
+                >
+                  진행 중 경기 계속하기 <ArrowRight aria-hidden />
+                </button>
+              ) : availablePassCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.GAME(selected.id))}
+                >
+                  이 테마로 시작 <ArrowRight aria-hidden />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={playState.isFetching}
+                  onClick={() => playState.refetch()}
+                >
+                  {playState.isFetching ? '확인 중' : '이용권 다시 확인'}
+                </button>
+              )}
             </div>
+            {playState.error && <Alert>{errorMessage(playState.error)}</Alert>}
+            {activeGame && (
+              <Alert>
+                진행 중인 경기가 있습니다. 이 경기는 이미 이용권이 사용되었습니다.
+              </Alert>
+            )}
+            {!activeGame && availablePassCount === 0 && (
+              <Alert>
+                사용 가능한 이용권이 없습니다. 재도전하려면 운영자에게 이용권을 발급받아 주세요.
+              </Alert>
+            )}
           </div>
         </div>
       )}

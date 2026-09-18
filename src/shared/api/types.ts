@@ -12,6 +12,14 @@ export type GameStart = {
   gameSessionId: number
   category: Category
   sentences: Sentence[]
+  resumedExisting: boolean
+  passConsumed: boolean
+  availablePassCount: number
+}
+
+export type ParticipantPlayState = {
+  availablePassCount: number
+  activeGame: { gameSessionId: number; categoryId: number } | null
 }
 
 export type GameStatus = 'IN_PROGRESS' | 'COMPLETED' | 'INVALIDATED'
