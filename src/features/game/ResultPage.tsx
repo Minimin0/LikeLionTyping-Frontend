@@ -12,7 +12,6 @@ import {
   secondaryButtonClass,
 } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
-import onAirOff from '../../shared/brand/images/on-air-off.png'
 
 const seconds = (milliseconds: number | null) =>
   milliseconds == null ? '-' : `${(milliseconds / 1_000).toFixed(3)}초`
@@ -43,7 +42,7 @@ export function ResultPage() {
       {result.data?.status === 'COMPLETED' && (
         <>
           <div className="text-center">
-            <img className="radio-off-air-sign radio-result-off on-air-light-off" src={onAirOff} alt="조명이 꺼진 ON AIR 간판" />
+            <div className="radio-off-air-sign radio-off-air-sign--game radio-result-off" role="img" aria-label="OFF 방송 완료">OFF</div>
             <span className="mx-auto grid size-14 place-items-center rounded-lg bg-yellow-300">
               <Trophy aria-hidden />
             </span>
