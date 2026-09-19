@@ -30,7 +30,6 @@ import { TypewriterKeyOverlay } from './components/TypewriterKeyOverlay'
 import { useTypingInput } from './hooks/useTypingInput'
 import { gameReducer } from './gameMachine'
 import writerMain from '../../shared/brand/images/writer_main.png'
-import onAirOff from '../../shared/brand/images/on-air-off.png'
 import { calculateCpm } from './utils/typingSpeed'
 import { formatElapsedMs } from '../../shared/utils/formatTime'
 
@@ -380,7 +379,7 @@ export function GamePage() {
           </div>
         )}
         {state.phase !== 'PLAYING' && (
-          <img className="radio-off-air-sign on-air-light-off" src={onAirOff} alt="조명이 꺼진 ON AIR 간판" />
+          <div className="radio-off-air-sign radio-off-air-sign--game" role="img" aria-label="OFF 방송 대기 중">OFF</div>
         )}
         {state.phase !== 'PLAYING' && (
           <div className="mb-7">

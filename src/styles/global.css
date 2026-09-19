@@ -592,6 +592,21 @@
   margin: 0 auto 18px;
   object-fit: contain;
 }
+.radio-off-air-sign--game {
+  width: 112px;
+  padding: 9px 0;
+  border: 4px solid #3b2f2a;
+  border-radius: 7px;
+  background: #2c2725;
+  color: #8a7a70;
+  font-family: Arial, sans-serif;
+  font-size: 25px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  letter-spacing: .08em;
+  box-shadow: inset 0 0 14px rgb(0 0 0 / 45%);
+}
 .on-air-light-off {
   filter: brightness(.86) saturate(.8);
 }
