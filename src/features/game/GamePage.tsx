@@ -411,7 +411,7 @@ export function GamePage() {
             <p className="typewriter-wall-note typewriter-wall-note-right">Keep<br />Typing.<br />Keep Going.</p>
             <div className="typewriter-left-meters">
               <MetricCard label="채널" value={`${game.category.code} ${displayCategoryName(game.category)}`} />
-              <MetricCard label="경과 시간" value={formatElapsedMs(liveElapsedMs)} />
+              <MetricCard label="경과 시간" value={formatElapsedMs(liveElapsedMs)} className="typewriter-metric-card--elapsed" />
               <MetricCard label="CPM" value={cpm} />
             </div>
             <div className="typewriter-hero" aria-label="타자 게임 진행 화면">
@@ -502,9 +502,9 @@ export function GamePage() {
   )
 }
 
-function MetricCard({ label, value }: { label: string; value: number | string }) {
+function MetricCard({ label, value, className = '' }: { label: string; value: number | string; className?: string }) {
   return (
-    <div className="typewriter-metric-card">
+    <div className={`typewriter-metric-card ${className}`}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
