@@ -417,7 +417,7 @@ export function GamePage() {
             <div className="typewriter-hero" aria-label="타자 게임 진행 화면">
               <img src={writerMain} alt="" aria-hidden />
               <div className="typewriter-paper-copy">
-                <p className="typewriter-previous">{previousSentence}</p>
+                {previousSentence && <p className="typewriter-previous">{previousSentence}</p>}
                 <div className="typewriter-current" key={game.currentIndex}>
                   <SentenceDisplay
                     sentence={sentence.content}
