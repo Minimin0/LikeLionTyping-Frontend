@@ -12,10 +12,23 @@ type AdminAuthContextValue = {
 }
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null)
+const STORAGE_KEY = 'likelion-admin-token'
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null)
-  const value = useMemo(() => ({ token, setToken }), [token])
+  const [tokenState, setTokenState] = useState<string | null>(() =>
+    sessionStorage.getItem(STORAGE_KEY),
+  )
+  const value = useMemo(
+    () => ({
+      token: tokenState,
+      setToken: (token: string | null) => {
+        setTokenState(token)
+        if (token) sessionStorage.setItem(STORAGE_KEY, token)
+        else sessionStorage.removeItem(STORAGE_KEY)
+      },
+    }),
+    [tokenState],
+  )
 
   return (
     <AdminAuthContext.Provider value={value}>

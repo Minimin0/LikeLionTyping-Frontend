@@ -24,6 +24,7 @@ function renderPage() {
 
 afterEach(() => {
   cleanup()
+  sessionStorage.clear()
   vi.restoreAllMocks()
 })
 
