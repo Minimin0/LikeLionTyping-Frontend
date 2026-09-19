@@ -59,6 +59,16 @@ export type AdminPaymentHistory = {
   totalPaidPassQuantity: number
   payments: AdminPaymentHistoryItem[]
 }
+export type AdminParticipantHistoryItem = {
+  id: number
+  nickname: string
+  phone: string
+  createdAt: string
+}
+export type AdminParticipantHistory = {
+  totalParticipants: number
+  participants: AdminParticipantHistoryItem[]
+}
 export type AdminSession = {
   id: number
   categoryId: number

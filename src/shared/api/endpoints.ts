@@ -3,6 +3,7 @@ import type {
   AdminLogin,
   AdminDashboard,
   AdminPaymentHistory,
+  AdminParticipantHistory,
   AdminParticipant,
   AdminParticipantSearchResult,
   Category,
@@ -100,6 +101,11 @@ export const getAdminDashboard = (token: string) =>
 export const getAdminPayments = (token: string) =>
   apiClient
     .get<AdminPaymentHistory>('/admin/payments', auth(token))
+    .then(({ data }) => data)
+
+export const getAdminParticipantHistory = (token: string) =>
+  apiClient
+    .get<AdminParticipantHistory>('/admin/participants/all', auth(token))
     .then(({ data }) => data)
 
 export const findAdminParticipant = (token: string, phone: string) =>

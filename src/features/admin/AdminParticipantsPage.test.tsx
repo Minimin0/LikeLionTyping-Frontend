@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useEffect } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useEffect } from 'react'
 import { ApiError, apiClient } from '../../shared/api/client'
 import { AdminAuthProvider, useAdminAuth } from './AdminAuth'
-import { AdminPaymentsPage } from './AdminPaymentsPage'
+import { AdminParticipantsPage } from './AdminParticipantsPage'
 
 function TokenSeed({ token = 'admin-token' }: { token?: string }) {
   const { setToken } = useAdminAuth()
@@ -23,7 +23,7 @@ function renderPage(token = 'admin-token') {
       <MemoryRouter>
         <AdminAuthProvider>
           {token && <TokenSeed token={token} />}
-          <AdminPaymentsPage />
+          <AdminParticipantsPage />
         </AdminAuthProvider>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -36,29 +36,26 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('AdminPaymentsPage', () => {
-  it('shows payment summary, rows, full phones, and console link', async () => {
+describe('AdminParticipantsPage', () => {
+  it('shows participant summary, rows, full phones, and console link', async () => {
     vi.spyOn(apiClient, 'get').mockResolvedValue({
       data: history([
         {
           id: 2,
-          participantId: 20,
           nickname: '민민',
           phone: '01012345678',
-          quantity: 2,
-          amountKrw: 1000,
-          createdAt: '2026-09-19T14:42:00Z',
+          createdAt: '2026-09-20T06:42:00Z',
         },
       ]),
     })
 
     renderPage()
 
-    expect(await screen.findAllByText('1,000원')).toHaveLength(2)
-    expect(screen.getByText('1건')).toBeInTheDocument()
-    expect(screen.getByText('2회')).toBeInTheDocument()
+    expect(await screen.findByText('1명')).toBeInTheDocument()
+    expect(screen.getByText('참가자 목록')).toBeInTheDocument()
     expect(screen.getByText('민민')).toBeInTheDocument()
     expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
+    expect(screen.getByText(/오.|[0-9]{2}:/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /운영자 콘솔/ })).toHaveAttribute(
       'href',
       '/admin',
@@ -70,10 +67,8 @@ describe('AdminPaymentsPage', () => {
 
     renderPage()
 
-    expect(await screen.findByText('0원')).toBeInTheDocument()
-    expect(screen.getByText('0건')).toBeInTheDocument()
-    expect(screen.getByText('0회')).toBeInTheDocument()
-    expect(screen.getByText('아직 등록된 결제 기록이 없습니다.')).toBeInTheDocument()
+    expect(await screen.findByText('0명')).toBeInTheDocument()
+    expect(screen.getByText('아직 등록된 참가자가 없습니다.')).toBeInTheDocument()
   })
 
   it('shows loading and error states', async () => {
@@ -81,7 +76,7 @@ describe('AdminPaymentsPage', () => {
 
     renderPage()
 
-    expect(screen.getByText(/결제 현황을 불러오는 중/)).toBeInTheDocument()
+    expect(screen.getByText(/참가자 현황을 불러오는 중/)).toBeInTheDocument()
     expect(await screen.findByRole('alert')).toHaveTextContent('서버에 연결할 수 없습니다')
   })
 
@@ -90,7 +85,7 @@ describe('AdminPaymentsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await screen.findByText('0원')
+    await screen.findByText('0명')
     await user.click(screen.getByRole('button', { name: /새로고침/ }))
 
     expect(get).toHaveBeenCalledTimes(2)
@@ -103,21 +98,16 @@ describe('AdminPaymentsPage', () => {
   })
 })
 
-type PaymentFixture = {
+type ParticipantFixture = {
   id: number
-  participantId: number
   nickname: string
   phone: string
-  amountKrw: number
-  quantity: number
   createdAt: string
 }
 
-function history(payments: PaymentFixture[]) {
+function history(participants: ParticipantFixture[]) {
   return {
-    totalPaymentAmountKrw: payments.reduce((sum, payment) => sum + payment.amountKrw, 0),
-    totalPaymentCount: payments.length,
-    totalPaidPassQuantity: payments.reduce((sum, payment) => sum + payment.quantity, 0),
-    payments,
+    totalParticipants: participants.length,
+    participants,
   }
 }

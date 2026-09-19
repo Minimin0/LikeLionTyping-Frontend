@@ -111,7 +111,7 @@ describe('App admin payment navigation auth', () => {
     expect(screen.getByText('7건')).toBeInTheDocument()
     expect(screen.getByText('42회')).toBeInTheDocument()
     expect(screen.getByText('민민')).toBeInTheDocument()
-    expect(screen.getByText('010-****-5678')).toBeInTheDocument()
+    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
     expect(screen.getByText('1,000원')).toBeInTheDocument()
     expect(screen.getByText('+2회')).toBeInTheDocument()
     expect(get).toHaveBeenCalledWith('/admin/payments', {
@@ -139,6 +139,37 @@ describe('App admin payment navigation auth', () => {
 
     expect(await screen.findByText('운영진 로그인이 필요합니다')).toBeInTheDocument()
     expect(sessionStorage.getItem('likelion-admin-token')).toBeNull()
+  })
+})
+
+describe('App admin participant navigation auth', () => {
+  it('keeps the admin token from dashboard to participant history', async () => {
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValue({
+      data: { token: 'admin-token', expiresAt: '2026-09-20T00:00:00Z' },
+    })
+    const get = mockAdminGets()
+    const user = userEvent.setup()
+    renderApp(['/admin'])
+
+    await user.type(screen.getByLabelText('관리자 비밀번호'), 'admin')
+    await user.click(screen.getByRole('button', { name: '로그인' }))
+    const participantLink = await screen.findByRole('link', { name: /^참가자\s*2/ })
+
+    await user.click(participantLink)
+
+    expect(post).toHaveBeenCalledWith('/admin/login', { password: 'admin' })
+    expect(await screen.findByRole('heading', { name: '참가자 현황' })).toBeInTheDocument()
+    expect(screen.queryByText('운영진 로그인이 필요합니다')).not.toBeInTheDocument()
+    expect(screen.getByText('2명')).toBeInTheDocument()
+    expect(screen.getByText('민민')).toBeInTheDocument()
+    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
+    expect(get).toHaveBeenCalledWith('/admin/participants/all', {
+      headers: { Authorization: 'Bearer admin-token' },
+    })
+
+    await user.click(screen.getByRole('link', { name: /운영자 콘솔/ }))
+    expect(await screen.findByRole('heading', { name: '참가자 관리' })).toBeInTheDocument()
+    expect(screen.queryByText('운영진 로그인')).not.toBeInTheDocument()
   })
 })
 
@@ -175,6 +206,26 @@ function mockAdminGets() {
               quantity: 2,
               amountKrw: 1000,
               createdAt: '2026-09-19T14:42:00Z',
+            },
+          ],
+        },
+      })
+    if (url === '/admin/participants/all')
+      return Promise.resolve({
+        data: {
+          totalParticipants: 2,
+          participants: [
+            {
+              id: 10,
+              nickname: '민민',
+              phone: '01012345678',
+              createdAt: '2026-09-20T06:42:00Z',
+            },
+            {
+              id: 9,
+              nickname: '아기사자',
+              phone: '01098765432',
+              createdAt: '2026-09-20T06:39:00Z',
             },
           ],
         },
