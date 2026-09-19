@@ -586,8 +586,14 @@
   margin: 0 auto 18px;
 }
 .radio-off-air-sign {
-  width: 112px;
+  display: block;
+  width: 225px;
+  height: auto;
   margin: 0 auto 18px;
+  object-fit: contain;
+}
+.radio-off-air-sign--game {
+  width: 112px;
   padding: 9px 0;
   border: 4px solid #3b2f2a;
   border-radius: 7px;
@@ -600,6 +606,9 @@
   text-align: center;
   letter-spacing: .08em;
   box-shadow: inset 0 0 14px rgb(0 0 0 / 45%);
+}
+.on-air-light-off {
+  filter: brightness(.86) saturate(.8);
 }
 .typewriter-game-stage {
   position: relative;
@@ -692,6 +701,7 @@
   left: clamp(26px, 3vw, 44px);
   top: 16%;
   width: clamp(240px, 21vw, 335px);
+  grid-template-columns: minmax(0, 1fr);
 }
 .typewriter-right-meters {
   right: clamp(26px, 3vw, 44px);
@@ -724,6 +734,11 @@
   font-size: clamp(34px, 4vw, 62px);
   font-weight: 900;
   line-height: 1.08;
+}
+.typewriter-metric-card--elapsed strong {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(30px, 3vw, 52px);
+  white-space: nowrap;
 }
 .typewriter-left-meters .typewriter-metric-card:first-child strong {
   font-size: clamp(21px, 1.8vw, 30px);
@@ -811,20 +826,19 @@
   left: 50%;
   bottom: 2.2%;
   z-index: 1;
-  width: min(61vw, 960px);
+  width: min(66vw, 1030px);
   translate: -50% 0;
 }
 .typewriter-hero::before {
   content: '';
   position: absolute;
-  left: 19%;
-  right: 18%;
+  left: 20%;
+  right: 20%;
   top: -18.5%;
-  height: 35.5%;
-  z-index: -1;
+  height: 42.5%;
+  z-index: 2;
   border-radius: 2px 2px 6px 6px;
-  background:
-    linear-gradient(180deg, rgb(255 253 246 / 98%), rgb(248 240 224 / 98%));
+  background: linear-gradient(180deg, rgb(255 253 246 / 98%), rgb(248 240 224 / 98%));
   box-shadow:
     inset 0 0 0 1px rgb(80 55 38 / 13%),
     inset 0 -20px 24px rgb(83 55 35 / 8%),
@@ -840,12 +854,13 @@
 }
 .typewriter-paper-copy {
   position: absolute;
-  left: 20.5%;
+  z-index: 3;
+  left: 21%;
   top: -10.8%;
-  width: 60.5%;
+  width: 58%;
   height: 21%;
   display: grid;
-  grid-template-rows: minmax(1.25em, auto) 1fr;
+  grid-template-rows: auto 1fr;
   align-content: start;
   gap: clamp(4px, .5vw, 8px);
   overflow: hidden;
@@ -873,12 +888,15 @@
   animation: paper-line-in .22s ease both;
 }
 .typewriter-current .typing-sentence-frame {
-  min-height: auto;
+  min-height: calc(1.42em * 2);
   padding: 0;
   background: transparent;
   box-shadow: none;
   font-size: clamp(17px, 1.62vw, 27px);
   overflow: hidden;
+}
+.typewriter-paper-copy--dense .typing-sentence-frame {
+  font-size: clamp(15px, 1.2vw, 21px);
 }
 .typewriter-current .typing-sentence {
   max-width: 100%;
@@ -918,6 +936,11 @@
 }
 .game-exit-button:hover {
   background: #fffdf6;
+}
+.game-exit-button--prep {
+  position: static;
+  display: block;
+  margin: 16px 16px 16px auto;
 }
 .game-exit-modal-backdrop {
   position: fixed;
@@ -1718,6 +1741,7 @@ a {
   color: #5f5651;
   font-size: 13px;
   line-height: 1.55;
+  white-space: pre-line;
 }
 @media (max-width: 1000px) {
   .home-bottom-grid {
@@ -2959,6 +2983,9 @@ a {
 }
 .category-studio-actions svg {
   width: 17px;
+}
+.category-action-alert {
+  padding-top: 24px;
 }
 .category-loading,
 .category-empty {

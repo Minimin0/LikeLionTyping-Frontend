@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { TypewriterKeyOverlay } from './TypewriterKeyOverlay'
 
 describe('TypewriterKeyOverlay', () => {
-  it('renders the adjusted number row hotspots without a Backquote slot', () => {
+  it('places the number row highlights over the supplied Korean typewriter', () => {
     const { container } = render(
       <TypewriterKeyOverlay
         activeCodes={
@@ -28,21 +28,12 @@ describe('TypewriterKeyOverlay', () => {
 
     const hotspots = [...container.querySelectorAll('.typewriter-key-hotspot')]
 
-    expect(hotspots).toHaveLength(12)
-    expect(hotspots.map((hotspot) => hotspot.getAttribute('style'))).toEqual([
-      'left: 23%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 28.3%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 33.1%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 37.7%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 42.3%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 46.9%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 51.5%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 56.1%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 60.8%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 65.4%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 70%; top: 58%; width: 4.2%; height: 5.5%;',
-      'left: 74.4%; top: 58%; width: 4.2%; height: 5.5%;',
-    ])
+    expect(hotspots).toHaveLength(13)
+    expect(hotspots[0]).toHaveStyle({ left: '23.3%', top: '61%' })
+    expect(hotspots[1]).toHaveStyle({ left: '27.3%', top: '61%' })
+    expect(hotspots[10]).toHaveStyle({ left: '63.9%', top: '61%' })
+    expect(hotspots[11]).toHaveStyle({ left: '63.9%', top: '61%' })
+    expect(hotspots[12]).toHaveStyle({ left: '68%', top: '61%' })
   })
 
   it('renders the adjusted Backspace highlight hotspot', () => {
@@ -54,9 +45,23 @@ describe('TypewriterKeyOverlay', () => {
 
     expect(hotspot).toBeInTheDocument()
     expect(hotspot).toHaveStyle({
-      left: '79%',
-      top: '57.8%',
-      width: '5.2%',
+      left: '74%',
+      top: '61%',
+      width: '6.7%',
     })
+  })
+
+  it('keeps Korean letter, Shift, Enter, and Space highlights on their keys', () => {
+    const { container } = render(
+      <TypewriterKeyOverlay
+        activeCodes={new Set(['KeyR', 'ShiftLeft', 'Enter', 'Space'])}
+      />,
+    )
+    const [letter, shift, enter, space] = container.querySelectorAll('.typewriter-key-hotspot')
+
+    expect(letter).toHaveStyle({ left: '41.1%', top: '67.6%' })
+    expect(shift).toHaveStyle({ left: '23.2%', top: '81.4%' })
+    expect(enter).toHaveStyle({ left: '76.4%', top: '74.4%' })
+    expect(space).toHaveStyle({ left: '48%', top: '88.4%', width: '32.5%' })
   })
 })

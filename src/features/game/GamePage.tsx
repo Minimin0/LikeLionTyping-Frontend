@@ -358,7 +358,7 @@ export function GamePage() {
           isPrepPhase ? 'radio-game-studio--compact' : 'p-6 sm:p-8'
         }`}
       >
-        {showExit && (
+        {showExit && !isPrepPhase && (
           <button
             type="button"
             className="game-exit-button"
@@ -379,7 +379,7 @@ export function GamePage() {
           </div>
         )}
         {state.phase !== 'PLAYING' && (
-          <div className="radio-off-air-sign" role="img" aria-label="OFF 방송 대기 중">OFF</div>
+          <div className="radio-off-air-sign radio-off-air-sign--game" role="img" aria-label="OFF 방송 대기 중">OFF</div>
         )}
         {state.phase !== 'PLAYING' && (
           <div className="mb-7">
@@ -411,12 +411,12 @@ export function GamePage() {
             <p className="typewriter-wall-note typewriter-wall-note-right">Keep<br />Typing.<br />Keep Going.</p>
             <div className="typewriter-left-meters">
               <MetricCard label="채널" value={`${game.category.code} ${displayCategoryName(game.category)}`} />
-              <MetricCard label="경과 시간" value={formatElapsedMs(liveElapsedMs)} />
+              <MetricCard label="경과 시간" value={formatElapsedMs(liveElapsedMs)} className="typewriter-metric-card--elapsed" />
               <MetricCard label="CPM" value={cpm} />
             </div>
             <div className="typewriter-hero" aria-label="타자 게임 진행 화면">
               <img src={writerMain} alt="" aria-hidden />
-              <div className="typewriter-paper-copy">
+              <div className={`typewriter-paper-copy${sentence.content.length > 38 ? ' typewriter-paper-copy--dense' : ''}`}>
                 <p className="typewriter-previous">{previousSentence}</p>
                 <div className="typewriter-current" key={game.currentIndex}>
                   <SentenceDisplay
@@ -458,6 +458,15 @@ export function GamePage() {
           </div>
         )}
       </div>
+      {isPrepPhase && (
+        <button
+          type="button"
+          className="game-exit-button game-exit-button--prep"
+          onClick={() => setExitOpen(true)}
+        >
+          게임 종료
+        </button>
+      )}
       {exitOpen && (
         <div className="game-exit-modal-backdrop" role="presentation">
           <div
@@ -502,9 +511,9 @@ export function GamePage() {
   )
 }
 
-function MetricCard({ label, value }: { label: string; value: number | string }) {
+function MetricCard({ label, value, className = '' }: { label: string; value: number | string; className?: string }) {
   return (
-    <div className="typewriter-metric-card">
+    <div className={`typewriter-metric-card ${className}`}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>

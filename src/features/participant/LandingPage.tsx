@@ -35,7 +35,7 @@ const channels = [
 ]
 
 const participationSteps = [
-  ['01', '참가자 확인', '닉네임과 전화번호로 참가를 확인합니다.'],
+  ['01', '참가자 확인', '닉네임과 전화번호로\n참가를 확인합니다.'],
   ['02', '채널 선택', '도전할 방송 테마를 고릅니다.'],
   ['03', '다섯 문장 완성', '정확하게 입력하고 기록을 남깁니다.'],
 ]
@@ -71,7 +71,7 @@ export function LandingPage() {
       <div className="home-film-strip home-film-right" aria-hidden />
       <div className="home-hero-viewport">
         {/* 홈에서만 보이는 ON AIR. 다른 라우트의 헤더에는 나타나지 않는다. */}
-        <img className="home-on-air-stage" src={onAirOff} alt="" aria-hidden />
+        <img className="home-on-air-stage on-air-light-off" src={onAirOff} alt="" aria-hidden />
         <section className="home-hero" aria-labelledby="home-title">
           <img className="home-lp home-lp-red" src={lpRed} alt="" aria-hidden />
           <img
