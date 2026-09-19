@@ -42,7 +42,7 @@ export function ResultPage() {
       {result.data?.status === 'COMPLETED' && (
         <>
           <div className="text-center">
-            <div className="radio-off-air-sign radio-result-off" role="img" aria-label="OFF 방송 완료">OFF</div>
+            <div className="radio-off-air-sign radio-off-air-sign--game radio-result-off" role="img" aria-label="OFF 방송 완료">OFF</div>
             <span className="mx-auto grid size-14 place-items-center rounded-lg bg-yellow-300">
               <Trophy aria-hidden />
             </span>
