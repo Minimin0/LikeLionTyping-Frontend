@@ -1,18 +1,20 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ApiError } from '../shared/api/client'
 import { apiClient } from '../shared/api/client'
 import App from './App'
 import { SessionProvider } from './session'
 
-function renderApp() {
+function renderApp(initialEntries = ['/']) {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={initialEntries}>
         <SessionProvider>
           <App />
         </SessionProvider>
@@ -86,3 +88,97 @@ describe('App home participant status', () => {
     expect(screen.queryByText(/010/)).not.toBeInTheDocument()
   })
 })
+
+describe('App admin payment navigation auth', () => {
+  it('keeps the admin token from dashboard to payment history', async () => {
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValue({
+      data: { token: 'admin-token', expiresAt: '2026-09-20T00:00:00Z' },
+    })
+    const get = mockAdminGets()
+    const user = userEvent.setup()
+    renderApp(['/admin'])
+
+    await user.type(screen.getByLabelText('관리자 비밀번호'), 'admin')
+    await user.click(screen.getByRole('button', { name: '로그인' }))
+    const paymentLink = await screen.findByRole('link', { name: /결제 합계/ })
+
+    await user.click(paymentLink)
+
+    expect(post).toHaveBeenCalledWith('/admin/login', { password: 'admin' })
+    expect(await screen.findByRole('heading', { name: '결제 현황' })).toBeInTheDocument()
+    expect(screen.queryByText('운영진 로그인이 필요합니다')).not.toBeInTheDocument()
+    expect(screen.getByText('21,000원')).toBeInTheDocument()
+    expect(screen.getByText('7건')).toBeInTheDocument()
+    expect(screen.getByText('42회')).toBeInTheDocument()
+    expect(screen.getByText('민민')).toBeInTheDocument()
+    expect(screen.getByText('010-****-5678')).toBeInTheDocument()
+    expect(screen.getByText('1,000원')).toBeInTheDocument()
+    expect(screen.getByText('+2회')).toBeInTheDocument()
+    expect(get).toHaveBeenCalledWith('/admin/payments', {
+      headers: { Authorization: 'Bearer admin-token' },
+    })
+  })
+
+  it('restores admin auth after a payment page remount and clears it on logout or expiry', async () => {
+    const get = mockAdminGets()
+    sessionStorage.setItem('likelion-admin-token', 'admin-token')
+    const user = userEvent.setup()
+    const rendered = renderApp(['/admin/payments'])
+
+    expect(await screen.findByRole('heading', { name: '결제 현황' })).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: /운영자 콘솔/ }))
+    expect(await screen.findByRole('heading', { name: '참가자 관리' })).toBeInTheDocument()
+    expect(screen.queryByText('운영진 로그인')).not.toBeInTheDocument()
+    await user.click(screen.getByTitle('로그아웃'))
+    expect(sessionStorage.getItem('likelion-admin-token')).toBeNull()
+
+    rendered.unmount()
+    sessionStorage.setItem('likelion-admin-token', 'expired-token')
+    get.mockRejectedValueOnce(new ApiError('ADMIN_UNAUTHORIZED', 403))
+    renderApp(['/admin/payments'])
+
+    expect(await screen.findByText('운영진 로그인이 필요합니다')).toBeInTheDocument()
+    expect(sessionStorage.getItem('likelion-admin-token')).toBeNull()
+  })
+})
+
+function mockAdminGets() {
+  return vi.spyOn(apiClient, 'get').mockImplementation((url, config) => {
+    if (url === '/admin/dashboard')
+      return Promise.resolve({
+        data: {
+          totalParticipants: 2,
+          totalPlayCount: 3,
+          freePlayCount: 2,
+          paidPlayCount: 1,
+          totalPaymentAmountKrw: 21000,
+          availablePaidPassCount: 4,
+          ch01PlayCount: 1,
+          ch02PlayCount: 1,
+          ch03PlayCount: 1,
+          completedGameCount: 2,
+          invalidatedGameCount: 1,
+        },
+      })
+    if (url === '/admin/payments')
+      return Promise.resolve({
+        data: {
+          totalPaymentAmountKrw: 21000,
+          totalPaymentCount: 7,
+          totalPaidPassQuantity: 42,
+          payments: [
+            {
+              id: 1,
+              participantId: 10,
+              nickname: '민민',
+              phone: '01012345678',
+              quantity: 2,
+              amountKrw: 1000,
+              createdAt: '2026-09-19T14:42:00Z',
+            },
+          ],
+        },
+      })
+    return Promise.reject(new Error(`unexpected GET ${url} ${JSON.stringify(config)}`))
+  })
+}
