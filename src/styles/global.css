@@ -586,20 +586,11 @@
   margin: 0 auto 18px;
 }
 .radio-off-air-sign {
-  width: 112px;
+  display: block;
+  width: 225px;
+  height: auto;
   margin: 0 auto 18px;
-  padding: 9px 0;
-  border: 4px solid #3b2f2a;
-  border-radius: 7px;
-  background: #2c2725;
-  color: #8a7a70;
-  font-family: Arial, sans-serif;
-  font-size: 25px;
-  font-weight: 900;
-  line-height: 1;
-  text-align: center;
-  letter-spacing: .08em;
-  box-shadow: inset 0 0 14px rgb(0 0 0 / 45%);
+  object-fit: contain;
 }
 .typewriter-game-stage {
   position: relative;
@@ -927,6 +918,11 @@
 }
 .game-exit-button:hover {
   background: #fffdf6;
+}
+.game-exit-button--prep {
+  position: static;
+  display: block;
+  margin: 16px 16px 16px auto;
 }
 .game-exit-modal-backdrop {
   position: fixed;
@@ -1727,6 +1723,7 @@ a {
   color: #5f5651;
   font-size: 13px;
   line-height: 1.55;
+  white-space: pre-line;
 }
 @media (max-width: 1000px) {
   .home-bottom-grid {
@@ -2968,6 +2965,9 @@ a {
 }
 .category-studio-actions svg {
   width: 17px;
+}
+.category-active-game-alert {
+  margin-top: 24px;
 }
 .category-loading,
 .category-empty {

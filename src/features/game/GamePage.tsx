@@ -30,6 +30,7 @@ import { TypewriterKeyOverlay } from './components/TypewriterKeyOverlay'
 import { useTypingInput } from './hooks/useTypingInput'
 import { gameReducer } from './gameMachine'
 import writerMain from '../../shared/brand/images/writer_main.png'
+import onAirOff from '../../shared/brand/images/on-air-off.png'
 import { calculateCpm } from './utils/typingSpeed'
 import { formatElapsedMs } from '../../shared/utils/formatTime'
 
@@ -358,7 +359,7 @@ export function GamePage() {
           isPrepPhase ? 'radio-game-studio--compact' : 'p-6 sm:p-8'
         }`}
       >
-        {showExit && (
+        {showExit && !isPrepPhase && (
           <button
             type="button"
             className="game-exit-button"
@@ -379,7 +380,7 @@ export function GamePage() {
           </div>
         )}
         {state.phase !== 'PLAYING' && (
-          <div className="radio-off-air-sign" role="img" aria-label="OFF 방송 대기 중">OFF</div>
+          <img className="radio-off-air-sign" src={onAirOff} alt="OFF 방송 대기 중" />
         )}
         {state.phase !== 'PLAYING' && (
           <div className="mb-7">
@@ -458,6 +459,15 @@ export function GamePage() {
           </div>
         )}
       </div>
+      {isPrepPhase && (
+        <button
+          type="button"
+          className="game-exit-button game-exit-button--prep"
+          onClick={() => setExitOpen(true)}
+        >
+          게임 종료
+        </button>
+      )}
       {exitOpen && (
         <div className="game-exit-modal-backdrop" role="presentation">
           <div

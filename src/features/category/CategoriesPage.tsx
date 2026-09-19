@@ -239,9 +239,11 @@ export function CategoriesPage() {
             </div>
             {playState.error && <Alert>{errorMessage(playState.error)}</Alert>}
             {activeGame && (
-              <Alert>
-                진행 중인 경기가 있습니다. 이 경기는 이미 이용권이 사용되었습니다.
-              </Alert>
+              <div className="category-active-game-alert">
+                <Alert>
+                  진행 중인 경기가 있습니다. 이 경기는 이미 이용권이 사용되었습니다.
+                </Alert>
+              </div>
             )}
             {!activeGame && availablePassCount === 0 && (
               <Alert>
