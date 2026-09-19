@@ -3,6 +3,8 @@ import { Trophy, UserRound } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
+import { AdminAuthProvider } from '../features/admin/AdminAuth'
+import { AdminPaymentsPage } from '../features/admin/AdminPaymentsPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
 import { GamePage } from '../features/game/GamePage'
 import { ResultPage } from '../features/game/ResultPage'
@@ -77,28 +79,34 @@ export default function App() {
       <main className="radio-main">
         {/* 렌더 에러가 나도 헤더는 남기고 본문만 폴백으로 바꾼다. 라우터 안쪽이라 폴백에서 이동도 된다. */}
         <RouteErrorBoundary>
-          <Routes>
-            <Route path={ROUTE_PATTERNS.LANDING} element={<LandingPage />} />
-            <Route
-              path={ROUTE_PATTERNS.PARTICIPATE}
-              element={<ParticipantPage />}
-            />
+          <AdminAuthProvider>
+            <Routes>
+              <Route path={ROUTE_PATTERNS.LANDING} element={<LandingPage />} />
+              <Route
+                path={ROUTE_PATTERNS.PARTICIPATE}
+                element={<ParticipantPage />}
+              />
 
-            <Route
-              path={ROUTE_PATTERNS.CATEGORIES}
-              element={<CategoriesPage />}
-            />
-            <Route path={ROUTE_PATTERNS.GAME} element={<GamePage />} />
-            <Route path={ROUTE_PATTERNS.RESULT} element={<ResultPage />} />
-            <Route path={ROUTE_PATTERNS.RANKINGS} element={<RankingPage />} />
-            <Route path={ROUTE_PATTERNS.ADMIN} element={<AdminPage />} />
+              <Route
+                path={ROUTE_PATTERNS.CATEGORIES}
+                element={<CategoriesPage />}
+              />
+              <Route path={ROUTE_PATTERNS.GAME} element={<GamePage />} />
+              <Route path={ROUTE_PATTERNS.RESULT} element={<ResultPage />} />
+              <Route path={ROUTE_PATTERNS.RANKINGS} element={<RankingPage />} />
+              <Route path={ROUTE_PATTERNS.ADMIN} element={<AdminPage />} />
+              <Route
+                path={ROUTE_PATTERNS.ADMIN_PAYMENTS}
+                element={<AdminPaymentsPage />}
+              />
 
-            {/* 정의되지 않은 경로는 전부 메인으로 보낸다. 부스 화면에 404가 뜨면 안 된다. */}
-            <Route
-              path="*"
-              element={<Navigate to={ROUTES.LANDING} replace />}
-            />
-          </Routes>
+              {/* 정의되지 않은 경로는 전부 메인으로 보낸다. 부스 화면에 404가 뜨면 안 된다. */}
+              <Route
+                path="*"
+                element={<Navigate to={ROUTES.LANDING} replace />}
+              />
+            </Routes>
+          </AdminAuthProvider>
         </RouteErrorBoundary>
       </main>
     </div>
