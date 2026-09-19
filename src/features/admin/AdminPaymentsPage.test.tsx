@@ -32,6 +32,7 @@ function renderPage(token = 'admin-token') {
 
 afterEach(() => {
   cleanup()
+  sessionStorage.clear()
   vi.restoreAllMocks()
 })
 
