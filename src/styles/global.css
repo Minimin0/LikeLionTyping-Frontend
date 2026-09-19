@@ -593,7 +593,7 @@
   object-fit: contain;
 }
 .on-air-light-off {
-  filter: brightness(.68) saturate(.5);
+  filter: brightness(.86) saturate(.8);
 }
 .typewriter-game-stage {
   position: relative;
@@ -873,7 +873,7 @@
   animation: paper-line-in .22s ease both;
 }
 .typewriter-current .typing-sentence-frame {
-  min-height: auto;
+  min-height: calc(1.42em * 2);
   padding: 0;
   background: transparent;
   box-shadow: none;
