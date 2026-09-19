@@ -111,7 +111,7 @@ describe('App admin payment navigation auth', () => {
     expect(screen.getByText('7건')).toBeInTheDocument()
     expect(screen.getByText('42회')).toBeInTheDocument()
     expect(screen.getByText('민민')).toBeInTheDocument()
-    expect(screen.getByText('010-****-5678')).toBeInTheDocument()
+    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
     expect(screen.getByText('1,000원')).toBeInTheDocument()
     expect(screen.getByText('+2회')).toBeInTheDocument()
     expect(get).toHaveBeenCalledWith('/admin/payments', {

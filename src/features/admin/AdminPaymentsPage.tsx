@@ -18,10 +18,10 @@ const quietLink =
 const formatKrw = (amount: number) => `${amount.toLocaleString('ko-KR')}원`
 const formatTime = (value: string) =>
   new Date(value).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
-const maskPhone = (phone: string) => {
+const formatPhone = (phone: string) => {
   const digits = phone.replace(/\D/g, '')
   if (digits.length !== 11) return phone
-  return `${digits.slice(0, 3)}-****-${digits.slice(7)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
 }
 
 export function AdminPaymentsPage() {
@@ -123,7 +123,7 @@ export function AdminPaymentsPage() {
                       <tr key={payment.id} className="border-t border-[#ddd2bc]">
                         <td className="px-4 py-3 tabular">{formatTime(payment.createdAt)}</td>
                         <td className="px-4 py-3 font-semibold text-[#221f1d]">{payment.nickname}</td>
-                        <td className="px-4 py-3 tabular">{maskPhone(payment.phone)}</td>
+                        <td className="px-4 py-3 tabular">{formatPhone(payment.phone)}</td>
                         <td className="px-4 py-3 tabular">{formatKrw(payment.amountKrw)}</td>
                         <td className="px-4 py-3 tabular">+{payment.quantity}회</td>
                       </tr>

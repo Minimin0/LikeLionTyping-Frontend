@@ -37,7 +37,7 @@ afterEach(() => {
 })
 
 describe('AdminPaymentsPage', () => {
-  it('shows payment summary, rows, masked phones, and console link', async () => {
+  it('shows payment summary, rows, full phones, and console link', async () => {
     vi.spyOn(apiClient, 'get').mockResolvedValue({
       data: history([
         {
@@ -58,7 +58,7 @@ describe('AdminPaymentsPage', () => {
     expect(screen.getByText('1건')).toBeInTheDocument()
     expect(screen.getByText('2회')).toBeInTheDocument()
     expect(screen.getByText('민민')).toBeInTheDocument()
-    expect(screen.getByText('010-****-5678')).toBeInTheDocument()
+    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /운영자 콘솔/ })).toHaveAttribute(
       'href',
       '/admin',
