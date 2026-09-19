@@ -217,7 +217,11 @@ export function AdminPage() {
       {dashboard.data && (
         <div className="mb-6 space-y-4">
           <div className="grid gap-2 sm:grid-cols-4">
-            <Metric label="참가자" value={dashboard.data.totalParticipants} />
+            <Metric
+              label="참가자"
+              value={dashboard.data.totalParticipants}
+              to={ROUTES.ADMIN_PARTICIPANTS}
+            />
             <Metric label="총 플레이" value={dashboard.data.totalPlayCount} />
             <Metric
               label="결제 합계"

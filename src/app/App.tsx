@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
 import { AdminAuthProvider } from '../features/admin/AdminAuth'
+import { AdminParticipantsPage } from '../features/admin/AdminParticipantsPage'
 import { AdminPaymentsPage } from '../features/admin/AdminPaymentsPage'
 import { CategoriesPage } from '../features/category/CategoriesPage'
 import { GamePage } from '../features/game/GamePage'
@@ -98,6 +99,10 @@ export default function App() {
               <Route
                 path={ROUTE_PATTERNS.ADMIN_PAYMENTS}
                 element={<AdminPaymentsPage />}
+              />
+              <Route
+                path={ROUTE_PATTERNS.ADMIN_PARTICIPANTS}
+                element={<AdminParticipantsPage />}
               />
 
               {/* 정의되지 않은 경로는 전부 메인으로 보낸다. 부스 화면에 404가 뜨면 안 된다. */}

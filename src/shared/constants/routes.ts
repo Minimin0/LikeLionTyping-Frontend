@@ -11,6 +11,7 @@ export const ROUTES = {
   RANKINGS: '/rankings',
   ADMIN: '/admin',
   ADMIN_PAYMENTS: '/admin/payments',
+  ADMIN_PARTICIPANTS: '/admin/participants',
 } as const
 
 // <Route path=""> 에 쓰는 패턴 문자열.
@@ -24,4 +25,5 @@ export const ROUTE_PATTERNS = {
   RANKINGS: '/rankings',
   ADMIN: '/admin',
   ADMIN_PAYMENTS: '/admin/payments',
+  ADMIN_PARTICIPANTS: '/admin/participants',
 } as const
