@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { LogOut, Minus, Plus, Radio, Search, Undo2 } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { Link } from 'react-router-dom'
 import { z } from 'zod'
 import { ApiError, errorMessage } from '../../shared/api/client'
 import {
@@ -14,6 +15,8 @@ import {
 } from '../../shared/api/endpoints'
 import type { AdminParticipant, AdminParticipantSearchResult, GameStatus, PlayPass } from '../../shared/api/types'
 import { Busy } from '../../shared/components'
+import { ROUTES } from '../../shared/constants/routes'
+import { useAdminAuth } from './AdminAuth'
 import lpRed from './assets/images/LP_red.png'
 
 // Radio-booth visual language (라디오/ON AIR 최종 디자인, 2026-09-13 확정) —
@@ -57,7 +60,7 @@ const searchSchema = z.object({
 })
 
 export function AdminPage() {
-  const [token, setToken] = useState<string | null>(null)
+  const { token, setToken } = useAdminAuth()
   const [participant, setParticipant] = useState<AdminParticipant | null>(null)
   const [results, setResults] = useState<AdminParticipantSearchResult[]>([])
   const [quantity, setQuantity] = useState(1)
@@ -216,7 +219,11 @@ export function AdminPage() {
           <div className="grid gap-2 sm:grid-cols-4">
             <Metric label="참가자" value={dashboard.data.totalParticipants} />
             <Metric label="총 플레이" value={dashboard.data.totalPlayCount} />
-            <Metric label="결제 합계" value={formatKrw(dashboard.data.totalPaymentAmountKrw)} />
+            <Metric
+              label="결제 합계"
+              value={formatKrw(dashboard.data.totalPaymentAmountKrw)}
+              to={ROUTES.ADMIN_PAYMENTS}
+            />
             <Metric label="남은 PAID" value={dashboard.data.availablePaidPassCount} />
             <Metric label="FREE 플레이" value={dashboard.data.freePlayCount} />
             <Metric label="PAID 플레이" value={dashboard.data.paidPlayCount} />
@@ -424,11 +431,14 @@ export function AdminPage() {
   )
 }
 
-function Metric({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="rounded-lg bg-[#ece3d3]/60 p-3">
+function Metric({ label, value, to }: { label: string; value: number | string; to?: string }) {
+  const className = "block rounded-lg bg-[#ece3d3]/60 p-3 transition hover:bg-[#ece3d3] focus:outline-none focus:ring-2 focus:ring-[#730c02]/40"
+  const content = (
+    <>
       <p className="text-xs font-bold text-[#7a675c]">{label}</p>
       <p className="mt-1 font-['Maru_Buri'] text-lg font-semibold text-[#221f1d] tabular">{value}</p>
-    </div>
+    </>
   )
+  if (to) return <Link className={className} to={to}>{content}</Link>
+  return <div className="rounded-lg bg-[#ece3d3]/60 p-3">{content}</div>
 }

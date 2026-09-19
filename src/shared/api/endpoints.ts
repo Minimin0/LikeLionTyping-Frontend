@@ -2,6 +2,7 @@ import { ApiError, apiClient } from './client'
 import type {
   AdminLogin,
   AdminDashboard,
+  AdminPaymentHistory,
   AdminParticipant,
   AdminParticipantSearchResult,
   Category,
@@ -94,6 +95,11 @@ const auth = (token: string) => ({
 export const getAdminDashboard = (token: string) =>
   apiClient
     .get<AdminDashboard>('/admin/dashboard', auth(token))
+    .then(({ data }) => data)
+
+export const getAdminPayments = (token: string) =>
+  apiClient
+    .get<AdminPaymentHistory>('/admin/payments', auth(token))
     .then(({ data }) => data)
 
 export const findAdminParticipant = (token: string, phone: string) =>
