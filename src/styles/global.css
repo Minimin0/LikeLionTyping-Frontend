@@ -592,6 +592,9 @@
   margin: 0 auto 18px;
   object-fit: contain;
 }
+.on-air-light-off {
+  filter: brightness(.68) saturate(.5);
+}
 .typewriter-game-stage {
   position: relative;
   overflow: hidden;
@@ -2966,8 +2969,8 @@ a {
 .category-studio-actions svg {
   width: 17px;
 }
-.category-active-game-alert {
-  margin-top: 24px;
+.category-action-alert {
+  padding-top: 24px;
 }
 .category-loading,
 .category-empty {

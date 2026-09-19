@@ -71,7 +71,7 @@ export function LandingPage() {
       <div className="home-film-strip home-film-right" aria-hidden />
       <div className="home-hero-viewport">
         {/* 홈에서만 보이는 ON AIR. 다른 라우트의 헤더에는 나타나지 않는다. */}
-        <img className="home-on-air-stage" src={onAirOff} alt="" aria-hidden />
+        <img className="home-on-air-stage on-air-light-off" src={onAirOff} alt="" aria-hidden />
         <section className="home-hero" aria-labelledby="home-title">
           <img className="home-lp home-lp-red" src={lpRed} alt="" aria-hidden />
           <img

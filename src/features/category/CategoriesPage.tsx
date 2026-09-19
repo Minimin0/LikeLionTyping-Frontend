@@ -237,18 +237,24 @@ export function CategoriesPage() {
                 </button>
               )}
             </div>
-            {playState.error && <Alert>{errorMessage(playState.error)}</Alert>}
+            {playState.error && (
+              <div className="category-action-alert">
+                <Alert>{errorMessage(playState.error)}</Alert>
+              </div>
+            )}
             {activeGame && (
-              <div className="category-active-game-alert">
+              <div className="category-action-alert">
                 <Alert>
                   진행 중인 경기가 있습니다. 이 경기는 이미 이용권이 사용되었습니다.
                 </Alert>
               </div>
             )}
             {!activeGame && availablePassCount === 0 && (
-              <Alert>
-                사용 가능한 이용권이 없습니다. 재도전하려면 운영자에게 이용권을 발급받아 주세요.
-              </Alert>
+              <div className="category-action-alert">
+                <Alert>
+                  사용 가능한 이용권이 없습니다. 재도전하려면 운영자에게 이용권을 발급받아 주세요.
+                </Alert>
+              </div>
             )}
           </div>
         </div>

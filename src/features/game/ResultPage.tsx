@@ -43,7 +43,7 @@ export function ResultPage() {
       {result.data?.status === 'COMPLETED' && (
         <>
           <div className="text-center">
-            <img className="radio-off-air-sign radio-result-off" src={onAirOff} alt="OFF 방송 완료" />
+            <img className="radio-off-air-sign radio-result-off on-air-light-off" src={onAirOff} alt="조명이 꺼진 ON AIR 간판" />
             <span className="mx-auto grid size-14 place-items-center rounded-lg bg-yellow-300">
               <Trophy aria-hidden />
             </span>

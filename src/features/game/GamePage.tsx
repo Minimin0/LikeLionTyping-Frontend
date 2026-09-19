@@ -380,7 +380,7 @@ export function GamePage() {
           </div>
         )}
         {state.phase !== 'PLAYING' && (
-          <img className="radio-off-air-sign" src={onAirOff} alt="OFF 방송 대기 중" />
+          <img className="radio-off-air-sign on-air-light-off" src={onAirOff} alt="조명이 꺼진 ON AIR 간판" />
         )}
         {state.phase !== 'PLAYING' && (
           <div className="mb-7">
