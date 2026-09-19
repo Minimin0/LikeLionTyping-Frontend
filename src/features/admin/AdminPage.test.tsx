@@ -2,7 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
+import { AdminAuthProvider } from './AdminAuth'
 import { AdminPage } from './AdminPage'
 
 function renderPage() {
@@ -11,7 +13,11 @@ function renderPage() {
   })
   return render(
     <QueryClientProvider client={queryClient}>
-      <AdminPage />
+      <MemoryRouter>
+        <AdminAuthProvider>
+          <AdminPage />
+        </AdminAuthProvider>
+      </MemoryRouter>
     </QueryClientProvider>,
   )
 }
@@ -46,6 +52,10 @@ describe('AdminPage', () => {
     expect(screen.getByText('사자님')).toBeInTheDocument()
     expect(screen.getByText(/01033334444/)).toBeInTheDocument()
     expect(screen.getByText('참가자')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /결제 합계/ })).toHaveAttribute(
+      'href',
+      '/admin/payments',
+    )
   })
 
   it('shows an empty state when no participant matches', async () => {

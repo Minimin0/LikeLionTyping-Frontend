@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, apiClient } from './client'
-import { completeGameWithRecovery, searchAdminParticipants, startGame } from './endpoints'
+import { completeGameWithRecovery, getAdminPayments, searchAdminParticipants, startGame } from './endpoints'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -45,6 +45,15 @@ describe('API integration guards', () => {
     expect(get).toHaveBeenCalledWith('/admin/participants', {
       headers: { Authorization: 'Bearer token' },
       params: { query: '사자' },
+    })
+  })
+
+  it('fetches admin payments with admin authorization', async () => {
+    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({ data: { payments: [] } })
+
+    await expect(getAdminPayments('token')).resolves.toEqual({ payments: [] })
+    expect(get).toHaveBeenCalledWith('/admin/payments', {
+      headers: { Authorization: 'Bearer token' },
     })
   })
 })

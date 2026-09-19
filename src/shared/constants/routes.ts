@@ -10,6 +10,7 @@ export const ROUTES = {
   RESULT: (gameSessionId: number | string) => `/result/${gameSessionId}`,
   RANKINGS: '/rankings',
   ADMIN: '/admin',
+  ADMIN_PAYMENTS: '/admin/payments',
 } as const
 
 // <Route path=""> 에 쓰는 패턴 문자열.
@@ -22,4 +23,5 @@ export const ROUTE_PATTERNS = {
   RESULT: '/result/:gameSessionId',
   RANKINGS: '/rankings',
   ADMIN: '/admin',
+  ADMIN_PAYMENTS: '/admin/payments',
 } as const
