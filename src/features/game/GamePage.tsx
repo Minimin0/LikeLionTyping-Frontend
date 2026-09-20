@@ -344,7 +344,6 @@ export function GamePage() {
     completedKeystrokes + (sentence ? countMatchedKeystrokes(sentence.content, input) : 0)
   const cpm = calculateCpm(keystrokes, liveElapsedMs)
   const progressPercent = Math.round(((game.currentIndex + 1) / game.sentences.length) * 100)
-  const previousSentence = game.currentIndex > 0 ? game.sentences[game.currentIndex - 1]?.content : ''
   const showExit = state.phase === 'READY' || state.phase === 'COUNTDOWN' || state.phase === 'PLAYING'
   // 타이핑 시작 전(READY·COUNTDOWN)에는 「게임 준비」와 같은 정사각형 카드를 쓰고,
   // 문장이 나오는 순간(PLAYING·SUBMITTING) 원래 폭으로 돌아간다.
@@ -417,7 +416,8 @@ export function GamePage() {
             <div className="typewriter-hero" aria-label="타자 게임 진행 화면">
               <img src={writerMain} alt="" aria-hidden />
               <div className={`typewriter-paper-copy${sentence.content.length > 38 ? ' typewriter-paper-copy--dense' : ''}`}>
-                <p className="typewriter-previous">{previousSentence}</p>
+                {/* 직전 문장은 보여주지 않는다. 빈 줄은 grid 행 높이(현재 문장 위치)를 유지하려고 남긴다. */}
+                <p className="typewriter-previous" aria-hidden />
                 <div className="typewriter-current" key={game.currentIndex}>
                   <SentenceDisplay
                     sentence={sentence.content}
