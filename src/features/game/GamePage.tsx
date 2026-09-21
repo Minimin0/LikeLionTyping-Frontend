@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft, Check, Volume2, VolumeX } from 'lucide-react'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../../app/session'
@@ -28,6 +28,7 @@ import { SentenceDisplay } from './components/SentenceDisplay'
 import { TypingInput } from './components/TypingInput'
 import { TypewriterKeyOverlay } from './components/TypewriterKeyOverlay'
 import { useTypingInput } from './hooks/useTypingInput'
+import { useTypingSound } from './hooks/useTypingSound'
 import { gameReducer } from './gameMachine'
 import writerMain from '../../shared/brand/images/writer_main.png'
 import { calculateCpm } from './utils/typingSpeed'
@@ -62,6 +63,7 @@ export function GamePage() {
   const [activeCodes, setActiveCodes] = useState<Set<string>>(new Set())
   const [liveElapsedMs, setLiveElapsedMs] = useState(0)
   const [exitOpen, setExitOpen] = useState(false)
+  const { soundEnabled, toggleSound, playTypingSound } = useTypingSound()
   const submitLock = useRef(false)
   const playState = useQuery({
     queryKey: ['participant', 'play-state', participant?.participantId],
@@ -186,8 +188,10 @@ export function GamePage() {
   useEffect(() => {
     if (state.phase !== 'PLAYING') return
     const tick = window.setInterval(() => setLiveElapsedMs(getElapsedMs()), 100)
-    const down = (event: KeyboardEvent) =>
+    const down = (event: KeyboardEvent) => {
+      playTypingSound(event)
       setActiveCodes((current) => new Set(current).add(event.code))
+    }
     const up = (event: KeyboardEvent) =>
       setActiveCodes((current) => {
         const next = new Set(current)
@@ -204,7 +208,7 @@ export function GamePage() {
       window.removeEventListener('keyup', up)
       window.removeEventListener('blur', clear)
     }
-  }, [getElapsedMs, state.phase])
+  }, [getElapsedMs, playTypingSound, state.phase])
 
   // 참가자 정보가 없으면 참가자 확인 화면으로 보낸다. (팀 확정: 목적지만 /participate)
   if (!participant) return <Navigate to={ROUTES.PARTICIPATE} replace />
@@ -358,13 +362,24 @@ export function GamePage() {
         }`}
       >
         {showExit && !isPrepPhase && (
-          <button
-            type="button"
-            className="game-exit-button"
-            onClick={() => setExitOpen(true)}
-          >
-            게임 종료
-          </button>
+          <div className="game-utility-controls">
+            <button
+              type="button"
+              className="game-sound-button"
+              aria-label={soundEnabled ? '타건음 끄기' : '타건음 켜기'}
+              onClick={toggleSound}
+            >
+              {soundEnabled ? <Volume2 aria-hidden /> : <VolumeX aria-hidden />}
+              <span>타건음</span>
+            </button>
+            <button
+              type="button"
+              className="game-exit-button"
+              onClick={() => setExitOpen(true)}
+            >
+              게임 종료
+            </button>
+          </div>
         )}
         {state.phase !== 'PLAYING' && (
           <div className="mb-6 flex items-center justify-between gap-3">
