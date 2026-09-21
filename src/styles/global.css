@@ -940,6 +940,38 @@
 .game-exit-button:hover {
   background: #fffdf6;
 }
+.game-utility-controls {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 8;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.game-utility-controls .game-exit-button {
+  position: static;
+}
+.game-sound-button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid rgb(34 31 29 / 42%);
+  border-radius: 999px;
+  background: rgb(255 249 235 / 92%);
+  color: #221f1d;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgb(35 20 12 / 16%);
+}
+.game-sound-button:hover {
+  background: #fffdf6;
+}
+.game-sound-button svg {
+  width: 16px;
+  height: 16px;
+}
 .game-exit-button--prep {
   position: static;
   display: block;
@@ -994,6 +1026,13 @@
   to { opacity: 1; transform: translateY(0); }
 }
 @media (max-width: 900px) {
+  .game-utility-controls {
+    top: 12px;
+    right: 12px;
+  }
+  .game-sound-button span {
+    display: none;
+  }
   .typewriter-game-stage {
     min-height: 720px;
     aspect-ratio: auto;

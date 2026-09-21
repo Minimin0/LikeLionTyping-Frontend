@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SessionProvider } from '../../app/session'
 import { ApiError, apiClient } from '../../shared/api/client'
 import { GamePage } from './GamePage'
@@ -28,6 +28,23 @@ const gameStart = {
   passConsumed: true,
   availablePassCount: 1,
 }
+
+let audioInstances: { play: ReturnType<typeof vi.fn> }[] = []
+
+beforeEach(() => {
+  audioInstances = []
+  class FakeAudio {
+    currentTime = 0
+    preload = ''
+    volume = 1
+    play = vi.fn(() => Promise.resolve())
+
+    constructor() {
+      audioInstances.push(this)
+    }
+  }
+  vi.stubGlobal('Audio', FakeAudio)
+})
 
 function mockGet(availablePassCount: number, activeGame: null | { gameSessionId: number; categoryId: number } = null) {
   return vi.spyOn(apiClient, 'get').mockImplementation((url) => {
@@ -64,6 +81,7 @@ afterEach(() => {
   cleanup()
   sessionStorage.clear()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('GamePage pass count', () => {
@@ -218,5 +236,20 @@ describe('GamePage pass count', () => {
     await waitFor(() => {
       expect(container.querySelector('.broadcast-progress .is-active span')).toHaveTextContent('2')
     })
+  })
+
+  it('does not play typing sounds before PLAYING', async () => {
+    mockGet(1)
+    sessionStorage.setItem('participant', JSON.stringify(participant(1)))
+    sessionStorage.setItem(
+      'activeGame',
+      JSON.stringify({ ...gameStart, currentIndex: 0, startedAtMs: null }),
+    )
+
+    renderPage()
+    await screen.findByRole('button', { name: '3초 카운트다운 시작' })
+    fireEvent.keyDown(window, { code: 'KeyA' })
+
+    expect(audioInstances).toHaveLength(0)
   })
 })
