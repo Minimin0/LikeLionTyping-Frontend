@@ -21,6 +21,7 @@ import { ParticipantStatus } from '../shared/ParticipantStatus'
 export default function App() {
   const { pathname } = useLocation()
   const { participant, setParticipant } = useSession()
+  const isAdminRoute = pathname.startsWith(ROUTES.ADMIN)
   const showParticipantStatus = pathname === ROUTES.LANDING && participant
   const playState = useQuery({
     queryKey: ['participant', 'play-state', participant?.participantId],
@@ -41,14 +42,16 @@ export default function App() {
 
   return (
     // 디자인 전용 레이아웃이다. 라우트, 세션, API 호출은 아래 Routes 그대로 유지한다.
-    <div className="radio-app">
+    <div className={`radio-app${isAdminRoute ? ' radio-app-admin' : ''}`}>
       <header className="radio-header">
         <div className="radio-header-inner">
-          <Link
-            to={ROUTES.LANDING}
-            className="radio-brand"
-          >
-            <strong>LIKELION TYPING</strong><span aria-hidden="true">/</span><span>성결대학교 축제 부스</span>
+          <Link to={ROUTES.LANDING} className="radio-brand">
+            <strong>LIKELION TYPING</strong>
+            <span aria-hidden="true">/</span>
+            <span className="radio-brand-public">성결대학교 축제 부스</span>
+            <span className="radio-brand-admin" aria-hidden="true">
+              운영자 콘솔
+            </span>
           </Link>
           <nav aria-label="주요 메뉴" className="radio-nav">
             {showParticipantStatus && (
@@ -59,18 +62,12 @@ export default function App() {
             )}
             {/* 참가자 화면에는 운영자 진입 링크를 노출하지 않는다. 운영자는 /admin으로 직접 접근한다. */}
             {pathname !== ROUTES.LANDING && (
-              <Link
-                className="radio-nav-link"
-                to={ROUTES.LANDING}
-              >
+              <Link className="radio-nav-link" to={ROUTES.LANDING}>
                 <UserRound className="size-4" /> 참가자 화면
               </Link>
             )}
             {pathname !== ROUTES.RANKINGS && (
-              <Link
-                className="radio-nav-link"
-                to={ROUTES.RANKINGS}
-              >
+              <Link className="radio-nav-link" to={ROUTES.RANKINGS}>
                 <Trophy className="size-4" /> 랭킹
               </Link>
             )}

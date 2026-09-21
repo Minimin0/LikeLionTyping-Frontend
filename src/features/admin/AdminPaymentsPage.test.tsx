@@ -57,8 +57,8 @@ describe('AdminPaymentsPage', () => {
     expect(await screen.findAllByText('1,000원')).toHaveLength(2)
     expect(screen.getByText('1건')).toBeInTheDocument()
     expect(screen.getByText('2회')).toBeInTheDocument()
-    expect(screen.getByText('민민')).toBeInTheDocument()
-    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
+    expect(screen.getAllByText('민민')).toHaveLength(2)
+    expect(screen.getAllByText('010-1234-5678')).toHaveLength(2)
     expect(screen.getByRole('link', { name: /운영자 콘솔/ })).toHaveAttribute(
       'href',
       '/admin',
@@ -73,20 +73,28 @@ describe('AdminPaymentsPage', () => {
     expect(await screen.findByText('0원')).toBeInTheDocument()
     expect(screen.getByText('0건')).toBeInTheDocument()
     expect(screen.getByText('0회')).toBeInTheDocument()
-    expect(screen.getByText('아직 등록된 결제 기록이 없습니다.')).toBeInTheDocument()
+    expect(
+      screen.getByText('아직 등록된 결제 기록이 없습니다.'),
+    ).toBeInTheDocument()
   })
 
   it('shows loading and error states', async () => {
-    vi.spyOn(apiClient, 'get').mockRejectedValue(new ApiError('NETWORK_ERROR', 0))
+    vi.spyOn(apiClient, 'get').mockRejectedValue(
+      new ApiError('NETWORK_ERROR', 0),
+    )
 
     renderPage()
 
     expect(screen.getByText(/결제 현황을 불러오는 중/)).toBeInTheDocument()
-    expect(await screen.findByRole('alert')).toHaveTextContent('서버에 연결할 수 없습니다')
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '서버에 연결할 수 없습니다',
+    )
   })
 
   it('refetches with the refresh button', async () => {
-    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({ data: history([]) })
+    const get = vi
+      .spyOn(apiClient, 'get')
+      .mockResolvedValue({ data: history([]) })
     const user = userEvent.setup()
     renderPage()
 
@@ -115,9 +123,15 @@ type PaymentFixture = {
 
 function history(payments: PaymentFixture[]) {
   return {
-    totalPaymentAmountKrw: payments.reduce((sum, payment) => sum + payment.amountKrw, 0),
+    totalPaymentAmountKrw: payments.reduce(
+      (sum, payment) => sum + payment.amountKrw,
+      0,
+    ),
     totalPaymentCount: payments.length,
-    totalPaidPassQuantity: payments.reduce((sum, payment) => sum + payment.quantity, 0),
+    totalPaidPassQuantity: payments.reduce(
+      (sum, payment) => sum + payment.quantity,
+      0,
+    ),
     payments,
   }
 }

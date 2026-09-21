@@ -13,7 +13,12 @@ import {
   issuePaidPass,
   searchAdminParticipants,
 } from '../../shared/api/endpoints'
-import type { AdminParticipant, AdminParticipantSearchResult, GameStatus, PlayPass } from '../../shared/api/types'
+import type {
+  AdminParticipant,
+  AdminParticipantSearchResult,
+  GameStatus,
+  PlayPass,
+} from '../../shared/api/types'
 import { Busy } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
 import { useAdminAuth } from './AdminAuth'
@@ -25,17 +30,17 @@ import lpRed from './assets/images/LP_red.png'
 // state, API calls, and error branching below are unchanged from the
 // original implementation; only markup/classNames were replaced.
 const panel =
-  'admin-studio rounded-lg border border-[#ddd2bc] border-t-[3px] border-t-[#730c02] bg-[#fffdf8] p-6 shadow-sm sm:p-8'
+  'admin-studio rounded-lg border border-[#ddd2bc] border-t-[3px] border-t-[#730c02] bg-[#fffdf8] p-4 shadow-sm sm:p-8'
 const brandLine =
   "flex items-center gap-2 font-['Maru_Buri'] text-[11px] tracking-[0.12em] text-[#7a675c]"
 const primaryButton =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#730c02] px-4 py-2 font-['Maru_Buri'] font-semibold text-[#f4f5f0] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
 const issueButton =
-  "inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-[#730c02] px-4 py-2 font-['Maru_Buri'] text-sm font-semibold text-[#f4f5f0] shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#730c02] px-4 py-2 font-['Maru_Buri'] text-sm font-semibold text-[#f4f5f0] shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
 const invalidateButton =
-  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-[#b5301f]/30 bg-[#b5301f]/5 px-3.5 py-1.5 font-['Maru_Buri'] text-sm font-semibold text-[#b5301f] transition hover:border-[#b5301f]/60 hover:bg-[#b5301f]/10 disabled:cursor-not-allowed disabled:opacity-50"
+  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-[#b5301f]/30 bg-[#b5301f]/5 px-3.5 py-1.5 font-['Maru_Buri'] text-sm font-semibold text-[#b5301f] transition hover:border-[#b5301f]/60 hover:bg-[#b5301f]/10 disabled:cursor-not-allowed disabled:opacity-50"
 const fieldInput =
-  'min-h-11 w-full rounded-lg border border-[#ddd2bc] bg-[#ece3d3] px-3 py-2 text-[#221f1d] outline-none transition focus:border-[#730c02]'
+  'min-h-11 w-full rounded-lg border border-[#ddd2bc] bg-[#ece3d3] px-3 py-2 text-base text-[#221f1d] outline-none transition focus:border-[#730c02]'
 
 const STATUS_LABEL: Record<GameStatus | PlayPass['status'], string> = {
   AVAILABLE: '사용 가능',
@@ -109,21 +114,28 @@ export function AdminPage() {
   const issue = useMutation({
     mutationFn: () => issuePaidPass(token!, participant!.id, quantity),
     onSuccess: (result) => {
-      setNotice(`PAID ${result.quantity}회 · ${formatKrw(result.amountKrw)} 결제를 기록했습니다.`)
+      setNotice(
+        `PAID ${result.quantity}회 · ${formatKrw(result.amountKrw)} 결제를 기록했습니다.`,
+      )
       search.mutate({ query: participant!.phone })
       dashboard.refetch()
     },
     onError: authFailure,
   })
   const invalidate = useMutation({
-    mutationFn: () => invalidateGame(
-      token!,
-      invalidateDraft.sessionId,
-      invalidateDraft.restorePass,
-      invalidateDraft.reason,
-    ),
+    mutationFn: () =>
+      invalidateGame(
+        token!,
+        invalidateDraft.sessionId,
+        invalidateDraft.restorePass,
+        invalidateDraft.reason,
+      ),
     onSuccess: () => {
-      setNotice(invalidateDraft.restorePass ? '경기를 무효화하고 이용권을 복구했습니다.' : '경기를 무효화했습니다.')
+      setNotice(
+        invalidateDraft.restorePass
+          ? '경기를 무효화하고 이용권을 복구했습니다.'
+          : '경기를 무효화했습니다.',
+      )
       search.mutate({ query: participant!.phone })
       dashboard.refetch()
       setInvalidateDraft({ sessionId: 0, reason: '', restorePass: true })
@@ -164,11 +176,17 @@ export function AdminPage() {
             </p>
           )}
           {login.error && (
-            <p role="alert" className="rounded-lg bg-[#b5301f]/10 px-4 py-3 text-sm font-medium text-[#b5301f]">
+            <p
+              role="alert"
+              className="rounded-lg bg-[#b5301f]/10 px-4 py-3 text-sm font-medium text-[#b5301f]"
+            >
               {errorMessage(login.error)}
             </p>
           )}
-          <button className={`${primaryButton} w-full`} disabled={login.isPending}>
+          <button
+            className={`${primaryButton} w-full`}
+            disabled={login.isPending}
+          >
             {login.isPending ? <Busy label="인증 중" /> : '로그인'}
           </button>
         </form>
@@ -178,7 +196,7 @@ export function AdminPage() {
   const actionError = issue.error ?? invalidate.error ?? search.error
   return (
     <section className={`${panel} radio-admin-page`}>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="relative size-9 shrink-0">
             <img
@@ -202,8 +220,9 @@ export function AdminPage() {
           </div>
         </div>
         <button
-          className="rounded-lg p-2 text-[#7a675c] hover:bg-[#ece3d3]"
+          className="grid size-11 place-items-center rounded-lg text-[#7a675c] hover:bg-[#ece3d3]"
           title="로그아웃"
+          aria-label="로그아웃"
           onClick={() => {
             setToken(null)
             setParticipant(null)
@@ -216,7 +235,7 @@ export function AdminPage() {
       </div>
       {dashboard.data && (
         <div className="mb-6 space-y-4">
-          <div className="grid gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <Metric
               label="참가자"
               value={dashboard.data.totalParticipants}
@@ -228,25 +247,47 @@ export function AdminPage() {
               value={formatKrw(dashboard.data.totalPaymentAmountKrw)}
               to={ROUTES.ADMIN_PAYMENTS}
             />
-            <Metric label="남은 PAID" value={dashboard.data.availablePaidPassCount} />
+            <Metric
+              label="남은 PAID"
+              value={dashboard.data.availablePaidPassCount}
+            />
             <Metric label="FREE 플레이" value={dashboard.data.freePlayCount} />
             <Metric label="PAID 플레이" value={dashboard.data.paidPlayCount} />
-            <Metric label="완료 경기" value={dashboard.data.completedGameCount} />
-            <Metric label="무효 경기" value={dashboard.data.invalidatedGameCount} />
+            <Metric
+              label="완료 경기"
+              value={dashboard.data.completedGameCount}
+            />
+            <Metric
+              label="무효 경기"
+              value={dashboard.data.invalidatedGameCount}
+            />
           </div>
           <div className="rounded-lg bg-[#ece3d3]/60 p-4">
-            <p className="mb-3 font-['Maru_Buri'] font-semibold text-[#221f1d]">채널별 플레이</p>
+            <p className="mb-3 font-['Maru_Buri'] font-semibold text-[#221f1d]">
+              채널별 플레이
+            </p>
             {[
               ['CH01', dashboard.data.ch01PlayCount],
               ['CH02', dashboard.data.ch02PlayCount],
               ['CH03', dashboard.data.ch03PlayCount],
             ].map(([code, count]) => {
-              const max = Math.max(dashboard.data.ch01PlayCount, dashboard.data.ch02PlayCount, dashboard.data.ch03PlayCount, 1)
+              const max = Math.max(
+                dashboard.data.ch01PlayCount,
+                dashboard.data.ch02PlayCount,
+                dashboard.data.ch03PlayCount,
+                1,
+              )
               return (
-                <div key={code} className="mb-2 grid grid-cols-[52px_1fr_42px] items-center gap-2 text-sm">
+                <div
+                  key={code}
+                  className="mb-2 grid grid-cols-[52px_minmax(0,1fr)_max-content] items-center gap-2 text-sm"
+                >
                   <span>{code}</span>
                   <span className="h-2 rounded-full bg-[#ddd2bc]">
-                    <span className="block h-2 rounded-full bg-[#730c02]" style={{ width: `${(Number(count) / max) * 100}%` }} />
+                    <span
+                      className="block h-2 rounded-full bg-[#730c02]"
+                      style={{ width: `${(Number(count) / max) * 100}%` }}
+                    />
                   </span>
                   <span className="text-right tabular">{count}</span>
                 </div>
@@ -256,7 +297,7 @@ export function AdminPage() {
         </div>
       )}
       <form
-        className="flex gap-2"
+        className="grid gap-2 md:flex"
         onSubmit={searchForm.handleSubmit((values) => {
           setNotice('')
           setParticipant(null)
@@ -269,8 +310,19 @@ export function AdminPage() {
           placeholder="전화번호 또는 닉네임"
           {...searchForm.register('query')}
         />
-        <button className={primaryButton} disabled={search.isPending} title="검색">
-          {search.isPending ? <Busy label="" /> : <Search className="size-5" />}
+        <button
+          className={`${primaryButton} w-full md:w-auto`}
+          disabled={search.isPending}
+          title="검색"
+        >
+          {search.isPending ? (
+            <Busy label="검색 중" />
+          ) : (
+            <>
+              <Search className="size-5" />
+              검색
+            </>
+          )}
         </button>
       </form>
       {searchForm.formState.errors.query && (
@@ -280,7 +332,10 @@ export function AdminPage() {
       )}
       {Boolean(actionError) && (
         <div className="mt-4">
-          <p role="alert" className="rounded-lg bg-[#b5301f]/10 px-4 py-3 text-sm font-medium text-[#b5301f]">
+          <p
+            role="alert"
+            className="rounded-lg bg-[#b5301f]/10 px-4 py-3 text-sm font-medium text-[#b5301f]"
+          >
             {errorMessage(actionError)}
           </p>
         </div>
@@ -304,7 +359,7 @@ export function AdminPage() {
             <button
               key={result.id}
               type="button"
-              className="flex w-full items-center justify-between gap-3 rounded-lg bg-[#ece3d3]/60 p-3 text-left transition hover:bg-[#ece3d3]"
+              className="grid min-h-14 w-full gap-1 rounded-lg bg-[#ece3d3]/60 p-3 text-left transition hover:bg-[#ece3d3] md:flex md:items-center md:justify-between md:gap-3"
               onClick={() => setParticipant(result)}
             >
               <span className="font-['Maru_Buri'] font-semibold text-[#221f1d]">
@@ -312,7 +367,10 @@ export function AdminPage() {
               </span>
               <span className="text-sm text-[#7a675c]">
                 {result.phone} · 이용권{' '}
-                {result.passes.filter((pass) => pass.status === 'AVAILABLE').length}
+                {
+                  result.passes.filter((pass) => pass.status === 'AVAILABLE')
+                    .length
+                }
                 장
               </span>
             </button>
@@ -321,36 +379,80 @@ export function AdminPage() {
       )}
       {participant && (
         <div className="mt-7 space-y-7">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-y border-[#ddd2bc] py-4">
+          <div className="grid gap-4 border-y border-[#ddd2bc] py-4 md:flex md:items-center md:justify-between md:gap-3">
             <div>
               <strong className="font-['Maru_Buri'] text-lg font-semibold text-[#221f1d]">
                 {participant.nickname}
               </strong>
               <p className="text-sm text-[#7a675c]">
-                {participant.phone} · 이용권 {participant.summary.availablePassCount}장 사용 가능 · PAID {participant.summary.availablePaidPassCount}장
+                {participant.phone} · 이용권{' '}
+                {participant.summary.availablePassCount}장 사용 가능 · PAID{' '}
+                {participant.summary.availablePaidPassCount}장
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button className={invalidateButton} type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="발급 수량 감소">
-                <Minus className="size-4" />
-              </button>
-              <span className="min-w-20 text-center font-['Maru_Buri'] font-semibold">{quantity}회</span>
-              <button className={invalidateButton} type="button" onClick={() => setQuantity(quantity + 1)} aria-label="발급 수량 증가">
-                <Plus className="size-4" />
-              </button>
-              <span className="text-sm font-bold text-[#730c02]">{formatKrw(quantity * 500)}</span>
-              <button className={issueButton} disabled={issue.isPending} onClick={() => issue.mutate()}>
-                {issue.isPending ? <Busy label="발급 중" /> : 'PAID 발급'}
+            <div className="grid gap-3 rounded-lg bg-[#ece3d3]/45 p-3 md:flex md:flex-wrap md:items-center md:bg-transparent md:p-0">
+              <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
+                <button
+                  className={`${invalidateButton} min-w-11 rounded-lg px-0`}
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  aria-label="발급 수량 감소"
+                >
+                  <Minus className="size-4" />
+                </button>
+                <span className="min-w-20 text-center font-['Maru_Buri'] font-semibold">
+                  {quantity}회
+                </span>
+                <button
+                  className={`${invalidateButton} min-w-11 rounded-lg px-0`}
+                  type="button"
+                  onClick={() => setQuantity(quantity + 1)}
+                  aria-label="발급 수량 증가"
+                >
+                  <Plus className="size-4" />
+                </button>
+              </div>
+              <span className="text-center text-sm font-bold text-[#730c02] md:text-left">
+                {formatKrw(quantity * 500)}
+              </span>
+              <button
+                className={`${issueButton} w-full md:w-auto`}
+                disabled={issue.isPending}
+                onClick={() => issue.mutate()}
+              >
+                {issue.isPending ? (
+                  <Busy label="발급 중" />
+                ) : (
+                  `PAID ${quantity}회 발급`
+                )}
               </button>
             </div>
           </div>
-          <div className="grid gap-2 sm:grid-cols-4">
-            <Metric label="FREE 사용" value={participant.summary.freeParticipationUsed ? '사용됨' : '가능'} />
-            <Metric label="총 경기" value={participant.summary.totalPlayCount} />
-            <Metric label="완료 / 무효" value={`${participant.summary.completedGameCount} / ${participant.summary.invalidatedGameCount}`} />
-            <Metric label="결제 합계" value={formatKrw(participant.summary.totalPaymentAmountKrw)} />
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+            <Metric
+              label="FREE 사용"
+              value={
+                participant.summary.freeParticipationUsed ? '사용됨' : '가능'
+              }
+            />
+            <Metric
+              label="총 경기"
+              value={participant.summary.totalPlayCount}
+            />
+            <Metric
+              label="완료 / 무효"
+              value={`${participant.summary.completedGameCount} / ${participant.summary.invalidatedGameCount}`}
+            />
+            <Metric
+              label="결제 합계"
+              value={formatKrw(participant.summary.totalPaymentAmountKrw)}
+            />
             {participant.summary.bestRecords.map((record) => (
-              <Metric key={record.categoryCode} label={`${record.categoryCode} 최고`} value={formatElapsedMs(record.elapsedMs)} />
+              <Metric
+                key={record.categoryCode}
+                label={`${record.categoryCode} 최고`}
+                value={formatElapsedMs(record.elapsedMs)}
+              />
             ))}
           </div>
           <div>
@@ -362,8 +464,30 @@ export function AdminPage() {
             ) : (
               <ul className="space-y-2">
                 {participant.payments.map((payment) => (
-                  <li key={payment.id} className="rounded-lg bg-[#ece3d3]/60 p-3 text-sm text-[#5f5651]">
-                    {new Date(payment.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · {participant.nickname} · {formatKrw(payment.amountKrw)} 결제 · PAID +{payment.quantity}회
+                  <li
+                    key={payment.id}
+                    className="grid gap-1 rounded-lg bg-[#ece3d3]/60 p-3 text-sm text-[#5f5651] md:block"
+                  >
+                    <span className="tabular">
+                      {new Date(payment.createdAt).toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                    <span className="hidden md:inline">
+                      {' '}
+                      · {participant.nickname} ·{' '}
+                    </span>
+                    <strong className="text-[#221f1d] md:font-normal">
+                      {formatKrw(payment.amountKrw)}
+                    </strong>
+                    <span className="md:hidden">
+                      PAID +{payment.quantity}회
+                    </span>
+                    <span className="hidden md:inline">
+                      {' '}
+                      결제 · PAID +{payment.quantity}회
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -380,23 +504,30 @@ export function AdminPage() {
                 {participant.gameSessions.map((session) => (
                   <li
                     key={session.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-[#ece3d3]/60 p-3"
+                    className="grid gap-3 rounded-lg bg-[#ece3d3]/60 p-3 md:flex md:flex-wrap md:items-center md:justify-between"
                   >
                     <div>
                       <strong className="text-[#221f1d]">
                         #{session.id} · {STATUS_LABEL[session.status]}
                       </strong>
                       <p className="text-xs text-[#7a675c]">
-                        카테고리 {session.categoryId} · {formatElapsedMs(session.elapsedMs)}
+                        카테고리 {session.categoryId} ·{' '}
+                        {formatElapsedMs(session.elapsedMs)}
                       </p>
                     </div>
                     {session.status !== 'INVALIDATED' && (
-                      <div className="w-full space-y-2 sm:w-auto">
+                      <div className="w-full space-y-2 md:w-auto">
                         {invalidateDraft.sessionId !== session.id ? (
                           <button
-                            className={invalidateButton}
+                            className={`${invalidateButton} w-full md:w-auto`}
                             disabled={invalidate.isPending}
-                            onClick={() => setInvalidateDraft({ sessionId: session.id, reason: '', restorePass: true })}
+                            onClick={() =>
+                              setInvalidateDraft({
+                                sessionId: session.id,
+                                reason: '',
+                                restorePass: true,
+                              })
+                            }
                           >
                             <Undo2 className="size-4" />
                             무효 처리
@@ -407,18 +538,37 @@ export function AdminPage() {
                               className={fieldInput}
                               placeholder="무효 처리 사유"
                               value={invalidateDraft.reason}
-                              onChange={(event) => setInvalidateDraft({ ...invalidateDraft, reason: event.target.value })}
+                              onChange={(event) =>
+                                setInvalidateDraft({
+                                  ...invalidateDraft,
+                                  reason: event.target.value,
+                                })
+                              }
                             />
-                            <label className="flex items-center gap-2 text-sm text-[#5f5651]">
+                            <label className="flex min-h-11 items-center gap-2 text-sm text-[#5f5651]">
                               <input
                                 type="checkbox"
+                                className="size-5"
                                 checked={invalidateDraft.restorePass}
-                                onChange={(event) => setInvalidateDraft({ ...invalidateDraft, restorePass: event.target.checked })}
+                                onChange={(event) =>
+                                  setInvalidateDraft({
+                                    ...invalidateDraft,
+                                    restorePass: event.target.checked,
+                                  })
+                                }
                               />
                               이용권 복구
                             </label>
-                            <button className={invalidateButton} disabled={invalidate.isPending} onClick={() => invalidate.mutate()}>
-                              {invalidate.isPending ? <Busy label="처리 중" /> : '무효 처리 확정'}
+                            <button
+                              className={`${invalidateButton} w-full md:w-auto`}
+                              disabled={invalidate.isPending}
+                              onClick={() => invalidate.mutate()}
+                            >
+                              {invalidate.isPending ? (
+                                <Busy label="처리 중" />
+                              ) : (
+                                '무효 처리 확정'
+                              )}
                             </button>
                           </div>
                         )}
@@ -435,14 +585,32 @@ export function AdminPage() {
   )
 }
 
-function Metric({ label, value, to }: { label: string; value: number | string; to?: string }) {
-  const className = "block rounded-lg bg-[#ece3d3]/60 p-3 transition hover:bg-[#ece3d3] focus:outline-none focus:ring-2 focus:ring-[#730c02]/40"
+function Metric({
+  label,
+  value,
+  to,
+}: {
+  label: string
+  value: number | string
+  to?: string
+}) {
+  const className =
+    'block min-h-14 rounded-lg bg-[#ece3d3]/60 p-3 transition hover:bg-[#ece3d3] focus:outline-none focus:ring-2 focus:ring-[#730c02]/40'
   const content = (
     <>
       <p className="text-xs font-bold text-[#7a675c]">{label}</p>
-      <p className="mt-1 font-['Maru_Buri'] text-lg font-semibold text-[#221f1d] tabular">{value}</p>
+      <p className="mt-1 font-['Maru_Buri'] text-lg font-semibold text-[#221f1d] tabular">
+        {value}
+      </p>
     </>
   )
-  if (to) return <Link className={className} to={to}>{content}</Link>
-  return <div className="rounded-lg bg-[#ece3d3]/60 p-3">{content}</div>
+  if (to)
+    return (
+      <Link className={className} to={to}>
+        {content}
+      </Link>
+    )
+  return (
+    <div className="min-h-14 rounded-lg bg-[#ece3d3]/60 p-3">{content}</div>
+  )
 }

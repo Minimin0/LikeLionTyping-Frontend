@@ -53,9 +53,11 @@ describe('AdminParticipantsPage', () => {
 
     expect(await screen.findByText('1명')).toBeInTheDocument()
     expect(screen.getByText('참가자 목록')).toBeInTheDocument()
-    expect(screen.getByText('민민')).toBeInTheDocument()
-    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
-    expect(screen.getByText(/오.|[0-9]{2}:/)).toBeInTheDocument()
+    expect(screen.getAllByText('민민')).toHaveLength(2)
+    expect(screen.getAllByText('010-1234-5678')).toHaveLength(2)
+    expect(screen.getAllByText(/오.|[0-9]{2}:/).length).toBeGreaterThanOrEqual(
+      2,
+    )
     expect(screen.getByRole('link', { name: /운영자 콘솔/ })).toHaveAttribute(
       'href',
       '/admin',
@@ -68,20 +70,28 @@ describe('AdminParticipantsPage', () => {
     renderPage()
 
     expect(await screen.findByText('0명')).toBeInTheDocument()
-    expect(screen.getByText('아직 등록된 참가자가 없습니다.')).toBeInTheDocument()
+    expect(
+      screen.getByText('아직 등록된 참가자가 없습니다.'),
+    ).toBeInTheDocument()
   })
 
   it('shows loading and error states', async () => {
-    vi.spyOn(apiClient, 'get').mockRejectedValue(new ApiError('NETWORK_ERROR', 0))
+    vi.spyOn(apiClient, 'get').mockRejectedValue(
+      new ApiError('NETWORK_ERROR', 0),
+    )
 
     renderPage()
 
     expect(screen.getByText(/참가자 현황을 불러오는 중/)).toBeInTheDocument()
-    expect(await screen.findByRole('alert')).toHaveTextContent('서버에 연결할 수 없습니다')
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '서버에 연결할 수 없습니다',
+    )
   })
 
   it('refetches with the refresh button', async () => {
-    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({ data: history([]) })
+    const get = vi
+      .spyOn(apiClient, 'get')
+      .mockResolvedValue({ data: history([]) })
     const user = userEvent.setup()
     renderPage()
 
