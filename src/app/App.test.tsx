@@ -65,7 +65,9 @@ describe('App home participant status', () => {
 
     expect(screen.getByText('노태경 님')).toBeInTheDocument()
     expect(await screen.findByText('남은 이용권 3장')).toBeInTheDocument()
-    expect(JSON.parse(sessionStorage.getItem('participant') ?? '{}')).toMatchObject({
+    expect(
+      JSON.parse(sessionStorage.getItem('participant') ?? '{}'),
+    ).toMatchObject({
       availablePassCount: 3,
     })
   })
@@ -105,13 +107,17 @@ describe('App admin payment navigation auth', () => {
     await user.click(paymentLink)
 
     expect(post).toHaveBeenCalledWith('/admin/login', { password: 'admin' })
-    expect(await screen.findByRole('heading', { name: '결제 현황' })).toBeInTheDocument()
-    expect(screen.queryByText('운영진 로그인이 필요합니다')).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: '결제 현황' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('운영진 로그인이 필요합니다'),
+    ).not.toBeInTheDocument()
     expect(screen.getByText('21,000원')).toBeInTheDocument()
     expect(screen.getByText('7건')).toBeInTheDocument()
     expect(screen.getByText('42회')).toBeInTheDocument()
-    expect(screen.getByText('민민')).toBeInTheDocument()
-    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
+    expect(screen.getAllByText('민민')).toHaveLength(2)
+    expect(screen.getAllByText('010-1234-5678')).toHaveLength(2)
     expect(screen.getByText('1,000원')).toBeInTheDocument()
     expect(screen.getByText('+2회')).toBeInTheDocument()
     expect(get).toHaveBeenCalledWith('/admin/payments', {
@@ -125,9 +131,13 @@ describe('App admin payment navigation auth', () => {
     const user = userEvent.setup()
     const rendered = renderApp(['/admin/payments'])
 
-    expect(await screen.findByRole('heading', { name: '결제 현황' })).toBeInTheDocument()
-    await user.click(screen.getByRole('link', { name: /운영자 콘솔/ }))
-    expect(await screen.findByRole('heading', { name: '참가자 관리' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: '결제 현황' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getAllByRole('link', { name: /운영자 콘솔/ })[0])
+    expect(
+      await screen.findByRole('heading', { name: '참가자 관리' }),
+    ).toBeInTheDocument()
     expect(screen.queryByText('운영진 로그인')).not.toBeInTheDocument()
     await user.click(screen.getByTitle('로그아웃'))
     expect(sessionStorage.getItem('likelion-admin-token')).toBeNull()
@@ -137,7 +147,9 @@ describe('App admin payment navigation auth', () => {
     get.mockRejectedValueOnce(new ApiError('ADMIN_UNAUTHORIZED', 403))
     renderApp(['/admin/payments'])
 
-    expect(await screen.findByText('운영진 로그인이 필요합니다')).toBeInTheDocument()
+    expect(
+      await screen.findByText('운영진 로그인이 필요합니다'),
+    ).toBeInTheDocument()
     expect(sessionStorage.getItem('likelion-admin-token')).toBeNull()
   })
 })
@@ -153,22 +165,30 @@ describe('App admin participant navigation auth', () => {
 
     await user.type(screen.getByLabelText('관리자 비밀번호'), 'admin')
     await user.click(screen.getByRole('button', { name: '로그인' }))
-    const participantLink = await screen.findByRole('link', { name: /^참가자\s*2/ })
+    const participantLink = await screen.findByRole('link', {
+      name: /^참가자\s*2/,
+    })
 
     await user.click(participantLink)
 
     expect(post).toHaveBeenCalledWith('/admin/login', { password: 'admin' })
-    expect(await screen.findByRole('heading', { name: '참가자 현황' })).toBeInTheDocument()
-    expect(screen.queryByText('운영진 로그인이 필요합니다')).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: '참가자 현황' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('운영진 로그인이 필요합니다'),
+    ).not.toBeInTheDocument()
     expect(screen.getByText('2명')).toBeInTheDocument()
-    expect(screen.getByText('민민')).toBeInTheDocument()
-    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
+    expect(screen.getAllByText('민민')).toHaveLength(2)
+    expect(screen.getAllByText('010-1234-5678')).toHaveLength(2)
     expect(get).toHaveBeenCalledWith('/admin/participants/all', {
       headers: { Authorization: 'Bearer admin-token' },
     })
 
-    await user.click(screen.getByRole('link', { name: /운영자 콘솔/ }))
-    expect(await screen.findByRole('heading', { name: '참가자 관리' })).toBeInTheDocument()
+    await user.click(screen.getAllByRole('link', { name: /운영자 콘솔/ })[0])
+    expect(
+      await screen.findByRole('heading', { name: '참가자 관리' }),
+    ).toBeInTheDocument()
     expect(screen.queryByText('운영진 로그인')).not.toBeInTheDocument()
   })
 })
@@ -230,6 +250,8 @@ function mockAdminGets() {
           ],
         },
       })
-    return Promise.reject(new Error(`unexpected GET ${url} ${JSON.stringify(config)}`))
+    return Promise.reject(
+      new Error(`unexpected GET ${url} ${JSON.stringify(config)}`),
+    )
   })
 }

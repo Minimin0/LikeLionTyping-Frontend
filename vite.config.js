@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, loadEnv } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 /**
  * 실제 API 응답 타입(shared/api/types.ts)과 동일한 형태로 맞춘 고정 데이터.
@@ -82,7 +83,7 @@ function devMockApiPlugin() {
   let nextParticipantId = 4
   let nextGameSessionId = 4
   let nextPassId = 7
-  let nextPaymentId = 1
+  let nextPaymentId = 2
   const participantsByPhone = new Map()
   const gameSessions = new Map()
   const bestByParticipantCategory = new Map()
@@ -90,9 +91,24 @@ function devMockApiPlugin() {
   const adminToken = 'dev-admin-token'
 
   const seededParticipants = [
-    { participantId: 1, nickname: '타자왕', phone: '01012345678', elapsedMs: 36120 },
-    { participantId: 2, nickname: '사자왕', phone: '01022223333', elapsedMs: 38990 },
-    { participantId: 3, nickname: '코딩사자', phone: '01033334444', elapsedMs: 43821 },
+    {
+      participantId: 1,
+      nickname: '타자왕',
+      phone: '01012345678',
+      elapsedMs: 36120,
+    },
+    {
+      participantId: 2,
+      nickname: '사자왕',
+      phone: '01022223333',
+      elapsedMs: 38990,
+    },
+    {
+      participantId: 3,
+      nickname: '코딩사자',
+      phone: '01033334444',
+      elapsedMs: 43821,
+    },
   ]
   seededParticipants.forEach((seed, index) => {
     const passId = index + 1
@@ -109,7 +125,14 @@ function devMockApiPlugin() {
           createdAt: '2026-09-14T00:00:00Z',
         },
         ...(index === 0
-          ? [{ id: 4, type: 'PAID', status: 'AVAILABLE', createdAt: '2026-09-14T00:10:00Z' }]
+          ? [
+              {
+                id: 4,
+                type: 'PAID',
+                status: 'AVAILABLE',
+                createdAt: '2026-09-14T00:10:00Z',
+              },
+            ]
           : []),
       ],
     })
@@ -122,10 +145,17 @@ function devMockApiPlugin() {
       status: 'COMPLETED',
       elapsedMs: seed.elapsedMs,
       startedAt: '2026-09-14T00:20:00Z',
-        completedAt: '2026-09-14T00:21:00Z',
-        invalidationReason: null,
-      })
+      completedAt: '2026-09-14T00:21:00Z',
+      invalidationReason: null,
+    })
     bestByParticipantCategory.set(`${seed.participantId}:1`, seed.elapsedMs)
+  })
+  payments.push({
+    id: 1,
+    participantId: 1,
+    quantity: 1,
+    amountKrw: 500,
+    createdAt: '2026-09-14T00:12:00Z',
   })
 
   const findParticipantById = (participantId) => {
@@ -138,7 +168,8 @@ function devMockApiPlugin() {
   const rankingRows = (categoryId) => {
     const bestByParticipant = new Map()
     for (const session of gameSessions.values()) {
-      if (session.categoryId !== categoryId || session.status !== 'COMPLETED') continue
+      if (session.categoryId !== categoryId || session.status !== 'COMPLETED')
+        continue
       const previous = bestByParticipant.get(session.participantId)
       if (!previous || session.elapsedMs < previous.elapsedMs) {
         bestByParticipant.set(session.participantId, session)
@@ -168,7 +199,12 @@ function devMockApiPlugin() {
     const nickname = String(body?.nickname ?? '').trim()
     const phone = String(body?.phone ?? '').replace(/[-\s]/g, '')
     if (!nickname || !phone) {
-      return sendError(res, 400, 'VALIDATION_ERROR', '닉네임과 전화번호가 필요합니다.')
+      return sendError(
+        res,
+        400,
+        'VALIDATION_ERROR',
+        '닉네임과 전화번호가 필요합니다.',
+      )
     }
 
     const existing = participantsByPhone.get(phone)
@@ -217,10 +253,22 @@ function devMockApiPlugin() {
     const participantId = Number(body?.participantId)
     const categoryId = Number(body?.categoryId)
     const category = CATEGORIES.find((item) => item.id === categoryId)
-    if (!category) return sendError(res, 404, 'CATEGORY_NOT_FOUND', '존재하지 않는 카테고리입니다.')
+    if (!category)
+      return sendError(
+        res,
+        404,
+        'CATEGORY_NOT_FOUND',
+        '존재하지 않는 카테고리입니다.',
+      )
 
     const participant = findParticipantById(participantId)
-    if (!participant) return sendError(res, 404, 'PARTICIPANT_NOT_FOUND', '참가자를 찾을 수 없습니다.')
+    if (!participant)
+      return sendError(
+        res,
+        404,
+        'PARTICIPANT_NOT_FOUND',
+        '참가자를 찾을 수 없습니다.',
+      )
 
     const activeGame = [...gameSessions.values()].find(
       (session) =>
@@ -300,7 +348,13 @@ function devMockApiPlugin() {
 
   const handlePlayState = (res, participantId) => {
     const participant = findParticipantById(participantId)
-    if (!participant) return sendError(res, 404, 'PARTICIPANT_NOT_FOUND', '참가자를 찾을 수 없습니다.')
+    if (!participant)
+      return sendError(
+        res,
+        404,
+        'PARTICIPANT_NOT_FOUND',
+        '참가자를 찾을 수 없습니다.',
+      )
     const activeGame = [...gameSessions.values()].find(
       (session) =>
         session.participantId === participantId &&
@@ -316,9 +370,20 @@ function devMockApiPlugin() {
 
   const handleComplete = (res, gameSessionId, body) => {
     const session = gameSessions.get(gameSessionId)
-    if (!session) return sendError(res, 404, 'GAME_SESSION_NOT_FOUND', '게임 세션을 찾을 수 없습니다.')
+    if (!session)
+      return sendError(
+        res,
+        404,
+        'GAME_SESSION_NOT_FOUND',
+        '게임 세션을 찾을 수 없습니다.',
+      )
     if (session.status !== 'IN_PROGRESS') {
-      return sendError(res, 409, 'INVALID_GAME_STATE', '이미 처리된 경기입니다.')
+      return sendError(
+        res,
+        409,
+        'INVALID_GAME_STATE',
+        '이미 처리된 경기입니다.',
+      )
     }
 
     const elapsedMs = Math.round(Number(body?.elapsedMs) || 0)
@@ -352,7 +417,13 @@ function devMockApiPlugin() {
 
   const handleGetGame = (res, gameSessionId) => {
     const session = gameSessions.get(gameSessionId)
-    if (!session) return sendError(res, 404, 'GAME_SESSION_NOT_FOUND', '게임 세션을 찾을 수 없습니다.')
+    if (!session)
+      return sendError(
+        res,
+        404,
+        'GAME_SESSION_NOT_FOUND',
+        '게임 세션을 찾을 수 없습니다.',
+      )
 
     if (session.status !== 'COMPLETED') {
       return sendJson(res, 200, {
@@ -366,7 +437,8 @@ function devMockApiPlugin() {
     }
 
     const bestKey = `${session.participantId}:${session.categoryId}`
-    const personalBestMs = bestByParticipantCategory.get(bestKey) ?? session.elapsedMs
+    const personalBestMs =
+      bestByParticipantCategory.get(bestKey) ?? session.elapsedMs
     return sendJson(res, 200, {
       gameSessionId,
       status: 'COMPLETED',
@@ -392,7 +464,12 @@ function devMockApiPlugin() {
 
   const handleAdminLogin = (res, body) => {
     if (body?.password !== 'admin') {
-      return sendError(res, 401, 'ADMIN_UNAUTHORIZED', '관리자 비밀번호가 올바르지 않습니다.')
+      return sendError(
+        res,
+        401,
+        'ADMIN_UNAUTHORIZED',
+        '관리자 비밀번호가 올바르지 않습니다.',
+      )
     }
     return sendJson(res, 200, {
       token: adminToken,
@@ -402,26 +479,42 @@ function devMockApiPlugin() {
 
   const dashboard = () => {
     const sessions = [...gameSessions.values()]
-    const categoryCount = (id) => sessions.filter((session) => session.categoryId === id).length
+    const categoryCount = (id) =>
+      sessions.filter((session) => session.categoryId === id).length
     return {
       totalParticipants: participantsByPhone.size,
       totalPlayCount: sessions.length,
       freePlayCount: sessions.filter((session) => {
         const participant = findParticipantById(session.participantId)
-        return participant?.passes.find((pass) => pass.id === session.playPassId)?.type === 'FREE'
+        return (
+          participant?.passes.find((pass) => pass.id === session.playPassId)
+            ?.type === 'FREE'
+        )
       }).length,
       paidPlayCount: sessions.filter((session) => {
         const participant = findParticipantById(session.participantId)
-        return participant?.passes.find((pass) => pass.id === session.playPassId)?.type === 'PAID'
+        return (
+          participant?.passes.find((pass) => pass.id === session.playPassId)
+            ?.type === 'PAID'
+        )
       }).length,
-      totalPaymentAmountKrw: payments.reduce((sum, payment) => sum + payment.amountKrw, 0),
-      availablePaidPassCount: [...participantsByPhone.values()].flatMap((participant) => participant.passes)
-        .filter((pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE').length,
+      totalPaymentAmountKrw: payments.reduce(
+        (sum, payment) => sum + payment.amountKrw,
+        0,
+      ),
+      availablePaidPassCount: [...participantsByPhone.values()]
+        .flatMap((participant) => participant.passes)
+        .filter((pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE')
+        .length,
       ch01PlayCount: categoryCount(1),
       ch02PlayCount: categoryCount(2),
       ch03PlayCount: categoryCount(3),
-      completedGameCount: sessions.filter((session) => session.status === 'COMPLETED').length,
-      invalidatedGameCount: sessions.filter((session) => session.status === 'INVALIDATED').length,
+      completedGameCount: sessions.filter(
+        (session) => session.status === 'COMPLETED',
+      ).length,
+      invalidatedGameCount: sessions.filter(
+        (session) => session.status === 'INVALIDATED',
+      ).length,
     }
   }
 
@@ -446,18 +539,39 @@ function devMockApiPlugin() {
       .filter((payment) => payment.participantId === participant.participantId)
       .sort((a, b) => b.id - a.id),
     summary: {
-      freeParticipationUsed: participant.passes.some((pass) => pass.type === 'FREE' && pass.status === 'CONSUMED'),
-      availablePassCount: participant.passes.filter((pass) => pass.status === 'AVAILABLE').length,
-      availablePaidPassCount: participant.passes.filter((pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE').length,
-      totalPlayCount: [...gameSessions.values()].filter((session) => session.participantId === participant.participantId).length,
-      completedGameCount: [...gameSessions.values()].filter((session) => session.participantId === participant.participantId && session.status === 'COMPLETED').length,
-      invalidatedGameCount: [...gameSessions.values()].filter((session) => session.participantId === participant.participantId && session.status === 'INVALIDATED').length,
+      freeParticipationUsed: participant.passes.some(
+        (pass) => pass.type === 'FREE' && pass.status === 'CONSUMED',
+      ),
+      availablePassCount: participant.passes.filter(
+        (pass) => pass.status === 'AVAILABLE',
+      ).length,
+      availablePaidPassCount: participant.passes.filter(
+        (pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE',
+      ).length,
+      totalPlayCount: [...gameSessions.values()].filter(
+        (session) => session.participantId === participant.participantId,
+      ).length,
+      completedGameCount: [...gameSessions.values()].filter(
+        (session) =>
+          session.participantId === participant.participantId &&
+          session.status === 'COMPLETED',
+      ).length,
+      invalidatedGameCount: [...gameSessions.values()].filter(
+        (session) =>
+          session.participantId === participant.participantId &&
+          session.status === 'INVALIDATED',
+      ).length,
       totalPaymentAmountKrw: payments
-        .filter((payment) => payment.participantId === participant.participantId)
+        .filter(
+          (payment) => payment.participantId === participant.participantId,
+        )
         .reduce((sum, payment) => sum + payment.amountKrw, 0),
       bestRecords: CATEGORIES.map((category) => ({
         categoryCode: category.code,
-        elapsedMs: bestByParticipantCategory.get(`${participant.participantId}:${category.id}`) ?? null,
+        elapsedMs:
+          bestByParticipantCategory.get(
+            `${participant.participantId}:${category.id}`,
+          ) ?? null,
       })),
     },
   })
@@ -467,8 +581,12 @@ function devMockApiPlugin() {
     const query = String(searchValue ?? '').trim()
     const normalizedPhone = query.replace(/[-\s]/g, '')
     const matches = /^[0-9-\s]+$/.test(query)
-      ? [...participantsByPhone.values()].filter((participant) => participant.phone === normalizedPhone)
-      : [...participantsByPhone.values()].filter((participant) => participant.nickname.includes(query))
+      ? [...participantsByPhone.values()].filter(
+          (participant) => participant.phone === normalizedPhone,
+        )
+      : [...participantsByPhone.values()].filter((participant) =>
+          participant.nickname.includes(query),
+        )
     if (legacyPhone) {
       if (matches[0]) return sendJson(res, 200, adminParticipant(matches[0]))
       return sendError(res, 404, 'PARTICIPANT_NOT_FOUND')
@@ -476,12 +594,49 @@ function devMockApiPlugin() {
     return sendJson(res, 200, matches.map(adminParticipant))
   }
 
+  const handleAdminParticipantHistory = (req, res) => {
+    if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
+    const participants = [...participantsByPhone.values()]
+      .sort((left, right) => right.participantId - left.participantId)
+      .map((participant) => ({
+        id: participant.participantId,
+        nickname: participant.nickname,
+        phone: participant.phone,
+        createdAt: participant.passes[0]?.createdAt ?? new Date().toISOString(),
+      }))
+    return sendJson(res, 200, {
+      totalParticipants: participants.length,
+      participants,
+    })
+  }
+
+  const handleAdminPayments = (req, res) => {
+    if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
+    const rows = payments
+      .map((payment) => {
+        const participant = findParticipantById(payment.participantId)
+        return {
+          ...payment,
+          nickname: participant?.nickname ?? '알 수 없음',
+          phone: participant?.phone ?? '',
+        }
+      })
+      .sort((left, right) => right.id - left.id)
+    return sendJson(res, 200, {
+      totalPaymentAmountKrw: rows.reduce((sum, payment) => sum + payment.amountKrw, 0),
+      totalPaymentCount: rows.length,
+      totalPaidPassQuantity: rows.reduce((sum, payment) => sum + payment.quantity, 0),
+      payments: rows,
+    })
+  }
+
   const handleIssuePass = (req, res, participantId, body) => {
     if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
     const participant = findParticipantById(participantId)
     if (!participant) return sendError(res, 404, 'PARTICIPANT_NOT_FOUND')
     const quantity = Number(body?.quantity ?? 1)
-    if (!Number.isInteger(quantity) || quantity <= 0) return sendError(res, 400, 'VALIDATION_ERROR')
+    if (!Number.isInteger(quantity) || quantity <= 0)
+      return sendError(res, 400, 'VALIDATION_ERROR')
     const payment = {
       id: nextPaymentId++,
       participantId,
@@ -504,7 +659,9 @@ function devMockApiPlugin() {
     return sendJson(res, 201, {
       quantity,
       amountKrw: payment.amountKrw,
-      availablePaidPassCount: participant.passes.filter((pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE').length,
+      availablePaidPassCount: participant.passes.filter(
+        (pass) => pass.type === 'PAID' && pass.status === 'AVAILABLE',
+      ).length,
       payment,
       passes: issued,
     })
@@ -515,12 +672,19 @@ function devMockApiPlugin() {
     const session = gameSessions.get(gameSessionId)
     if (!session) return sendError(res, 404, 'GAME_SESSION_NOT_FOUND')
     if (session.status === 'INVALIDATED') {
-      return sendError(res, 409, 'INVALID_GAME_STATE', '이미 무효화된 경기입니다.')
+      return sendError(
+        res,
+        409,
+        'INVALID_GAME_STATE',
+        '이미 무효화된 경기입니다.',
+      )
     }
     session.status = 'INVALIDATED'
     session.invalidationReason = body?.reason ?? ''
     const participant = findParticipantById(session.participantId)
-    const pass = participant?.passes.find((item) => item.id === session.playPassId)
+    const pass = participant?.passes.find(
+      (item) => item.id === session.playPassId,
+    )
     if (body?.restorePass && participant && pass) {
       pass.status = 'AVAILABLE'
       participant.availablePassCount += 1
@@ -549,7 +713,9 @@ function devMockApiPlugin() {
           if (method === 'POST' && pathname === '/participants/identify') {
             return handleIdentify(res, await readJsonBody(req))
           }
-          const playStateMatch = pathname.match(/^\/participants\/(\d+)\/play-state$/)
+          const playStateMatch = pathname.match(
+            /^\/participants\/(\d+)\/play-state$/,
+          )
           if (method === 'GET' && playStateMatch) {
             return handlePlayState(res, Number(playStateMatch[1]))
           }
@@ -559,16 +725,25 @@ function devMockApiPlugin() {
           if (method === 'POST' && pathname === '/game-sessions') {
             return handleStartGame(res, await readJsonBody(req))
           }
-          const completeMatch = pathname.match(/^\/game-sessions\/(\d+)\/complete$/)
+          const completeMatch = pathname.match(
+            /^\/game-sessions\/(\d+)\/complete$/,
+          )
           if (method === 'POST' && completeMatch) {
-            return handleComplete(res, Number(completeMatch[1]), await readJsonBody(req))
+            return handleComplete(
+              res,
+              Number(completeMatch[1]),
+              await readJsonBody(req),
+            )
           }
           const gameSessionMatch = pathname.match(/^\/game-sessions\/(\d+)$/)
           if (method === 'GET' && gameSessionMatch) {
             return handleGetGame(res, Number(gameSessionMatch[1]))
           }
           if (method === 'GET' && pathname === '/rankings') {
-            return handleRankings(res, Number(url.searchParams.get('categoryId')))
+            return handleRankings(
+              res,
+              Number(url.searchParams.get('categoryId')),
+            )
           }
           if (method === 'POST' && pathname === '/admin/login') {
             return handleAdminLogin(res, await readJsonBody(req))
@@ -577,16 +752,36 @@ function devMockApiPlugin() {
             if (!isAdmin(req)) return sendError(res, 401, 'ADMIN_UNAUTHORIZED')
             return sendJson(res, 200, dashboard())
           }
+          if (method === 'GET' && pathname === '/admin/participants/all') {
+            return handleAdminParticipantHistory(req, res)
+          }
+          if (method === 'GET' && pathname === '/admin/payments') {
+            return handleAdminPayments(req, res)
+          }
           if (method === 'GET' && pathname === '/admin/participants') {
             const query = url.searchParams.get('query')
             if (query != null) return handleAdminSearch(req, res, query)
-            return handleAdminSearch(req, res, url.searchParams.get('phone'), true)
+            return handleAdminSearch(
+              req,
+              res,
+              url.searchParams.get('phone'),
+              true,
+            )
           }
-          const passMatch = pathname.match(/^\/admin\/participants\/(\d+)\/passes$/)
+          const passMatch = pathname.match(
+            /^\/admin\/participants\/(\d+)\/passes$/,
+          )
           if (method === 'POST' && passMatch) {
-            return handleIssuePass(req, res, Number(passMatch[1]), await readJsonBody(req))
+            return handleIssuePass(
+              req,
+              res,
+              Number(passMatch[1]),
+              await readJsonBody(req),
+            )
           }
-          const invalidateMatch = pathname.match(/^\/admin\/game-sessions\/(\d+)\/invalidate$/)
+          const invalidateMatch = pathname.match(
+            /^\/admin\/game-sessions\/(\d+)\/invalidate$/,
+          )
           if (method === 'POST' && invalidateMatch) {
             return handleInvalidate(
               req,
@@ -598,7 +793,12 @@ function devMockApiPlugin() {
 
           next()
         } catch (error) {
-          sendError(res, 500, 'MOCK_ERROR', error instanceof Error ? error.message : 'mock error')
+          sendError(
+            res,
+            500,
+            'MOCK_ERROR',
+            error instanceof Error ? error.message : 'mock error',
+          )
         }
       })
     },
@@ -610,7 +810,57 @@ export default defineConfig(({ mode }) => {
   const devApiTarget = env.DEV_API_TARGET
 
   return {
-    plugins: [react(), tailwindcss(), ...(devApiTarget ? [] : [devMockApiPlugin()])],
+    plugins: [
+      react(),
+      tailwindcss(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: [
+          'favicon.svg',
+          'icons/admin-pwa-192.png',
+          'icons/admin-pwa-512.png',
+        ],
+        manifest: {
+          name: '멋쟁이 타자처럼 운영자',
+          short_name: '타자 운영자',
+          start_url: '/admin',
+          scope: '/',
+          display: 'standalone',
+          orientation: 'portrait-primary',
+          theme_color: '#730c02',
+          background_color: '#f4f5f0',
+          icons: [
+            {
+              src: '/icons/admin-pwa-192.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: '/icons/admin-pwa-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+            },
+            {
+              src: '/icons/admin-pwa-maskable-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+          ],
+        },
+        workbox: {
+          navigateFallbackDenylist: [/^\/api\//],
+          runtimeCaching: [
+            {
+              urlPattern: /^\/api\//,
+              handler: 'NetworkOnly',
+              options: { cacheName: 'api-network-only' },
+            },
+          ],
+        },
+      }),
+      ...(devApiTarget ? [] : [devMockApiPlugin()]),
+    ],
     server: {
       // .env.local에 DEV_API_TARGET=http://실제서버주소 를 설정하면 Mock 대신
       // 이 프록시가 동작한다. 백엔드 주소가 정해지면 이 한 줄만 바꾸면 된다.

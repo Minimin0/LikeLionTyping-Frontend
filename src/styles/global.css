@@ -178,6 +178,9 @@
 .radio-brand strong {
   font-weight: 600;
 }
+.radio-brand-admin {
+  display: none;
+}
 .radio-nav {
   display: flex;
   gap: 20px;
@@ -1052,6 +1055,43 @@
 }
 .radio-admin-page button {
   border-radius: 4px !important;
+}
+@media (max-width: 767px) {
+  .radio-app-admin .radio-header-inner {
+    min-height: 56px;
+    padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  }
+  .radio-app-admin .radio-brand {
+    min-width: 0;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .radio-app-admin .radio-brand-public,
+  .radio-app-admin .radio-nav {
+    display: none;
+  }
+  .radio-app-admin .radio-brand-admin {
+    display: inline;
+  }
+  .radio-app-admin .radio-main {
+    min-height: calc(100vh - 56px);
+    padding: 16px 16px max(24px, env(safe-area-inset-bottom));
+  }
+  .radio-app-admin .admin-studio {
+    width: 100%;
+  }
+  .radio-admin-page {
+    overflow-wrap: anywhere;
+  }
+  .radio-admin-page input,
+  .radio-admin-page textarea,
+  .radio-admin-page select {
+    font-size: 16px;
+  }
+  .radio-admin-page a,
+  .radio-admin-page button {
+    min-height: 44px;
+  }
 }
 
 /* 1920px 행사 화면 기준. 모바일 최적화는 기획 범위 밖이지만 좁은 창에서 내용이 사라지지 않게만 한다. */
