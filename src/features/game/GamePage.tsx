@@ -20,6 +20,7 @@ import {
 } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
 import { ParticipantStatus } from '../../shared/ParticipantStatus'
+import { channelTrackFromCode, useAppAudio } from '../../shared/audio/AudioProvider'
 import { displayCategoryName } from '../../shared/utils/categoryDisplay'
 import { countKeystrokesOfText, countMatchedKeystrokes } from '../../shared/utils/typingCount'
 import { CountdownOverlay } from './components/CountdownOverlay'
@@ -41,6 +42,7 @@ export function GamePage() {
   const categoryId = Number(categoryParam)
   const navigate = useNavigate()
   const { participant, activeGame, setParticipant, setActiveGame } = useSession()
+  const { setBgmTrack, setBgmDucked } = useAppAudio()
   const game = activeGame?.category.id === categoryId ? activeGame : null
   const categories = useQuery({
     queryKey: ['categories'],
@@ -152,6 +154,16 @@ export function GamePage() {
   // early return보다 먼저 선언해야 하는 훅들이라 game/sentence가 아직 없을 수 있다.
   // (Rules of Hooks: 아래 !participant / !game 가드보다 위에서 항상 같은 순서로 호출)
   const sentence = game ? game.sentences[game.currentIndex] : undefined
+
+  useEffect(() => {
+    if (!game) return
+    setBgmTrack(channelTrackFromCode(game.category.code))
+  }, [game, setBgmTrack])
+
+  useEffect(() => {
+    setBgmDucked(state.phase === 'COUNTDOWN')
+    return () => setBgmDucked(false)
+  }, [setBgmDucked, state.phase])
 
   // 카운트다운 시작 시각(game.startedAtMs) 기준 경과 시간. 새로고침 복구와 같은
   // 절대 시각 기준(now())을 그대로 쓰므로 표시값과 공식 기록이 어긋나지 않는다.

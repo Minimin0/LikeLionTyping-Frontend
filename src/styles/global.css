@@ -199,6 +199,11 @@
   text-decoration: underline;
   text-underline-offset: 4px;
 }
+.radio-audio-toggle {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
 .radio-participant-status {
   display: grid;
   gap: 3px;

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { RotateCcw, Trophy } from 'lucide-react'
+import { useEffect } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { errorMessage } from '../../shared/api/client'
 import { getGame } from '../../shared/api/endpoints'
@@ -12,6 +13,7 @@ import {
   secondaryButtonClass,
 } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
+import { useAppAudio } from '../../shared/audio/AudioProvider'
 
 const seconds = (milliseconds: number | null) =>
   milliseconds == null ? '-' : `${(milliseconds / 1_000).toFixed(3)}초`
@@ -21,6 +23,7 @@ export function ResultPage() {
   const [search] = useSearchParams()
   const location = useLocation()
   const id = Number(gameSessionId)
+  const { playGameComplete } = useAppAudio()
   const result = useQuery({
     queryKey: ['game-session', id],
     queryFn: () => getGame(id),
@@ -29,6 +32,11 @@ export function ResultPage() {
     initialData: (location.state as GameResult | null) ?? undefined,
     enabled: Number.isInteger(id),
   })
+
+  useEffect(() => {
+    if (result.data?.status !== 'COMPLETED') return
+    playGameComplete(id)
+  }, [id, playGameComplete, result.data?.status])
 
   return (
     // 결과 재조회(initialData/query) 동작은 유지한다. 이 className은 디자인 전용이다.
