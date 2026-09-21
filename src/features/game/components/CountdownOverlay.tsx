@@ -6,6 +6,7 @@
  * 배경도 종이 질감 그대로, 상단 헤더도 그대로 남겨서 다른 화면처럼 느껴지지 않게 한다.
  */
 import { useEffect, useRef, useState } from 'react'
+import { useAppAudio } from '../../../shared/audio/AudioProvider'
 
 /** 게임 시작 전 카운트다운 초. 이 값이 0이 되는 순간부터 시간 측정이 시작된다. */
 const COUNTDOWN_SECONDS = 3
@@ -16,6 +17,7 @@ interface CountdownOverlayProps {
 
 export function CountdownOverlay({ onComplete }: CountdownOverlayProps) {
   const [count, setCount] = useState(COUNTDOWN_SECONDS)
+  const { playCountdownTick, playCountdownGo } = useAppAudio()
 
   // onComplete는 부모가 렌더링할 때마다 새 함수가 될 수 있다.
   // 이걸 effect 의존성에 그대로 두면 부모 리렌더마다 타이머가 초기화돼
@@ -24,6 +26,11 @@ export function CountdownOverlay({ onComplete }: CountdownOverlayProps) {
   useEffect(() => {
     onCompleteRef.current = onComplete
   }, [onComplete])
+
+  useEffect(() => {
+    if (count > 0) playCountdownTick()
+    else playCountdownGo()
+  }, [count, playCountdownGo, playCountdownTick])
 
   useEffect(() => {
     if (count <= 0) {

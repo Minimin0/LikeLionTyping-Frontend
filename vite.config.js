@@ -850,6 +850,7 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallbackDenylist: [/^\/api\//],
+          globIgnores: ['**/*.mp3', '**/*.wav'],
           runtimeCaching: [
             {
               urlPattern: /^\/api\//,

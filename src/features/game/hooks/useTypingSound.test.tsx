@@ -35,6 +35,18 @@ function Harness() {
       >
         play key
       </button>
+      <button
+        type="button"
+        onClick={() => playTypingSound(keyboardEvent('Space'))}
+      >
+        play space
+      </button>
+      <button
+        type="button"
+        onClick={() => playTypingSound(keyboardEvent('Enter'))}
+      >
+        play enter
+      </button>
     </>
   )
 }
@@ -155,6 +167,30 @@ describe('audio pool', () => {
     expect(instances).toHaveLength(0)
   })
 
+  it('uses the new key, space, and enter assets', async () => {
+    const instances: FakeAudio[] = []
+    class FakeAudio {
+      currentTime = 0
+      preload = ''
+      volume = 1
+      play = vi.fn(() => Promise.resolve())
+
+      constructor(public src: string) {
+        instances.push(this)
+      }
+    }
+    vi.stubGlobal('Audio', FakeAudio)
+    render(<Harness />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'play key' }))
+    await userEvent.click(screen.getByRole('button', { name: 'play space' }))
+    await userEvent.click(screen.getByRole('button', { name: 'play enter' }))
+
+    expect(played(instances, 'typing_key')).toBeTruthy()
+    expect(played(instances, 'typing_space')).toBeTruthy()
+    expect(played(instances, 'typing_enter')).toBeTruthy()
+  })
+
   it('swallows play rejection', async () => {
     const audio = {
       currentTime: 3,
@@ -189,3 +225,9 @@ describe('audio pool', () => {
     expect(audios[0].volume).toBe(0.22)
   })
 })
+
+type FakeAudio = { src: string; play: ReturnType<typeof vi.fn> }
+
+function played(instances: FakeAudio[], srcPart: string) {
+  return instances.some((audio) => audio.src.includes(srcPart) && audio.play.mock.calls.length)
+}

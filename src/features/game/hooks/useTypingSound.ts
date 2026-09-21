@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import enterSoundUrl from '../assets/sounds/typewriter_enter.wav'
-import keySoundUrl from '../assets/sounds/typewriter_key.wav'
-import spaceSoundUrl from '../assets/sounds/typewriter_space.wav'
+import enterSoundUrl from '../assets/sounds/typing_enter.mp3'
+import keySoundUrl from '../assets/sounds/typing_key.wav'
+import spaceSoundUrl from '../assets/sounds/typing_space.mp3'
 
 const STORAGE_KEY = 'likelion-typing-sound-enabled'
 
