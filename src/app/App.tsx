@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Trophy, UserRound } from 'lucide-react'
+import { Music, Trophy, UserRound, VolumeX } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminPage } from '../features/admin/AdminPage'
@@ -17,10 +17,20 @@ import { getParticipantPlayState } from '../shared/api/endpoints'
 import { ROUTE_PATTERNS, ROUTES } from '../shared/constants/routes'
 import { RouteErrorBoundary } from '../shared/ErrorBoundary'
 import { ParticipantStatus } from '../shared/ParticipantStatus'
+import { AudioProvider, useAppAudio } from '../shared/audio/AudioProvider'
 
 export default function App() {
+  return (
+    <AudioProvider>
+      <AppLayout />
+    </AudioProvider>
+  )
+}
+
+function AppLayout() {
   const { pathname } = useLocation()
   const { participant, setParticipant } = useSession()
+  const { bgmEnabled, toggleBgm } = useAppAudio()
   const isAdminRoute = pathname.startsWith(ROUTES.ADMIN)
   const showParticipantStatus = pathname === ROUTES.LANDING && participant
   const playState = useQuery({
@@ -59,6 +69,17 @@ export default function App() {
                 nickname={participant.nickname}
                 availablePassCount={participant.availablePassCount}
               />
+            )}
+            {!isAdminRoute && (
+              <button
+                type="button"
+                className="radio-nav-link radio-audio-toggle"
+                aria-label={bgmEnabled ? '배경음악 끄기' : '배경음악 켜기'}
+                onClick={toggleBgm}
+              >
+                {bgmEnabled ? <Music className="size-4" /> : <VolumeX className="size-4" />}
+                배경음악
+              </button>
             )}
             {/* 참가자 화면에는 운영자 진입 링크를 노출하지 않는다. 운영자는 /admin으로 직접 접근한다. */}
             {pathname !== ROUTES.LANDING && (

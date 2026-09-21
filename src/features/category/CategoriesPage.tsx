@@ -15,6 +15,7 @@ import selectionArrow from '../../shared/brand/images/selection-arrow.png'
 import { Alert, Busy, buttonClass } from '../../shared/components'
 import { ROUTES } from '../../shared/constants/routes'
 import { ParticipantStatus } from '../../shared/ParticipantStatus'
+import { channelTrackFromCode, useAppAudio } from '../../shared/audio/AudioProvider'
 import { displayCategoryName } from '../../shared/utils/categoryDisplay'
 
 // API가 주는 카테고리 이름은 그대로 사용하고, 화면 설명만 채널 순서에 맞게 보완한다.
@@ -48,6 +49,7 @@ const displayCode = (code: string) => code.replace(/^CH\.?(\d+)$/i, 'CH.$1')
 export function CategoriesPage() {
   const navigate = useNavigate()
   const { participant, setParticipant } = useSession()
+  const { setBgmTrack } = useAppAudio()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const categories = useQuery({
     queryKey: ['categories'],
@@ -85,6 +87,11 @@ export function CategoriesPage() {
       availablePassCount: playState.data.availablePassCount,
     })
   }, [participant, playState.data, setParticipant])
+
+  useEffect(() => {
+    if (!selected) return
+    setBgmTrack(channelTrackFromCode(selected.code))
+  }, [selected, setBgmTrack])
 
   // 참가자 정보가 없으면 참가자 확인 화면으로 보낸다. (팀 확정: 목적지만 /participate)
   if (!participant) return <Navigate to={ROUTES.PARTICIPATE} replace />
